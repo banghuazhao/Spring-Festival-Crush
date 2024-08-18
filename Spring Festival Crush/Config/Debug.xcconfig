@@ -1,0 +1,13 @@
+//
+// Created by Banghua Zhao on 18/08/2024
+// Copyright Apps Bay Limited. All rights reserved.
+//
+  
+
+// Configuration settings file format documentation can be found at:
+// https://help.apple.com/xcode/#/dev745c5c974
+
+BannerAdUnitID = ca-app-pub-3940256099942544/2435281174
+InterstitialAdID = ca-app-pub-3940256099942544/4411468910
+GADApplicationIdentifier = ca-app-pub-3940256099942544~1458002511
+

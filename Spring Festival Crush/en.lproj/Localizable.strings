@@ -1,0 +1,14 @@
+/* 
+  Localizable.strings
+  Spring Festival Crush
+
+  Created by Banghua Zhao on 1/22/20.
+  Copyright © 2020 Banghua Zhao. All rights reserved.
+*/
+
+"Moves" = "Moves";
+"Score" = "Score";
+"Shuffle" = "Shuffle";
+"Target" = "Target";
+"Level" = "Level";
+"Music" = "Music";

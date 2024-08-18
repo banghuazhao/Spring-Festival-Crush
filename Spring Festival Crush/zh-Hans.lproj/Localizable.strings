@@ -1,0 +1,80 @@
+/* 
+  Localizable.strings
+  Spring Festival Crush
+
+  Created by Banghua Zhao on 1/22/20.
+  Copyright © 2020 Banghua Zhao. All rights reserved.
+*/
+
+/* 更多 Apps*/
+"More Apps" = "更多应用";
+"More Apps (Ads)" = "更多应用 (广告)";
+
+"Apps" = "Apps";
+
+"Check out more Apps made by us" = "发现更多我们的 App";
+
+"Image Guru" = "咕噜滤镜";
+"Photo Editor,Filter" = "多风格修图,调色,相片编辑";
+
+"We Play Piano" = "弹钢琴";
+"Piano Keyboard" = "钢琴键盘&钢琴练习app";
+
+"Mint Translate" = "薄荷翻译";
+"Text Translator" = "多语言文字文本互译app";
+
+"Yes Habit" = "签签习惯";
+"Habit Tracker" = "习惯追踪养成的自律激励app";
+
+"Metronome Go" = "打拍节拍器";
+"tempo,bpm-counter" = "节拍器&节奏器app";
+
+"Relaxing Up" = "冥想Up";
+"Meditation,Healing" = "正念睡眠,深度睡眠,专注力训练";
+
+"Instant Face" = "Instant Face";
+"Avatar Maker" = "Avatar Maker";
+
+"Minesweeper Z" = "经典扫雷";
+"Minesweeper App" = "益智扫雷游戏";
+
+"Solitaire Guru" = "纸牌大师";
+"klondike & solitaire" = "经典纸牌接龙游戏";
+
+"Falling Block Puzzle" = "经典掌机方块";
+"Arcade Game&Brick Game" = "方块游戏开启无尽积分挑战模式";
+
+"Sudoku Lover" = "数独迷";
+"Math Games" = "九宫格数字逻辑解谜益智游戏";
+
+"Saving Ambulance!Sliding Block" ="拯救救护车";
+"Sliding Puzzle With Cars" = "汽车华容道益智游戏";
+
+"Fling Knife" = "西瓜飞刀";
+"Knife games" = "见缝插飞刀";
+
+"Memory Games" = "记忆大作战";
+"Match Pairs Card" = "卡片配对游戏";
+
+"Money Tracker" = "极简记账";
+"Budget, Expense & Bill Planner" = "预算管理&存钱计划专家";
+
+"Finance Go" = "美股财报通";
+"Financial Reports & Investing" = "专注财经资讯与价值投资";
+
+"Ratios Go" = "财务比率计算器";
+"Financial Ratios Go" = "财务比率计算器";
+"Finance, Ratios, Investing" = "金融, 比率计算, 投资";
+
+"BMI Diary" = "BMI 日记";
+"Fitness, Weight Loss &Health" = "极简健康减肥健身BMI记录工具";
+
+"Novels Hub" = "英文小说站";
+"Fiction eBooks Library!" = "必读英文电子书合集";
+
+"Moves" = "剩余步数";
+"Score" = "得分";
+"Shuffle" = "换一换";
+"Target" = "目标得分";
+"Level" = "关卡";
+"Music" = "背景音乐";
