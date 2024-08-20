@@ -1,6 +1,6 @@
 //
 //  AppItem.swift
-//  Financial Statements Go
+//  Spring Festival Crush
 //
 //  Created by Banghua Zhao on 1/1/21.
 //  Copyright © 2021 Banghua Zhao. All rights reserved.
@@ -8,7 +8,8 @@
 
 import UIKit
 
-struct AppItem {
+struct AppItem: Identifiable {
+    let id = UUID()
     var title: String
     var detail: String
     let icon: UIImage?

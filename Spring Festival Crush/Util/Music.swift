@@ -8,7 +8,7 @@
 
 import AVFoundation
 
-var backgroundMusicPlayer: AVAudioPlayer!
+var backgroundMusicPlayer: AVAudioPlayer?
 
 func playBackgroundMusic(filename: String, repeatForever: Bool) {
     let resourceUrl = Bundle.main.url(forResource:
@@ -22,15 +22,18 @@ func playBackgroundMusic(filename: String, repeatForever: Bool) {
         try backgroundMusicPlayer =
             AVAudioPlayer(contentsOf: url)
         if repeatForever {
-            backgroundMusicPlayer.numberOfLoops = -1
+            backgroundMusicPlayer?.numberOfLoops = -1
         } else {
-            backgroundMusicPlayer.numberOfLoops = 0
+            backgroundMusicPlayer?.numberOfLoops = 0
         }
-        backgroundMusicPlayer.prepareToPlay()
-        backgroundMusicPlayer.play()
+        backgroundMusicPlayer?.prepareToPlay()
+        backgroundMusicPlayer?.play()
     } catch {
         print("Could not create audio player!")
         return
     }
 }
 
+func stopPlayBackgroundMusic() {
+    backgroundMusicPlayer?.stop()
+}
