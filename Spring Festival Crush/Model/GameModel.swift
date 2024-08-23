@@ -17,6 +17,7 @@ class GameModel: ObservableObject {
         case onMatchedSprites(Set<Chain>)
         case onFallingCookies([[Cookie]])
         case onNewSprites([[Cookie]])
+        case onGameOver
     }
 
     enum GameState {
@@ -35,13 +36,26 @@ class GameModel: ObservableObject {
     @Published var moves: Int = 0
     @Published var score: Int = 0
 
-    var level: Level
+    var level: Level!
+    var zodiac: Zodiac!
 
     var invokeCommand: ((Command) -> Void)?
     var invokeCommandAsync: (@MainActor (CommandAsync) async -> Void)?
 
+    var numColumns: Int {
+        level.numColumns
+    }
+
+    var numRows: Int {
+        level.numRows
+    }
+    
+    var gameBackground: String {
+        zodiac.gameBackground
+    }
+
     var levelLabel: String {
-        "Level\n \(currentLevel)/\(numLevels)"
+        "Level\n \(currentLevel)/\(zodiac.numLevels)"
     }
 
     var scoreLabel: String {
@@ -52,8 +66,8 @@ class GameModel: ObservableObject {
         "Moves\n \(moves)/\(level.maximumMoves)"
     }
 
-    init() {
-        level = Level(filename: "Level_\(0)")
+    func selectZodiac(_ chineseZodiac: ChineseZodiac) {
+        zodiac = Zodiac(numLevels: 20, chineseZodiac: chineseZodiac)
     }
 
     func selectLevel(_ selectedLevel: Int) {
@@ -95,6 +109,9 @@ class GameModel: ObservableObject {
 
         if moves > level.maximumMoves {
             gameState = .lose
+            Task { @MainActor in
+                await invokeCommandAsync?(.onGameOver)
+            }
         }
     }
 
@@ -153,7 +170,7 @@ class GameModel: ObservableObject {
     }
 
     func onTapNextLevel() {
-        if currentLevel >= numLevels {
+        if currentLevel >= zodiac.numLevels {
             gameState = .notStart
         } else {
             selectLevel(currentLevel + 1)

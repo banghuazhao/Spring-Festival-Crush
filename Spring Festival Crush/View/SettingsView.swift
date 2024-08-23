@@ -5,6 +5,7 @@ import SwiftUI
 #endif
 
 struct SettingsView: View {
+    @EnvironmentObject var themeModel: ThemeModel
     @Environment(\.presentationMode) var presentationMode
     @State var isAds: Bool = false
 
@@ -185,8 +186,9 @@ struct SettingsView: View {
                 }
             }
         }
-        .background(Color("#F4ECDA"))
+        .background(themeModel.pageBackgroundColor)
         .navigationBarTitle("Settings")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 

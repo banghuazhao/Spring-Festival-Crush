@@ -13,13 +13,16 @@
 		994625A12C71CD9600FC2C6A /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = 994625A02C71CD9600FC2C6A /* SnapKit */; };
 		994625A32C720A2800FC2C6A /* Match3GameApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 994625A22C720A2800FC2C6A /* Match3GameApp.swift */; };
 		994625A52C720A6C00FC2C6A /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 994625A42C720A6C00FC2C6A /* MainView.swift */; };
-		994625A72C720AA600FC2C6A /* LevelSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 994625A62C720AA600FC2C6A /* LevelSelectionView.swift */; };
+		994625A72C720AA600FC2C6A /* SelectLevelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 994625A62C720AA600FC2C6A /* SelectLevelView.swift */; };
 		994625A92C720AE900FC2C6A /* GameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 994625A82C720AE900FC2C6A /* GameView.swift */; };
 		994625AC2C720E5600FC2C6A /* GameModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 994625AB2C720E5600FC2C6A /* GameModel.swift */; };
 		994625B22C7493ED00FC2C6A /* LevelCompleteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 994625B12C7493ED00FC2C6A /* LevelCompleteView.swift */; };
 		994625B42C74A06000FC2C6A /* LevelFailedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 994625B32C74A06000FC2C6A /* LevelFailedView.swift */; };
 		994625B62C74A3D700FC2C6A /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 994625B52C74A3D700FC2C6A /* SettingsView.swift */; };
 		994625B92C74A3F700FC2C6A /* SelectZodiacView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 994625B82C74A3F700FC2C6A /* SelectZodiacView.swift */; };
+		994625BB2C76022C00FC2C6A /* Zodiac.swift in Sources */ = {isa = PBXBuildFile; fileRef = 994625BA2C76022C00FC2C6A /* Zodiac.swift */; };
+		994625BD2C76092000FC2C6A /* SKSpriteNode+Entension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 994625BC2C76092000FC2C6A /* SKSpriteNode+Entension.swift */; };
+		994625BF2C784CCB00FC2C6A /* ThemeModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 994625BE2C784CCB00FC2C6A /* ThemeModel.swift */; };
 		9955DB9823D7E424007786D5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9955DB9723D7E424007786D5 /* Assets.xcassets */; };
 		9955DB9B23D7E424007786D5 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 9955DB9923D7E424007786D5 /* LaunchScreen.storyboard */; };
 		9955DBA423D7E4D2007786D5 /* SKSpriteNode+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9955DBA323D7E4D2007786D5 /* SKSpriteNode+Extension.swift */; };
@@ -79,13 +82,16 @@
 		99340CE42C7160AF0096BBF5 /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
 		994625A22C720A2800FC2C6A /* Match3GameApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Match3GameApp.swift; sourceTree = "<group>"; };
 		994625A42C720A6C00FC2C6A /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
-		994625A62C720AA600FC2C6A /* LevelSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LevelSelectionView.swift; sourceTree = "<group>"; };
+		994625A62C720AA600FC2C6A /* SelectLevelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectLevelView.swift; sourceTree = "<group>"; };
 		994625A82C720AE900FC2C6A /* GameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameView.swift; sourceTree = "<group>"; };
 		994625AB2C720E5600FC2C6A /* GameModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameModel.swift; sourceTree = "<group>"; };
 		994625B12C7493ED00FC2C6A /* LevelCompleteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LevelCompleteView.swift; sourceTree = "<group>"; };
 		994625B32C74A06000FC2C6A /* LevelFailedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LevelFailedView.swift; sourceTree = "<group>"; };
 		994625B52C74A3D700FC2C6A /* SettingsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		994625B82C74A3F700FC2C6A /* SelectZodiacView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectZodiacView.swift; sourceTree = "<group>"; };
+		994625BA2C76022C00FC2C6A /* Zodiac.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Zodiac.swift; sourceTree = "<group>"; };
+		994625BC2C76092000FC2C6A /* SKSpriteNode+Entension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SKSpriteNode+Entension.swift"; sourceTree = "<group>"; };
+		994625BE2C784CCB00FC2C6A /* ThemeModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeModel.swift; sourceTree = "<group>"; };
 		9955DB8723D7E420007786D5 /* Spring Festival Crush.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Spring Festival Crush.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		9955DB9723D7E424007786D5 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		9955DB9A23D7E424007786D5 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -219,6 +225,7 @@
 				9971C95225FC6705008CFCF9 /* Ads.swift */,
 				9971C95025FC6705008CFCF9 /* UIButtonLargerArea.swift */,
 				9971C95125FC6705008CFCF9 /* UIFont+Extension.swift */,
+				994625BC2C76092000FC2C6A /* SKSpriteNode+Entension.swift */,
 			);
 			path = Util;
 			sourceTree = "<group>";
@@ -226,15 +233,17 @@
 		9955DBB723D7E505007786D5 /* Model */ = {
 			isa = PBXGroup;
 			children = (
-				9955DBAB23D7E4E4007786D5 /* Cookie.swift */,
+				994625AB2C720E5600FC2C6A /* GameModel.swift */,
+				994625BE2C784CCB00FC2C6A /* ThemeModel.swift */,
 				9955DBAC23D7E4E4007786D5 /* Level.swift */,
+				994625BA2C76022C00FC2C6A /* Zodiac.swift */,
+				9955DBAB23D7E4E4007786D5 /* Cookie.swift */,
 				9955DBA523D7E4E3007786D5 /* LevelData.swift */,
 				9955DBA623D7E4E3007786D5 /* Chain.swift */,
 				9955DBA723D7E4E3007786D5 /* Array2D.swift */,
 				9955DBA823D7E4E3007786D5 /* Tile.swift */,
 				9955DBA923D7E4E4007786D5 /* Swap.swift */,
 				9971C95D25FC6753008CFCF9 /* AppItem.swift */,
-				994625AB2C720E5600FC2C6A /* GameModel.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -294,12 +303,12 @@
 			isa = PBXGroup;
 			children = (
 				994625A42C720A6C00FC2C6A /* MainView.swift */,
-				994625A82C720AE900FC2C6A /* GameView.swift */,
 				994625B52C74A3D700FC2C6A /* SettingsView.swift */,
-				994625A62C720AA600FC2C6A /* LevelSelectionView.swift */,
+				994625A82C720AE900FC2C6A /* GameView.swift */,
 				994625B32C74A06000FC2C6A /* LevelFailedView.swift */,
 				994625B12C7493ED00FC2C6A /* LevelCompleteView.swift */,
 				994625B82C74A3F700FC2C6A /* SelectZodiacView.swift */,
+				994625A62C720AA600FC2C6A /* SelectLevelView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -423,17 +432,20 @@
 			files = (
 				9955DBAE23D7E4E4007786D5 /* LevelData.swift in Sources */,
 				994625A52C720A6C00FC2C6A /* MainView.swift in Sources */,
+				994625BB2C76022C00FC2C6A /* Zodiac.swift in Sources */,
 				994625B92C74A3F700FC2C6A /* SelectZodiacView.swift in Sources */,
 				994625B42C74A06000FC2C6A /* LevelFailedView.swift in Sources */,
-				994625A72C720AA600FC2C6A /* LevelSelectionView.swift in Sources */,
+				994625A72C720AA600FC2C6A /* SelectLevelView.swift in Sources */,
 				9955DBE123D7F84D007786D5 /* Color+Extension.swift in Sources */,
 				994625A32C720A2800FC2C6A /* Match3GameApp.swift in Sources */,
+				994625BD2C76092000FC2C6A /* SKSpriteNode+Entension.swift in Sources */,
 				99AA8BED23D9597B001EBD04 /* Music.swift in Sources */,
 				994625AC2C720E5600FC2C6A /* GameModel.swift in Sources */,
 				9955DBB423D7E4E4007786D5 /* Cookie.swift in Sources */,
 				9955DBB223D7E4E4007786D5 /* Swap.swift in Sources */,
 				9955DBAF23D7E4E4007786D5 /* Chain.swift in Sources */,
 				9955DBA423D7E4D2007786D5 /* SKSpriteNode+Extension.swift in Sources */,
+				994625BF2C784CCB00FC2C6A /* ThemeModel.swift in Sources */,
 				9955DBDD23D7EA0C007786D5 /* StoreReviewHelper.swift in Sources */,
 				9955DBB623D7E4E4007786D5 /* GameScene.swift in Sources */,
 				9955DBDF23D7EA14007786D5 /* Constants.swift in Sources */,

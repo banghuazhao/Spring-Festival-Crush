@@ -1,23 +1,32 @@
 import Foundation
 
-let numColumns = 9
-let numRows = 9
-let numLevels = 20
-
 class Level {
-    private var cookies = Array2D<Cookie>(columns: numColumns, rows: numRows)
-    private var tiles = Array2D<Tile>(columns: numColumns, rows: numRows)
+    let numColumns: Int
+    let numRows: Int
+    let targetScore: Int
+    let maximumMoves: Int
+
     var possibleSwaps: Set<Swap> = []
+
+    private var cookies: Array2D<Cookie>
+    private var tiles: Array2D<Tile>
     private var comboMultiplier = 0
 
-    var targetScore = 0
-    var maximumMoves = 0
-
-    init(filename: String) {
+    init?(filename: String) {
         // 1
-        guard let levelData = LevelData.loadFrom(file: filename) else { return }
+        guard let levelData = LevelData.loadFrom(file: filename) else { return nil }
         // 2
         let tilesArray = levelData.tiles
+
+        numRows = tilesArray.count
+        numColumns = tilesArray[0].count
+
+        cookies = Array2D<Cookie>(columns: numColumns, rows: numRows)
+        tiles = Array2D<Tile>(columns: numColumns, rows: numRows)
+
+        targetScore = levelData.targetScore
+        maximumMoves = levelData.moves
+
         // 3
         for (row, rowArray) in tilesArray.enumerated() {
             // 4
@@ -29,9 +38,6 @@ class Level {
                 }
             }
         }
-
-        targetScore = levelData.targetScore
-        maximumMoves = levelData.moves
     }
 
     func cookie(atColumn column: Int, row: Int) -> Cookie? {
@@ -133,7 +139,7 @@ class Level {
         for row in 0 ..< numRows {
             for column in 0 ..< numColumns {
                 if column < numColumns - 1,
-                    let cookie = cookies[column, row] {
+                   let cookie = cookies[column, row] {
                     // Have a cookie in this spot? If there is no tile, there is no cookie.
                     if let other = cookies[column + 1, row] {
                         // Swap them
@@ -152,7 +158,7 @@ class Level {
                     }
 
                     if row < numRows - 1,
-                        let other = cookies[column, row + 1] {
+                       let other = cookies[column, row + 1] {
                         cookies[column, row] = other
                         cookies[column, row + 1] = cookie
 
@@ -168,7 +174,7 @@ class Level {
                     }
                 } else if column == numColumns - 1, let cookie = cookies[column, row] {
                     if row < numRows - 1,
-                        let other = cookies[column, row + 1] {
+                       let other = cookies[column, row + 1] {
                         cookies[column, row] = other
                         cookies[column, row + 1] = cookie
 
@@ -227,11 +233,10 @@ class Level {
                             chain.add(cookie: cookies[column, row]!)
                             column += 1
                         } while column < numColumns && cookies[column, row]?.cookieType == matchType
-                    
+
                         set.insert(chain)
                         continue
                     }
-                    
                 }
                 // 6
                 column += 1

@@ -15,6 +15,7 @@ struct Match3GameApp: App {
         WindowGroup {
             MainView()
                 .environmentObject(GameModel())
+                .environmentObject(ThemeModel())
                 .onAppear {
                     if isPlayBackgroundMusic {
                         playBackgroundMusic(filename: "Chinatown.mp3", repeatForever: true)

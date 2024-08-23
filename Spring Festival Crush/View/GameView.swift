@@ -59,10 +59,16 @@ struct GameView: View {
                 }
             }
 
-            if gameModel.gameState == .lose {
-                LevelFailedView(level: gameModel.currentLevel, onTapTryAgainLevel: gameModel.onTapTryAgainLevel)
-            } else if gameModel.gameState == .win {
-                LevelCompleteView(score: gameModel.score, level: gameModel.currentLevel, onTapNextLevel: gameModel.onTapNextLevel)
+            ZStack {
+                if gameModel.gameState == .lose || gameModel.gameState == .win {
+                    Color.black.opacity(0.2).ignoresSafeArea()
+                }
+
+                if gameModel.gameState == .lose {
+                    LevelFailedView(level: gameModel.currentLevel, onTapTryAgainLevel: gameModel.onTapTryAgainLevel)
+                } else if gameModel.gameState == .win {
+                    LevelCompleteView(score: gameModel.score, level: gameModel.currentLevel, onTapNextLevel: gameModel.onTapNextLevel)
+                }
             }
         }
         .onAppear {
