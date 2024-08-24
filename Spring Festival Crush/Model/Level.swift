@@ -8,7 +8,7 @@ class Level {
 
     var possibleSwaps: Set<Swap> = []
 
-    private var cookies: Array2D<Cookie>
+    private var symbols: Array2D<Symbol>
     private var tiles: Array2D<Tile>
     private var comboMultiplier = 0
 
@@ -21,8 +21,8 @@ class Level {
         numRows = tilesArray.count
         numColumns = tilesArray[0].count
 
-        cookies = Array2D<Cookie>(columns: numColumns, rows: numRows)
         tiles = Array2D<Tile>(columns: numColumns, rows: numRows)
+        symbols = Array2D<Symbol>(columns: numColumns, rows: numRows)
 
         targetScore = levelData.targetScore
         maximumMoves = levelData.moves
@@ -33,17 +33,17 @@ class Level {
             let tileRow = numRows - row - 1
             // 5
             for (column, value) in rowArray.enumerated() {
-                if value == 1 {
-                    tiles[column, tileRow] = Tile()
+                if value != 0 {
+                    tiles[column, tileRow] = Tile(type: value)
                 }
             }
         }
     }
 
-    func cookie(atColumn column: Int, row: Int) -> Cookie? {
+    func symbol(atColumn column: Int, row: Int) -> Symbol? {
         precondition(column >= 0 && column < numColumns)
         precondition(row >= 0 && row < numRows)
-        return cookies[column, row]
+        return symbols[column, row]
     }
 
     func tileAt(column: Int, row: Int) -> Tile? {
@@ -52,10 +52,10 @@ class Level {
         return tiles[column, row]
     }
 
-    func shuffle() -> Set<Cookie> {
-        var set: Set<Cookie>
+    func shuffle() -> Set<Symbol> {
+        var set: Set<Symbol>
         repeat {
-            set = createInitialCookies()
+            set = createInitialSymbols()
             detectPossibleSwaps()
             print("possible swaps: \(possibleSwaps)")
         } while possibleSwaps.count == 0
@@ -63,52 +63,58 @@ class Level {
         return set
     }
 
-    private func createInitialCookies() -> Set<Cookie> {
-        var set: Set<Cookie> = []
+    private func createInitialSymbols() -> Set<Symbol> {
+        var set: Set<Symbol> = []
 
-        // 1
         for row in 0 ..< numRows {
             for column in 0 ..< numColumns {
-                // 2
-                if tiles[column, row] != nil {
-                    var cookieType: CookieType
+                guard
+                    let tileType = tiles[column, row]?.type,
+                    tileType != .empty
+                else { continue }
+
+                var symbolType: SymbolType
+                switch tileType {
+                case .lock:
+                    symbolType = SymbolType.lock
+                default:
                     repeat {
-                        cookieType = CookieType.random()
+                        symbolType = SymbolType.random()
                     } while (column >= 2 &&
-                        cookies[column - 1, row]?.cookieType == cookieType &&
-                        cookies[column - 2, row]?.cookieType == cookieType)
+                        symbols[column - 1, row]?.type == symbolType &&
+                        symbols[column - 2, row]?.type == symbolType)
                         || (row >= 2 &&
-                            cookies[column, row - 1]?.cookieType == cookieType &&
-                            cookies[column, row - 2]?.cookieType == cookieType)
-
-                    // 3
-                    let cookie = Cookie(column: column, row: row, cookieType: cookieType)
-                    cookies[column, row] = cookie
-
-                    // 4
-                    set.insert(cookie)
+                            symbols[column, row - 1]?.type == symbolType &&
+                            symbols[column, row - 2]?.type == symbolType)
                 }
+
+                let symbol = Symbol(column: column, row: row, symbolType: symbolType)
+                symbols[column, row] = symbol
+
+                set.insert(symbol)
             }
         }
         return set
     }
 
     private func hasChain(atColumn column: Int, row: Int) -> Bool {
-        let cookieType = cookies[column, row]!.cookieType
+        let symbolType = symbols[column, row]!.type
 
         // Horizontal chain check
         var horizontalLength = 1
 
         // Left
         var i = column - 1
-        while i >= 0 && cookies[i, row]?.cookieType == cookieType {
+        while i >= 0,
+              let symbol = symbols[i, row],
+              symbol.type == symbolType {
             i -= 1
             horizontalLength += 1
         }
 
         // Right
         i = column + 1
-        while i < numColumns && cookies[i, row]?.cookieType == cookieType {
+        while i < numColumns && symbols[i, row]?.type == symbolType {
             i += 1
             horizontalLength += 1
         }
@@ -119,14 +125,14 @@ class Level {
 
         // Down
         i = row - 1
-        while i >= 0 && cookies[column, i]?.cookieType == cookieType {
+        while i >= 0 && symbols[column, i]?.type == symbolType {
             i -= 1
             verticalLength += 1
         }
 
         // Up
         i = row + 1
-        while i < numRows && cookies[column, i]?.cookieType == cookieType {
+        while i < numRows && symbols[column, i]?.type == symbolType {
             i += 1
             verticalLength += 1
         }
@@ -139,54 +145,59 @@ class Level {
         for row in 0 ..< numRows {
             for column in 0 ..< numColumns {
                 if column < numColumns - 1,
-                   let cookie = cookies[column, row] {
-                    // Have a cookie in this spot? If there is no tile, there is no cookie.
-                    if let other = cookies[column + 1, row] {
+                   let symbol = symbols[column, row],
+                   symbol.isMovable() {
+                    // Have a symbol in this spot? If there is no tile, there is no symbol.
+                    if let other = symbols[column + 1, row], other.isMovable() {
                         // Swap them
-                        cookies[column, row] = other
-                        cookies[column + 1, row] = cookie
+                        symbols[column, row] = other
+                        symbols[column + 1, row] = symbol
 
-                        // Is either cookie now part of a chain?
+                        // Is either symbol now part of a chain?
                         if hasChain(atColumn: column + 1, row: row) ||
                             hasChain(atColumn: column, row: row) {
-                            set.insert(Swap(cookieA: cookie, cookieB: other))
+                            set.insert(Swap(symbolA: symbol, symbolB: other))
                         }
 
                         // Swap them back
-                        cookies[column, row] = cookie
-                        cookies[column + 1, row] = other
+                        symbols[column, row] = symbol
+                        symbols[column + 1, row] = other
                     }
 
                     if row < numRows - 1,
-                       let other = cookies[column, row + 1] {
-                        cookies[column, row] = other
-                        cookies[column, row + 1] = cookie
+                       let other = symbols[column, row + 1],
+                       other.isMovable() {
+                        symbols[column, row] = other
+                        symbols[column, row + 1] = symbol
 
-                        // Is either cookie now part of a chain?
+                        // Is either symbol now part of a chain?
                         if hasChain(atColumn: column, row: row + 1) ||
                             hasChain(atColumn: column, row: row) {
-                            set.insert(Swap(cookieA: cookie, cookieB: other))
+                            set.insert(Swap(symbolA: symbol, symbolB: other))
                         }
 
                         // Swap them back
-                        cookies[column, row] = cookie
-                        cookies[column, row + 1] = other
+                        symbols[column, row] = symbol
+                        symbols[column, row + 1] = other
                     }
-                } else if column == numColumns - 1, let cookie = cookies[column, row] {
+                } else if column == numColumns - 1,
+                          let symbol = symbols[column, row],
+                          symbol.isMovable() {
                     if row < numRows - 1,
-                       let other = cookies[column, row + 1] {
-                        cookies[column, row] = other
-                        cookies[column, row + 1] = cookie
+                       let other = symbols[column, row + 1],
+                       other.isMovable() {
+                        symbols[column, row] = other
+                        symbols[column, row + 1] = symbol
 
-                        // Is either cookie now part of a chain?
+                        // Is either symbol now part of a chain?
                         if hasChain(atColumn: column, row: row + 1) ||
                             hasChain(atColumn: column, row: row) {
-                            set.insert(Swap(cookieA: cookie, cookieB: other))
+                            set.insert(Swap(symbolA: symbol, symbolB: other))
                         }
 
                         // Swap them back
-                        cookies[column, row] = cookie
-                        cookies[column, row + 1] = other
+                        symbols[column, row] = symbol
+                        symbols[column, row + 1] = other
                     }
                 }
             }
@@ -196,18 +207,18 @@ class Level {
     }
 
     func performSwap(_ swap: Swap) {
-        let columnA = swap.cookieA.column
-        let rowA = swap.cookieA.row
-        let columnB = swap.cookieB.column
-        let rowB = swap.cookieB.row
+        let columnA = swap.symbolA.column
+        let rowA = swap.symbolA.row
+        let columnB = swap.symbolB.column
+        let rowB = swap.symbolB.row
 
-        cookies[columnA, rowA] = swap.cookieB
-        swap.cookieB.column = columnA
-        swap.cookieB.row = rowA
+        symbols[columnA, rowA] = swap.symbolB
+        swap.symbolB.column = columnA
+        swap.symbolB.row = rowA
 
-        cookies[columnB, rowB] = swap.cookieA
-        swap.cookieA.column = columnB
-        swap.cookieA.row = rowB
+        symbols[columnB, rowB] = swap.symbolA
+        swap.symbolA.column = columnB
+        swap.symbolA.row = rowB
     }
 
     func isPossibleSwap(_ swap: Swap) -> Bool {
@@ -222,17 +233,17 @@ class Level {
             var column = 0
             while column < numColumns - 2 {
                 // 3
-                if let cookie = cookies[column, row] {
-                    let matchType = cookie.cookieType
+                if let symbol = symbols[column, row], symbol.isMatchable() {
+                    let matchType = symbol.type
                     // 4
-                    if cookies[column + 1, row]?.cookieType == matchType &&
-                        cookies[column + 2, row]?.cookieType == matchType {
+                    if symbols[column + 1, row]?.type == matchType &&
+                        symbols[column + 2, row]?.type == matchType {
                         // 5
                         let chain = Chain(chainType: .horizontal)
                         repeat {
-                            chain.add(cookie: cookies[column, row]!)
+                            chain.add(symbol: symbols[column, row]!)
                             column += 1
-                        } while column < numColumns && cookies[column, row]?.cookieType == matchType
+                        } while column < numColumns && symbols[column, row]?.type == matchType
 
                         set.insert(chain)
                         continue
@@ -251,16 +262,16 @@ class Level {
         for column in 0 ..< numColumns {
             var row = 0
             while row < numRows - 2 {
-                if let cookie = cookies[column, row] {
-                    let matchType = cookie.cookieType
+                if let symbol = symbols[column, row], symbol.isMatchable() {
+                    let matchType = symbol.type
 
-                    if cookies[column, row + 1]?.cookieType == matchType &&
-                        cookies[column, row + 2]?.cookieType == matchType {
+                    if symbols[column, row + 1]?.type == matchType &&
+                        symbols[column, row + 2]?.type == matchType {
                         let chain = Chain(chainType: .vertical)
                         repeat {
-                            chain.add(cookie: cookies[column, row]!)
+                            chain.add(symbol: symbols[column, row]!)
                             row += 1
-                        } while row < numRows && cookies[column, row]?.cookieType == matchType
+                        } while row < numRows && symbols[column, row]?.type == matchType
 
                         set.insert(chain)
                         continue
@@ -276,8 +287,8 @@ class Level {
         let horizontalChains = detectHorizontalMatches()
         let verticalChains = detectVerticalMatches()
 
-        removeCookies(in: horizontalChains)
-        removeCookies(in: verticalChains)
+        removeSymbols(in: horizontalChains)
+        removeSymbols(in: verticalChains)
 
         calculateScores(for: horizontalChains)
         calculateScores(for: verticalChains)
@@ -285,34 +296,75 @@ class Level {
         return horizontalChains.union(verticalChains)
     }
 
-    private func removeCookies(in chains: Set<Chain>) {
+    private func removeSymbols(in chains: Set<Chain>) {
         for chain in chains {
-            for cookie in chain.cookies {
-                cookies[cookie.column, cookie.row] = nil
+            for symbol in chain.symbols {
+                symbols[symbol.column, symbol.row] = nil
             }
         }
     }
 
-    func fillHoles() -> [[Cookie]] {
-        var columns: [[Cookie]] = []
+    func removeLocks() -> Chain? {
+        var lockPositionsToRemove = Set<[Int]>()
+        for column in 0 ..< numColumns {
+            for row in 0 ..< numRows {
+                if let symbol = symbols[column, row], symbol.type == .lock {
+                    let adjacentPositions = [
+                        [column + 1, row],
+                        [column - 1, row],
+                        [column, row + 1],
+                        [column, row - 1],
+                    ]
+                    for adjacentPosition in adjacentPositions {
+                        let adjacentRow = adjacentPosition[1]
+                        let adjacentColumn = adjacentPosition[0]
+                        if (adjacentRow >= 0 && adjacentRow < numRows)
+                            && (adjacentColumn >= 0 && adjacentColumn < numColumns)
+                            && symbols[adjacentColumn, adjacentRow] == nil {
+                            lockPositionsToRemove.insert([column, row])
+                        }
+                    }
+                }
+            }
+        }
+        if lockPositionsToRemove.isEmpty {
+            return nil
+        } else {
+            let chain = Chain(chainType: .locks)
+            for lockPosition in lockPositionsToRemove {
+                let column = lockPosition[0]
+                let row = lockPosition[1]
+                if let symbol = symbols[column, row] {
+                    chain.add(symbol: symbol)
+                    symbols[column, row] = nil
+                    tiles[column, row]?.type = .normal
+                }
+            }
+            return chain
+        }
+    }
+
+    func fillHoles() -> [[Symbol]] {
+        var columns: [[Symbol]] = []
         // 1
         for column in 0 ..< numColumns {
-            var array = [Cookie]()
+            var array = [Symbol]()
             for row in 0 ..< numRows {
                 // 2
-                if tiles[column, row] != nil && cookies[column, row] == nil {
+                if tiles[column, row] != nil && symbols[column, row] == nil {
                     // 3
                     for lookup in (row + 1) ..< numRows {
-                        if let cookie = cookies[column, lookup] {
-                            // 4
-                            cookies[column, lookup] = nil
-                            cookies[column, row] = cookie
-                            cookie.row = row
-                            // 5
-                            array.append(cookie)
-                            // 6
-                            break
-                        }
+                        guard let symbol = symbols[column, lookup],
+                              symbol.isMovable()
+                        else { continue }
+                        // 4
+                        symbols[column, lookup] = nil
+                        symbols[column, row] = symbol
+                        symbol.row = row
+                        // 5
+                        array.append(symbol)
+                        // 6
+                        break
                     }
                 }
             }
@@ -324,28 +376,28 @@ class Level {
         return columns
     }
 
-    func topUpCookies() -> [[Cookie]] {
-        var columns: [[Cookie]] = []
-        var cookieType: CookieType = .unknown
+    func topUpSymbols() -> [[Symbol]] {
+        var columns: [[Symbol]] = []
+        var symbolType: SymbolType = .unknown
 
         for column in 0 ..< numColumns {
-            var array: [Cookie] = []
+            var array: [Symbol] = []
 
             // 1
             var row = numRows - 1
-            while row >= 0 && cookies[column, row] == nil {
+            while row >= 0 && symbols[column, row] == nil {
                 // 2
                 if tiles[column, row] != nil {
                     // 3
-                    var newCookieType: CookieType
+                    var newSymbolType: SymbolType
                     repeat {
-                        newCookieType = CookieType.random()
-                    } while newCookieType == cookieType
-                    cookieType = newCookieType
+                        newSymbolType = SymbolType.random()
+                    } while newSymbolType == symbolType
+                    symbolType = newSymbolType
                     // 4
-                    let cookie = Cookie(column: column, row: row, cookieType: cookieType)
-                    cookies[column, row] = cookie
-                    array.append(cookie)
+                    let symbol = Symbol(column: column, row: row, symbolType: symbolType)
+                    symbols[column, row] = symbol
+                    array.append(symbol)
                 }
 
                 row -= 1

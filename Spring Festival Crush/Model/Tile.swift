@@ -1,9 +1,16 @@
 import Foundation
 
 class Tile {
-    // Note: To support different types of tiles, you can add properties here that
-    // indicate how this tile should behave.
-    // For example, if a cookie is matched that sits on a jelly tile, you'd set
-    // isJelly to false to make it a normal tile.
-    // var isJelly: Bool
+    enum TileType: Int {
+        case empty = 0
+        case normal = 1
+        // In the game, the Lock is a special obstacle that encases a tile, preventing it from being matched or interacted with until it is removed. To unlock and clear the tile, players must make a match using one adjacent element. Once the match is made, the lock will break, freeing the tile and allowing it to be used in subsequent moves. The Lock adds an extra layer of challenge, requiring strategic planning to clear the board.
+        case lock = 2
+    }
+    
+    var type: TileType = .normal
+    
+    init(type: Int) {
+        self.type = TileType(rawValue: type) ?? .normal
+    }
 }

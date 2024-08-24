@@ -1,22 +1,22 @@
 struct Swap: CustomStringConvertible, Hashable {
-    let cookieA: Cookie
-    let cookieB: Cookie
+    let symbolA: Symbol
+    let symbolB: Symbol
 
-    var hashValue: Int {
-        return cookieA.hashValue ^ cookieB.hashValue
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(symbolA.hashValue ^ symbolB.hashValue)
     }
-
+    
     static func == (lhs: Swap, rhs: Swap) -> Bool {
-        return (lhs.cookieA == rhs.cookieA && lhs.cookieB == rhs.cookieB) ||
-            (lhs.cookieB == rhs.cookieA && lhs.cookieA == rhs.cookieB)
+        return (lhs.symbolA == rhs.symbolA && lhs.symbolB == rhs.symbolB) ||
+            (lhs.symbolB == rhs.symbolA && lhs.symbolA == rhs.symbolB)
     }
 
-    init(cookieA: Cookie, cookieB: Cookie) {
-        self.cookieA = cookieA
-        self.cookieB = cookieB
+    init(symbolA: Symbol, symbolB: Symbol) {
+        self.symbolA = symbolA
+        self.symbolB = symbolB
     }
 
     var description: String {
-        return "swap \(cookieA) with \(cookieB)"
+        return "swap \(symbolA) with \(symbolB)"
     }
 }

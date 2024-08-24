@@ -7,16 +7,18 @@ import SwiftUI
 
 class GameModel: ObservableObject {
     enum Command {
-        case addTiles
-        case shuffle(Set<Cookie>)
+        case setupTiles
+        case setupSymbols(Set<Symbol>)
+        case shuffle(Set<Symbol>)
     }
 
     enum CommandAsync {
         case onValidSwap(Swap)
         case onInvalidSwap(Swap)
         case onMatchedSprites(Set<Chain>)
-        case onFallingCookies([[Cookie]])
-        case onNewSprites([[Cookie]])
+        case onFallingSymbols([[Symbol]])
+        case onNewSprites([[Symbol]])
+        case onGameBegin
         case onGameOver
     }
 
@@ -33,11 +35,12 @@ class GameModel: ObservableObject {
     @Published var shouldPresentGame: Bool = false
 
     @Published var currentLevel: Int = 0
-    @Published var moves: Int = 0
+    @Published var movesLeft: Int = 0
     @Published var score: Int = 0
 
     var level: Level!
     var zodiac: Zodiac!
+    var screenSize = UIScreen.main.bounds.size
 
     var invokeCommand: ((Command) -> Void)?
     var invokeCommandAsync: (@MainActor (CommandAsync) async -> Void)?
@@ -49,7 +52,7 @@ class GameModel: ObservableObject {
     var numRows: Int {
         level.numRows
     }
-    
+
     var gameBackground: String {
         zodiac.gameBackground
     }
@@ -63,39 +66,69 @@ class GameModel: ObservableObject {
     }
 
     var moveLabel: String {
-        "Moves\n \(moves)/\(level.maximumMoves)"
+        "Moves Left\n \(movesLeft)"
+    }
+
+    var tileSize: CGSize {
+        calculateTileSize(screenSize: screenSize)
     }
 
     func selectZodiac(_ chineseZodiac: ChineseZodiac) {
         zodiac = Zodiac(numLevels: 20, chineseZodiac: chineseZodiac)
     }
 
+    private func calculateTileSize(screenSize: CGSize) -> CGSize {
+        var size: CGFloat
+        if Constants.isIPhone {
+            if UIScreen.main.bounds.width <= 330 {
+                size = 32.0
+            } else {
+                size = 40.0
+            }
+        } else {
+            size = 60.0
+        }
+
+        let playgroundWidth = screenSize.width - 20 * 2
+        let playgroundHeight = screenSize.height - 60 - 60
+        let minSymbolWidth = playgroundWidth / CGFloat(numColumns)
+        let minSymbolHeight = playgroundHeight / CGFloat(numRows)
+        let minSymbolSize = min(minSymbolWidth, minSymbolHeight)
+
+        let minSize = min(size, minSymbolSize)
+
+        return CGSize(width: minSize, height: minSize)
+    }
+
     func selectLevel(_ selectedLevel: Int) {
+        gameState = .loading
         currentLevel = selectedLevel
         level = Level(filename: "Level_\(selectedLevel)")
         level.resetComboMultiplier()
-        moves = 0
-        score = 0
-        gameState = .loading
     }
 
-    func onGameSceneLoad() {
-        invokeCommand?(.addTiles)
+    @MainActor
+    func setupNewGame() async {
+        movesLeft = level.maximumMoves
+        score = 0
+        invokeCommand?(.setupTiles)
+        let newSymbols = level.shuffle()
+        invokeCommand?(.setupSymbols(newSymbols))
+        await invokeCommandAsync?(.onGameBegin)
         gameState = .inProgress
-        shuffle()
     }
 
     func shuffle() {
-        let newSprites = level.shuffle()
-        invokeCommand?(.shuffle(newSprites))
+        let newSymbols = level.shuffle()
+        invokeCommand?(.shuffle(newSymbols))
     }
 
-    func increaseMove() {
-        moves += 1
+    func decreaseMove() {
+        movesLeft -= 1
     }
 
     func onTapShuffle() {
-        increaseMove()
+        decreaseMove()
         checkGameState()
         if gameState == .inProgress {
             shuffle()
@@ -105,9 +138,10 @@ class GameModel: ObservableObject {
     private func checkGameState() {
         if score >= level.targetScore {
             gameState = .win
+            return
         }
 
-        if moves > level.maximumMoves {
+        if movesLeft <= 0 {
             gameState = .lose
             Task { @MainActor in
                 await invokeCommandAsync?(.onGameOver)
@@ -126,8 +160,8 @@ class GameModel: ObservableObject {
             level.performSwap(swap)
             let swapSet = level.possibleSwaps
             for swap in swapSet {
-                let elementA = swap.cookieA
-                let elementB = swap.cookieB
+                let elementA = swap.symbolA
+                let elementB = swap.symbolB
                 elementA.sprite?.removeAction(forKey: "hintAction")
                 elementA.sprite?.isHidden = false
                 elementB.sprite?.removeAction(forKey: "hintAction")
@@ -142,10 +176,14 @@ class GameModel: ObservableObject {
 
     @MainActor
     func handleMatches() async {
-        let chains = level.removeMatches()
+        var chains = level.removeMatches()
         if chains.count == 0 {
             beginNextTurn()
             return
+        }
+
+        if let lockChain = level.removeLocks() {
+            chains.insert(lockChain)
         }
 
         await invokeCommandAsync?(.onMatchedSprites(chains))
@@ -155,8 +193,8 @@ class GameModel: ObservableObject {
         }
 
         let columns = level.fillHoles()
-        await invokeCommandAsync?(.onFallingCookies(columns))
-        let topUpColumns = level.topUpCookies()
+        await invokeCommandAsync?(.onFallingSymbols(columns))
+        let topUpColumns = level.topUpSymbols()
 
         await invokeCommandAsync?(.onNewSprites(topUpColumns))
 
@@ -165,7 +203,7 @@ class GameModel: ObservableObject {
 
     func beginNextTurn() {
         level.detectPossibleSwaps()
-        increaseMove()
+        decreaseMove()
         checkGameState()
     }
 
@@ -173,13 +211,17 @@ class GameModel: ObservableObject {
         if currentLevel >= zodiac.numLevels {
             gameState = .notStart
         } else {
-            selectLevel(currentLevel + 1)
-            onGameSceneLoad()
+            Task { @MainActor in
+                selectLevel(currentLevel + 1)
+                await setupNewGame()
+            }
         }
     }
 
     func onTapTryAgainLevel() {
-        selectLevel(currentLevel)
-        onGameSceneLoad()
+        gameState = .loading
+        Task { @MainActor in
+            await setupNewGame()
+        }
     }
 }

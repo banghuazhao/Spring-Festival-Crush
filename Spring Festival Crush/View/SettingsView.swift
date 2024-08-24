@@ -6,10 +6,9 @@ import SwiftUI
 
 struct SettingsView: View {
     @EnvironmentObject var themeModel: ThemeModel
+    @EnvironmentObject var settingModel: SettingModel
     @Environment(\.presentationMode) var presentationMode
     @State var isAds: Bool = false
-
-    @AppStorage("isPlayBackgroundMusic") private var isPlayBackgroundMusic = true
 
     #if !targetEnvironment(macCatalyst)
         let appItems = [
@@ -151,12 +150,12 @@ struct SettingsView: View {
 
     var body: some View {
         ScrollView {
-            Toggle(isOn: $isPlayBackgroundMusic) {
+            Toggle(isOn: $settingModel.isPlayBackgroundMusic) {
                 Text("Play Background Music")
                     .font(.headline)
             }
             .padding()
-            .onChange(of: isPlayBackgroundMusic) { newValue in
+            .onChange(of: settingModel.isPlayBackgroundMusic) { newValue in
                 if newValue {
                     // Start playing background music
                     playBackgroundMusic(filename: "Chinatown.mp3", repeatForever: true)

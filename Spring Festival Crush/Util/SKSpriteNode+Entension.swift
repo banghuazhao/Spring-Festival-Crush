@@ -7,24 +7,24 @@ import Foundation
 import SpriteKit
 
 extension SKSpriteNode {
-    static func sprite(for cookie: Cookie, zodiac: Zodiac, size: CGFloat) -> SKSpriteNode {
-        if cookie.cookieType == .mouse {
-            let emojiTexture = SKTexture.texture(from: zodiac.emoji, fontSize: size)
-            return SKSpriteNode(texture: emojiTexture)
-        } else {
-            return SKSpriteNode(imageNamed: cookie.cookieType.spriteName)
-        }
-    }
+//    static func sprite(for symbol: Symbol, zodiac: Zodiac, size: CGFloat) -> SKSpriteNode {
+//        if symbol.type == .zodiac {
+//            let emojiTexture = SKTexture.texture(from: zodiac.emoji, fontSize: 40)
+//            return SKSpriteNode(texture: emojiTexture)
+//        } else {
+//            return SKSpriteNode(imageNamed: symbol.type.spriteName)
+//        }
+//    }
     
-    static func highLightSprite(for cookie: Cookie, zodiac: Zodiac, size: CGFloat) -> SKSpriteNode {
-        if cookie.cookieType == .mouse {
+    static func highLightSprite(for symbol: Symbol, zodiac: Zodiac, size: CGFloat) -> SKSpriteNode {
+        if symbol.type == .zodiac {
             let emojiTexture = SKTexture.texture(from: zodiac.emoji, fontSize: size)
             let sprite = SKSpriteNode(texture: emojiTexture)
             sprite.color = UIColor.orange.withAlphaComponent(0.5)
             sprite.colorBlendFactor = 0.6
             return sprite
         } else {
-            return SKSpriteNode(imageNamed: cookie.cookieType.highlightedSpriteName)
+            return SKSpriteNode(imageNamed: symbol.type.highlightedSpriteName)
         }
     }
 }

@@ -8,6 +8,9 @@ import SwiftUI
 
 struct GameView: View {
     @EnvironmentObject var gameModel: GameModel
+    @EnvironmentObject var themeModel: ThemeModel
+    @EnvironmentObject var settingModel: SettingModel
+
     let screenSize: CGSize
 
     @State private var gameScene: GameScene?
@@ -72,7 +75,12 @@ struct GameView: View {
             }
         }
         .onAppear {
-            gameScene = GameScene(size: screenSize, gameModel: gameModel)
+            gameScene = GameScene(
+                size: screenSize,
+                gameModel: gameModel,
+                themeModel: themeModel,
+                settingModel: settingModel
+            )
         }
     }
 }

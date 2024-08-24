@@ -1,61 +1,41 @@
 import Combine
 import GameplayKit
 import SpriteKit
+import SwiftUI
 
 class GameScene: SKScene {
-    // Sound FX
-    let swapSound = SKAction.playSoundFileNamed("swap.mp3", waitForCompletion: false)
-    let invalidSwapSound = SKAction.playSoundFileNamed("Error.wav", waitForCompletion: false)
-    let matchSound = SKAction.playSoundFileNamed("Ka-Ching.wav", waitForCompletion: false)
-    let fallingCookieSound = SKAction.playSoundFileNamed("Scrape.wav", waitForCompletion: false)
-    let addCookieSound = SKAction.playSoundFileNamed("Drip.wav", waitForCompletion: false)
-    let tilesLayer = SKNode()
-    let cropLayer = SKCropNode()
-    let maskLayer = SKNode()
-
-    var gameModel: GameModel
-
-    let tileWidth: CGFloat = {
-        if Constants.isIPhone {
-            if UIScreen.main.bounds.width <= 330 {
-                return 32.0
-            } else {
-                return 40.0
-            }
-        } else {
-            return 60.0
-        }
-    }()
-
-    let tileHeight: CGFloat = {
-        if Constants.isIPhone {
-            if UIScreen.main.bounds.width <= 330 {
-                return 32.0
-            } else {
-                return 40.0
-            }
-        } else {
-            return 60.0
-        }
-    }()
+    let gameModel: GameModel
+    let themeModel: ThemeModel
+    let settingModel: SettingModel
 
     let gameLayer = SKNode()
-    let cookiesLayer = SKNode()
-    var swipeHandler: ((Swap) -> Void)?
+    let tilesLayer = SKNode()
+    // A crop node only draws its children where the mask contains pixels. This lets you draw the cookies only where there is a tile, but never on the background.
+    let maskLayer = SKNode()
+    let cropLayer = SKCropNode()
+    let symbolsLayer = SKNode()
 
     private var swipeFromColumn: Int?
     private var swipeFromRow: Int?
     private var selectionSprite = SKSpriteNode()
 
-    private var cancellables = Set<AnyCancellable>()
-
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder) is not used in this app")
     }
 
-    init(size: CGSize, gameModel: GameModel) {
+    init(
+        size: CGSize,
+        gameModel: GameModel,
+        themeModel: ThemeModel,
+        settingModel: SettingModel
+    ) {
         self.gameModel = gameModel
+        self.themeModel = themeModel
+        self.settingModel = settingModel
+
         super.init(size: size)
+
+        self.gameModel.screenSize = size
 
         anchorPoint = CGPoint(x: 0.5, y: 0.5)
 
@@ -68,16 +48,16 @@ class GameScene: SKScene {
         gameLayer.isHidden = true
 
         let layerPosition = CGPoint(
-            x: -tileWidth * CGFloat(gameModel.numColumns) / 2,
-            y: -tileHeight * CGFloat(gameModel.numRows) / 2)
+            x: -gameModel.tileSize.width * CGFloat(gameModel.numColumns) / 2,
+            y: -gameModel.tileSize.width * CGFloat(gameModel.numRows) / 2)
         tilesLayer.position = layerPosition
         maskLayer.position = layerPosition
         cropLayer.maskNode = maskLayer
         gameLayer.addChild(tilesLayer)
         gameLayer.addChild(cropLayer)
 
-        cookiesLayer.position = layerPosition
-        cropLayer.addChild(cookiesLayer)
+        symbolsLayer.position = layerPosition
+        cropLayer.addChild(symbolsLayer)
         _ = SKLabelNode(fontNamed: "GillSans-BoldItalic")
 
         gameModel.invokeCommand = { [weak self] command in
@@ -89,15 +69,19 @@ class GameScene: SKScene {
             guard let self else { return }
             await executeCommandAsync(command)
         }
-        gameModel.onGameSceneLoad()
+        Task { @MainActor in
+            await gameModel.setupNewGame()
+        }
     }
 
     private func executeCommand(_ command: GameModel.Command) {
         switch command {
-        case .addTiles:
+        case .setupTiles:
             removeAllTiles()
             addTiles()
-            animateBeginGame {}
+        case let .setupSymbols(newSprites):
+            removeAllSymbols()
+            addSymbols(for: newSprites)
         case let .shuffle(newSprites):
             shuffle(by: newSprites)
         }
@@ -106,47 +90,25 @@ class GameScene: SKScene {
     private func executeCommandAsync(_ command: GameModel.CommandAsync) async {
         switch command {
         case let .onValidSwap(swap):
-            await animate(swap)
+            await animateSwap(swap)
         case let .onInvalidSwap(swap):
             await animateInvalidSwap(swap)
         case let .onMatchedSprites(sprites):
-            await animateMatchedCookies(for: sprites)
-        case let .onFallingCookies(sprites):
-            await animateFallingCookies(in: sprites)
+            await animateMatchedSymbols(for: sprites)
+        case let .onFallingSymbols(sprites):
+            await animateFallingSymbols(in: sprites)
         case let .onNewSprites(sprites):
-            await animateNewCookies(in: sprites)
+            await animateNewSymbols(in: sprites)
+        case .onGameBegin:
+            await animateBeginGame()
         case .onGameOver:
             await animateGameOver()
         }
     }
 
-    func shuffle(by newSprites: Set<Cookie>) {
-        removeAllSprites()
-        addSprites(for: newSprites)
-    }
-
-    func addSprites(for cookies: Set<Cookie>) {
-        for cookie in cookies {
-            let sprite = SKSpriteNode.sprite(for: cookie, zodiac: gameModel.zodiac, size: tileWidth)
-            sprite.size = CGSize(width: tileWidth, height: tileHeight)
-            sprite.position = pointFor(column: cookie.column, row: cookie.row)
-            cookiesLayer.addChild(sprite)
-            cookie.sprite = sprite
-
-            // Give each cookie sprite a small, random delay. Then fade them in.
-            sprite.alpha = 0
-            sprite.xScale = 0.5
-            sprite.yScale = 0.5
-
-            sprite.run(
-                SKAction.sequence([
-                    SKAction.wait(forDuration: 0.25, withRange: 0.5),
-                    SKAction.group([
-                        SKAction.fadeIn(withDuration: 0.25),
-                        SKAction.scale(to: 1.0, duration: 0.25),
-                    ]),
-                ]))
-        }
+    func shuffle(by newSymbols: Set<Symbol>) {
+        removeAllSymbols()
+        addSymbols(for: newSymbols)
     }
 
     func addTiles() {
@@ -154,7 +116,7 @@ class GameScene: SKScene {
             for column in 0 ..< gameModel.numColumns {
                 if gameModel.level.tileAt(column: column, row: row) != nil {
                     let tileNode = SKSpriteNode(imageNamed: "MaskTile")
-                    tileNode.size = CGSize(width: tileWidth, height: tileHeight)
+                    tileNode.size = gameModel.tileSize
                     tileNode.position = pointFor(column: column, row: row)
                     maskLayer.addChild(tileNode)
                 }
@@ -181,10 +143,10 @@ class GameScene: SKScene {
                 if value != 0 && value != 6 && value != 9 {
                     let name = String(format: "Tile_%ld", value)
                     let tileNode = SKSpriteNode(imageNamed: name)
-                    tileNode.size = CGSize(width: tileWidth, height: tileHeight)
+                    tileNode.size = gameModel.tileSize
                     var point = pointFor(column: column, row: row)
-                    point.x -= tileWidth / 2
-                    point.y -= tileHeight / 2
+                    point.x -= gameModel.tileSize.width / 2
+                    point.y -= gameModel.tileSize.height / 2
                     tileNode.position = point
                     tilesLayer.addChild(tileNode)
                 }
@@ -192,13 +154,41 @@ class GameScene: SKScene {
         }
     }
 
+    func addSymbols(for symbols: Set<Symbol>) {
+        for symbol in symbols {
+            let sprite = symbol.createSpriteNode(zodiac: gameModel.zodiac)
+            sprite.size = gameModel.tileSize
+            sprite.position = pointFor(column: symbol.column, row: symbol.row)
+            symbolsLayer.addChild(sprite)
+            symbol.sprite = sprite
+
+            // Give each symbol sprite a small, random delay. Then fade them in.
+            sprite.alpha = 0
+            sprite.xScale = 0.5
+            sprite.yScale = 0.5
+
+            sprite.run(
+                SKAction.sequence([
+                    SKAction.wait(forDuration: 0.25, withRange: 0.5),
+                    SKAction.group([
+                        SKAction.fadeIn(withDuration: 0.25),
+                        SKAction.scale(to: 1.0, duration: 0.25),
+                    ]),
+                ]))
+        }
+    }
+
     private func pointFor(column: Int, row: Int) -> CGPoint {
+        let tileWidth = gameModel.tileSize.width
+        let tileHeight = gameModel.tileSize.height
         return CGPoint(
             x: CGFloat(column) * tileWidth + tileWidth / 2,
             y: CGFloat(row) * tileHeight + tileHeight / 2)
     }
 
     private func convertPoint(_ point: CGPoint) -> (success: Bool, column: Int, row: Int) {
+        let tileWidth = gameModel.tileSize.width
+        let tileHeight = gameModel.tileSize.height
         if point.x >= 0 && point.x < CGFloat(gameModel.numColumns) * tileWidth &&
             point.y >= 0 && point.y < CGFloat(gameModel.numRows) * tileHeight {
             return (true, Int(point.x / tileWidth), Int(point.y / tileHeight))
@@ -210,15 +200,16 @@ class GameScene: SKScene {
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = touches.first else { return }
 
-        let location = touch.location(in: cookiesLayer)
+        let location = touch.location(in: symbolsLayer)
 
         let (success, column, row) = convertPoint(location)
 
         if success {
-            if let cookie = gameModel.level.cookie(atColumn: column, row: row) {
+            if let symbol = gameModel.level.symbol(atColumn: column, row: row),
+               symbol.isMovable() {
                 swipeFromColumn = column
                 swipeFromRow = row
-                showSelectionIndicator(of: cookie)
+                showSelectionIndicator(of: symbol)
             }
         }
     }
@@ -229,7 +220,7 @@ class GameScene: SKScene {
 
         // 2
         guard let touch = touches.first else { return }
-        let location = touch.location(in: cookiesLayer)
+        let location = touch.location(in: symbolsLayer)
 
         let (success, column, row) = convertPoint(location)
         if success {
@@ -276,19 +267,21 @@ class GameScene: SKScene {
         guard toColumn >= 0 && toColumn < gameModel.numColumns else { return }
         guard toRow >= 0 && toRow < gameModel.numRows else { return }
         // 3
-        if let toCookie = gameModel.level.cookie(atColumn: toColumn, row: toRow),
-           let fromCookie = gameModel.level.cookie(atColumn: swipeFromColumn!, row: swipeFromRow!) {
+        if let toSymbol = gameModel.level.symbol(atColumn: toColumn, row: toRow),
+           toSymbol.isMovable(),
+           let fromSymbol = gameModel.level.symbol(atColumn: swipeFromColumn!, row: swipeFromRow!),
+           toSymbol.isMovable() {
             // 4
-            let swap = Swap(cookieA: fromCookie, cookieB: toCookie)
+            let swap = Swap(symbolA: fromSymbol, symbolB: toSymbol)
             Task { @MainActor in
                 await gameModel.handleSwipe(swap)
             }
         }
     }
 
-    func animate(_ swap: Swap) async {
-        let spriteA = swap.cookieA.sprite!
-        let spriteB = swap.cookieB.sprite!
+    func animateSwap(_ swap: Swap) async {
+        let spriteA = swap.symbolA.sprite!
+        let spriteB = swap.symbolB.sprite!
 
         spriteA.zPosition = 100
         spriteB.zPosition = 90
@@ -306,12 +299,12 @@ class GameScene: SKScene {
 
         await _ = [runMoveA, runMoveB]
 
-        await run(swapSound)
+        await run(themeModel.swapSound)
     }
 
     func animateInvalidSwap(_ swap: Swap) async {
-        let spriteA = swap.cookieA.sprite!
-        let spriteB = swap.cookieB.sprite!
+        let spriteA = swap.symbolA.sprite!
+        let spriteB = swap.symbolB.sprite!
 
         spriteA.zPosition = 100
         spriteB.zPosition = 90
@@ -329,22 +322,22 @@ class GameScene: SKScene {
 
         await _ = [runMoveA, runMoveB]
 
-        await run(invalidSwapSound)
+        await run(themeModel.invalidSwapSound)
     }
 
-    func showSelectionIndicator(of cookie: Cookie) {
+    func showSelectionIndicator(of symbol: Symbol) {
         if selectionSprite.parent != nil {
             selectionSprite.removeFromParent()
         }
 
-        if let sprite = cookie.sprite {
-            if cookie.cookieType == .mouse {
-                selectionSprite = SKSpriteNode.highLightSprite(for: cookie, zodiac: gameModel.zodiac, size: tileWidth)
-                selectionSprite.size = CGSize(width: tileWidth, height: tileHeight)
+        if let sprite = symbol.sprite {
+            if symbol.type == .zodiac {
+                selectionSprite = SKSpriteNode.highLightSprite(for: symbol, zodiac: gameModel.zodiac, size: gameModel.tileSize.width)
+                selectionSprite.size = gameModel.tileSize
             } else {
                 selectionSprite = SKSpriteNode()
-                let texture = SKTexture(imageNamed: cookie.cookieType.highlightedSpriteName)
-                selectionSprite.size = CGSize(width: tileWidth, height: tileHeight)
+                let texture = SKTexture(imageNamed: symbol.type.highlightedSpriteName)
+                selectionSprite.size = gameModel.tileSize
                 selectionSprite.run(SKAction.setTexture(texture))
             }
             sprite.addChild(selectionSprite)
@@ -359,68 +352,80 @@ class GameScene: SKScene {
         selectionSprite.colorBlendFactor = 0
     }
 
-    func animateMatchedCookies(for chains: Set<Chain>) async {
-        for chain in chains {
-            animateScore(for: chain)
-            for cookie in chain.cookies {
-                if let sprite = cookie.sprite {
-                    if sprite.action(forKey: "removing") == nil {
-                        let scaleAction = SKAction.scale(to: 0.1, duration: 0.3)
-                        scaleAction.timingMode = .easeOut
-                        sprite.run(SKAction.sequence([scaleAction, SKAction.removeFromParent()]),
-                                   withKey: "removing")
+    func animateMatchedSymbols(for chains: Set<Chain>) async {
+        await withTaskGroup(of: Void.self) { taskGroup in
+            for chain in chains {
+                animateScore(for: chain)
+                for symbol in chain.symbols {
+                    if let sprite = symbol.sprite {
+                        if chain.chainType == .locks {
+                            if sprite.action(forKey: "removing") == nil {
+                                let scaleAction = SKAction.scale(to: 0.1, duration: 0.3)
+                                scaleAction.timingMode = .easeOut
+                                taskGroup.addTask {
+                                    await sprite.run(SKAction.sequence([scaleAction, SKAction.removeFromParent()]),
+                                                     withKey: "removing")
+                                }
+                            }
+                        } else {
+                            if sprite.action(forKey: "removing") == nil {
+                                let scaleAction = SKAction.scale(to: 0.1, duration: 0.3)
+                                scaleAction.timingMode = .easeOut
+                                taskGroup.addTask {
+                                    await sprite.run(SKAction.sequence([scaleAction, SKAction.removeFromParent()]),
+                                                     withKey: "removing")
+                                }
+                            }
+                        }
                     }
                 }
             }
+            taskGroup.addTask {
+                await self.run(self.themeModel.matchSound)
+            }
         }
-        await run(matchSound)
-        await run(SKAction.wait(forDuration: 0.3))
     }
 
-    func animateFallingCookies(in columns: [[Cookie]]) async {
-        // 1
+    func animateFallingSymbols(in columns: [[Symbol]]) async {
         await withTaskGroup(of: Void.self) { taskGroup in
             for array in columns {
-                for (index, cookie) in array.enumerated() {
-                    let newPosition = pointFor(column: cookie.column, row: cookie.row)
-                    // 2
-                    let delay = 0.05 + 0.15 * TimeInterval(index)
-                    // 3
-                    let sprite = cookie.sprite! // sprite always exists at this point
-                    let duration = TimeInterval(((sprite.position.y - newPosition.y) / tileHeight) * 0.1)
-                    // 5
+                for (index, symbol) in array.enumerated() {
+                    let newPosition = pointFor(column: symbol.column, row: symbol.row)
+                    let delay = 0.05 + 0.02 * TimeInterval(index)
+                    let sprite = symbol.sprite! // sprite always exists at this point
+                    let duration = TimeInterval(((sprite.position.y - newPosition.y) / gameModel.tileSize.height) * 0.1)
                     let moveAction = SKAction.move(to: newPosition, duration: duration)
-                    moveAction.timingMode = .easeOut
+                    moveAction.timingMode = .easeInEaseOut
                     taskGroup.addTask {
                         await sprite.run(
                             SKAction.sequence([
                                 SKAction.wait(forDuration: delay),
-                                SKAction.group([moveAction, self.fallingCookieSound])]))
+                                moveAction]
+                            )
+                        )
                     }
                 }
+            }
+            taskGroup.addTask {
+                await self.run(self.themeModel.fallingSymbolSound)
             }
         }
     }
 
-    func animateNewCookies(in columns: [[Cookie]]) async {
+    func animateNewSymbols(in columns: [[Symbol]]) async {
         await withTaskGroup(of: Void.self) { taskGroup in
             for array in columns {
-                // 2
                 let startRow = array[0].row + 1
-
-                for (index, cookie) in array.enumerated() {
-                    // 3
-                    let sprite = SKSpriteNode.sprite(for: cookie, zodiac: gameModel.zodiac, size: tileWidth)
-                    sprite.size = CGSize(width: tileWidth, height: tileHeight)
-                    sprite.position = pointFor(column: cookie.column, row: startRow)
-                    cookiesLayer.addChild(sprite)
-                    cookie.sprite = sprite
-                    // 4
+                for (index, symbol) in array.enumerated() {
+                    let sprite = symbol.createSpriteNode(zodiac: gameModel.zodiac)
+                    sprite.size = gameModel.tileSize
+                    sprite.position = pointFor(column: symbol.column, row: startRow)
+                    symbolsLayer.addChild(sprite)
+                    symbol.sprite = sprite
                     let delay = 0.1 + 0.2 * TimeInterval(array.count - index - 1)
-                    // 5
-                    let duration = TimeInterval(startRow - cookie.row) * 0.1
+                    let duration = TimeInterval(startRow - symbol.row) * 0.1
                     // 6
-                    let newPosition = pointFor(column: cookie.column, row: cookie.row)
+                    let newPosition = pointFor(column: symbol.column, row: symbol.row)
                     let moveAction = SKAction.move(to: newPosition, duration: duration)
                     moveAction.timingMode = .easeOut
                     sprite.alpha = 0
@@ -431,7 +436,7 @@ class GameScene: SKScene {
                                 SKAction.group([
                                     SKAction.fadeIn(withDuration: 0.05),
                                     moveAction,
-                                    self.addCookieSound]),
+                                    self.themeModel.addSymbolSound]),
                             ]))
                     }
                 }
@@ -441,8 +446,9 @@ class GameScene: SKScene {
 
     func animateScore(for chain: Chain) {
         // Figure out what the midpoint of the chain is.
-        let firstSprite = chain.firstCookie().sprite!
-        let lastSprite = chain.lastCookie().sprite!
+        guard chain.chainType != .locks else { return }
+        let firstSprite = chain.firstSymbol().sprite!
+        let lastSprite = chain.lastSymbol().sprite!
         let centerPosition = CGPoint(
             x: (firstSprite.position.x + lastSprite.position.x) / 2,
             y: (firstSprite.position.y + lastSprite.position.y) / 2 - 8)
@@ -453,31 +459,17 @@ class GameScene: SKScene {
         scoreLabel.text = String(format: "%ld", chain.score)
         scoreLabel.position = centerPosition
         scoreLabel.zPosition = 300
-        cookiesLayer.addChild(scoreLabel)
+        symbolsLayer.addChild(scoreLabel)
 
         let moveAction = SKAction.move(by: CGVector(dx: 0, dy: 3), duration: 0.7)
         moveAction.timingMode = .easeOut
         scoreLabel.run(SKAction.sequence([moveAction, SKAction.removeFromParent()]))
     }
 
-    func animateGameOver(_ completion: @escaping () -> Void) {
-        let action = SKAction.move(by: CGVector(dx: 0, dy: -size.height), duration: 0.3)
-        action.timingMode = .easeIn
-        gameLayer.run(action, completion: completion)
-    }
-
     func animateGameOver() async {
         let action = SKAction.move(by: CGVector(dx: 0, dy: -size.height), duration: 0.3)
         action.timingMode = .easeIn
         await gameLayer.run(action)
-    }
-
-    func animateBeginGame(_ completion: @escaping () -> Void) {
-        gameLayer.isHidden = false
-        gameLayer.position = CGPoint(x: 0, y: size.height)
-        let action = SKAction.move(by: CGVector(dx: 0, dy: -size.height), duration: 0.3)
-        action.timingMode = .easeOut
-        gameLayer.run(action, completion: completion)
     }
 
     func animateBeginGame() async {
@@ -493,7 +485,10 @@ class GameScene: SKScene {
         tilesLayer.removeAllChildren()
     }
 
-    func removeAllSprites() {
-        cookiesLayer.removeAllChildren()
+    func removeAllBarriers() {
+    }
+
+    func removeAllSymbols() {
+        symbolsLayer.removeAllChildren()
     }
 }

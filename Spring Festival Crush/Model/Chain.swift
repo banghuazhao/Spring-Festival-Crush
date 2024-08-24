@@ -1,15 +1,17 @@
 class Chain: Hashable, CustomStringConvertible {
-    var cookies: [Cookie] = []
+    var symbols: [Symbol] = []
     var score = 0
 
     enum ChainType: CustomStringConvertible {
         case horizontal
         case vertical
+        case locks
 
         var description: String {
             switch self {
             case .horizontal: return "Horizontal"
             case .vertical: return "Vertical"
+            case .locks: return "Locks"
             }
         }
     }
@@ -19,31 +21,31 @@ class Chain: Hashable, CustomStringConvertible {
         self.chainType = chainType
     }
 
-    func add(cookie: Cookie) {
-        cookies.append(cookie)
+    func add(symbol: Symbol) {
+        symbols.append(symbol)
     }
 
-    func firstCookie() -> Cookie {
-        return cookies[0]
+    func firstSymbol() -> Symbol {
+        return symbols[0]
     }
 
-    func lastCookie() -> Cookie {
-        return cookies[cookies.count - 1]
+    func lastSymbol() -> Symbol {
+        return symbols[symbols.count - 1]
     }
 
     var length: Int {
-        return cookies.count
+        return symbols.count
     }
 
     var description: String {
-        return "type:\(chainType) cookies:\(cookies)"
+        return "type:\(chainType) symbols:\(symbols)"
     }
 
-    var hashValue: Int {
-        return cookies.reduce(0) { $0.hashValue ^ $1.hashValue }
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(symbols.reduce(0) { $0.hashValue ^ $1.hashValue })
     }
 
     static func == (lhs: Chain, rhs: Chain) -> Bool {
-        return lhs.cookies == rhs.cookies
+        return lhs.symbols == rhs.symbols
     }
 }

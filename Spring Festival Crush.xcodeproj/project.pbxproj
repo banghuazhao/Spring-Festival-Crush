@@ -23,6 +23,7 @@
 		994625BB2C76022C00FC2C6A /* Zodiac.swift in Sources */ = {isa = PBXBuildFile; fileRef = 994625BA2C76022C00FC2C6A /* Zodiac.swift */; };
 		994625BD2C76092000FC2C6A /* SKSpriteNode+Entension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 994625BC2C76092000FC2C6A /* SKSpriteNode+Entension.swift */; };
 		994625BF2C784CCB00FC2C6A /* ThemeModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 994625BE2C784CCB00FC2C6A /* ThemeModel.swift */; };
+		994625C12C7860CD00FC2C6A /* SettingModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 994625C02C7860CD00FC2C6A /* SettingModel.swift */; };
 		9955DB9823D7E424007786D5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9955DB9723D7E424007786D5 /* Assets.xcassets */; };
 		9955DB9B23D7E424007786D5 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 9955DB9923D7E424007786D5 /* LaunchScreen.storyboard */; };
 		9955DBA423D7E4D2007786D5 /* SKSpriteNode+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9955DBA323D7E4D2007786D5 /* SKSpriteNode+Extension.swift */; };
@@ -31,7 +32,7 @@
 		9955DBB023D7E4E4007786D5 /* Array2D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9955DBA723D7E4E3007786D5 /* Array2D.swift */; };
 		9955DBB123D7E4E4007786D5 /* Tile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9955DBA823D7E4E3007786D5 /* Tile.swift */; };
 		9955DBB223D7E4E4007786D5 /* Swap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9955DBA923D7E4E4007786D5 /* Swap.swift */; };
-		9955DBB423D7E4E4007786D5 /* Cookie.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9955DBAB23D7E4E4007786D5 /* Cookie.swift */; };
+		9955DBB423D7E4E4007786D5 /* Symbol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9955DBAB23D7E4E4007786D5 /* Symbol.swift */; };
 		9955DBB523D7E4E4007786D5 /* Level.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9955DBAC23D7E4E4007786D5 /* Level.swift */; };
 		9955DBB623D7E4E4007786D5 /* GameScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9955DBAD23D7E4E4007786D5 /* GameScene.swift */; };
 		9955DBBE23D7E680007786D5 /* Grid.atlas in Resources */ = {isa = PBXBuildFile; fileRef = 9955DBBC23D7E680007786D5 /* Grid.atlas */; };
@@ -47,7 +48,6 @@
 		9955DBD923D7E8D1007786D5 /* Level_15.json in Resources */ = {isa = PBXBuildFile; fileRef = 9955DBD423D7E8D1007786D5 /* Level_15.json */; };
 		9955DBDA23D7E8D1007786D5 /* Level_1.json in Resources */ = {isa = PBXBuildFile; fileRef = 9955DBD523D7E8D1007786D5 /* Level_1.json */; };
 		9955DBDB23D7E8D1007786D5 /* Level_2.json in Resources */ = {isa = PBXBuildFile; fileRef = 9955DBD623D7E8D1007786D5 /* Level_2.json */; };
-		9955DBDD23D7EA0C007786D5 /* StoreReviewHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9955DBDC23D7EA0C007786D5 /* StoreReviewHelper.swift */; };
 		9955DBDF23D7EA14007786D5 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9955DBDE23D7EA14007786D5 /* Constants.swift */; };
 		9955DBE123D7F84D007786D5 /* Color+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9955DBE023D7F84D007786D5 /* Color+Extension.swift */; };
 		9955DBE523D7FE1B007786D5 /* Level_7.json in Resources */ = {isa = PBXBuildFile; fileRef = 9955DBE423D7FE07007786D5 /* Level_7.json */; };
@@ -92,6 +92,7 @@
 		994625BA2C76022C00FC2C6A /* Zodiac.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Zodiac.swift; sourceTree = "<group>"; };
 		994625BC2C76092000FC2C6A /* SKSpriteNode+Entension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SKSpriteNode+Entension.swift"; sourceTree = "<group>"; };
 		994625BE2C784CCB00FC2C6A /* ThemeModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeModel.swift; sourceTree = "<group>"; };
+		994625C02C7860CD00FC2C6A /* SettingModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingModel.swift; sourceTree = "<group>"; };
 		9955DB8723D7E420007786D5 /* Spring Festival Crush.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Spring Festival Crush.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		9955DB9723D7E424007786D5 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		9955DB9A23D7E424007786D5 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -102,7 +103,7 @@
 		9955DBA723D7E4E3007786D5 /* Array2D.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Array2D.swift; sourceTree = "<group>"; };
 		9955DBA823D7E4E3007786D5 /* Tile.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Tile.swift; sourceTree = "<group>"; };
 		9955DBA923D7E4E4007786D5 /* Swap.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Swap.swift; sourceTree = "<group>"; };
-		9955DBAB23D7E4E4007786D5 /* Cookie.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Cookie.swift; sourceTree = "<group>"; };
+		9955DBAB23D7E4E4007786D5 /* Symbol.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Symbol.swift; sourceTree = "<group>"; };
 		9955DBAC23D7E4E4007786D5 /* Level.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Level.swift; sourceTree = "<group>"; };
 		9955DBAD23D7E4E4007786D5 /* GameScene.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GameScene.swift; sourceTree = "<group>"; };
 		9955DBBC23D7E680007786D5 /* Grid.atlas */ = {isa = PBXFileReference; lastKnownFileType = folder.skatlas; path = Grid.atlas; sourceTree = "<group>"; };
@@ -118,7 +119,6 @@
 		9955DBD423D7E8D1007786D5 /* Level_15.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Level_15.json; sourceTree = "<group>"; };
 		9955DBD523D7E8D1007786D5 /* Level_1.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Level_1.json; sourceTree = "<group>"; };
 		9955DBD623D7E8D1007786D5 /* Level_2.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Level_2.json; sourceTree = "<group>"; };
-		9955DBDC23D7EA0C007786D5 /* StoreReviewHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StoreReviewHelper.swift; sourceTree = "<group>"; };
 		9955DBDE23D7EA14007786D5 /* Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		9955DBE023D7F84D007786D5 /* Color+Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Color+Extension.swift"; sourceTree = "<group>"; };
 		9955DBE423D7FE07007786D5 /* Level_7.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Level_7.json; sourceTree = "<group>"; };
@@ -218,7 +218,6 @@
 			isa = PBXGroup;
 			children = (
 				9955DBA323D7E4D2007786D5 /* SKSpriteNode+Extension.swift */,
-				9955DBDC23D7EA0C007786D5 /* StoreReviewHelper.swift */,
 				9955DBDE23D7EA14007786D5 /* Constants.swift */,
 				9955DBE023D7F84D007786D5 /* Color+Extension.swift */,
 				99AA8BEC23D9597B001EBD04 /* Music.swift */,
@@ -235,9 +234,10 @@
 			children = (
 				994625AB2C720E5600FC2C6A /* GameModel.swift */,
 				994625BE2C784CCB00FC2C6A /* ThemeModel.swift */,
+				994625C02C7860CD00FC2C6A /* SettingModel.swift */,
 				9955DBAC23D7E4E4007786D5 /* Level.swift */,
 				994625BA2C76022C00FC2C6A /* Zodiac.swift */,
-				9955DBAB23D7E4E4007786D5 /* Cookie.swift */,
+				9955DBAB23D7E4E4007786D5 /* Symbol.swift */,
 				9955DBA523D7E4E3007786D5 /* LevelData.swift */,
 				9955DBA623D7E4E3007786D5 /* Chain.swift */,
 				9955DBA723D7E4E3007786D5 /* Array2D.swift */,
@@ -345,8 +345,9 @@
 		9955DB7F23D7E420007786D5 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				BuildIndependentTargetsInParallel = YES;
 				LastSwiftUpdateCheck = 1120;
-				LastUpgradeCheck = 1120;
+				LastUpgradeCheck = 1540;
 				ORGANIZATIONNAME = "Banghua Zhao";
 				TargetAttributes = {
 					9955DB8623D7E420007786D5 = {
@@ -439,14 +440,14 @@
 				9955DBE123D7F84D007786D5 /* Color+Extension.swift in Sources */,
 				994625A32C720A2800FC2C6A /* Match3GameApp.swift in Sources */,
 				994625BD2C76092000FC2C6A /* SKSpriteNode+Entension.swift in Sources */,
+				994625C12C7860CD00FC2C6A /* SettingModel.swift in Sources */,
 				99AA8BED23D9597B001EBD04 /* Music.swift in Sources */,
 				994625AC2C720E5600FC2C6A /* GameModel.swift in Sources */,
-				9955DBB423D7E4E4007786D5 /* Cookie.swift in Sources */,
+				9955DBB423D7E4E4007786D5 /* Symbol.swift in Sources */,
 				9955DBB223D7E4E4007786D5 /* Swap.swift in Sources */,
 				9955DBAF23D7E4E4007786D5 /* Chain.swift in Sources */,
 				9955DBA423D7E4D2007786D5 /* SKSpriteNode+Extension.swift in Sources */,
 				994625BF2C784CCB00FC2C6A /* ThemeModel.swift in Sources */,
-				9955DBDD23D7EA0C007786D5 /* StoreReviewHelper.swift in Sources */,
 				9955DBB623D7E4E4007786D5 /* GameScene.swift in Sources */,
 				9955DBDF23D7EA14007786D5 /* Constants.swift in Sources */,
 				9971C95425FC6705008CFCF9 /* UIFont+Extension.swift in Sources */,
@@ -501,6 +502,7 @@
 			baseConfigurationReference = 99340CE02C715DC20096BBF5 /* Debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -524,6 +526,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -534,6 +537,7 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -563,6 +567,7 @@
 			baseConfigurationReference = 99340CE42C7160AF0096BBF5 /* Release.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -586,6 +591,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -596,6 +602,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
