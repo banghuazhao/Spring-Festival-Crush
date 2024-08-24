@@ -384,23 +384,25 @@ class Level {
             var array: [Symbol] = []
 
             // 1
-            var row = numRows - 1
-            while row >= 0 && symbols[column, row] == nil {
-                // 2
-                if tiles[column, row] != nil {
-                    // 3
-                    var newSymbolType: SymbolType
-                    repeat {
-                        newSymbolType = SymbolType.random()
-                    } while newSymbolType == symbolType
-                    symbolType = newSymbolType
-                    // 4
-                    let symbol = Symbol(column: column, row: row, symbolType: symbolType)
-                    symbols[column, row] = symbol
-                    array.append(symbol)
-                }
+            for row in stride(from: numRows - 1, through: 2, by: -1) {
+                var tempRow = row
+                while tempRow >= 0 && symbols[column, tempRow] == nil {
+                    // 2
+                    if tiles[column, tempRow] != nil {
+                        // 3
+                        var newSymbolType: SymbolType
+                        repeat {
+                            newSymbolType = SymbolType.random()
+                        } while newSymbolType == symbolType
+                        symbolType = newSymbolType
+                        // 4
+                        let symbol = Symbol(column: column, row: tempRow, symbolType: symbolType)
+                        symbols[column, tempRow] = symbol
+                        array.append(symbol)
+                    }
 
-                row -= 1
+                    tempRow -= 1
+                }
             }
             // 5
             if !array.isEmpty {
