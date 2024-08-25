@@ -2,8 +2,8 @@ import Foundation
 
 class LevelData: Codable {
     let tiles: [[Int]]
-    let targetScore: Int
     let moves: Int
+    let levelGoal: LevelGoal
 
     static func loadFrom(file filename: String) -> LevelData? {
         var data: Data

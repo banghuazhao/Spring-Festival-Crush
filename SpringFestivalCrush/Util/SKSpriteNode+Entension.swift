@@ -5,17 +5,9 @@
 
 import Foundation
 import SpriteKit
+import SwiftUI
 
 extension SKSpriteNode {
-//    static func sprite(for symbol: Symbol, zodiac: Zodiac, size: CGFloat) -> SKSpriteNode {
-//        if symbol.type == .zodiac {
-//            let emojiTexture = SKTexture.texture(from: zodiac.emoji, fontSize: 40)
-//            return SKSpriteNode(texture: emojiTexture)
-//        } else {
-//            return SKSpriteNode(imageNamed: symbol.type.spriteName)
-//        }
-//    }
-    
     static func highLightSprite(for symbol: Symbol, zodiac: Zodiac, size: CGFloat) -> SKSpriteNode {
         if symbol.type == .zodiac {
             let emojiTexture = SKTexture.texture(from: zodiac.emoji, fontSize: size)
@@ -32,6 +24,14 @@ extension SKSpriteNode {
 extension SKTexture {
     // Create an SKTexture from a string (emoji)
     static func texture(from text: String, fontSize: CGFloat) -> SKTexture? {
+        let image = UIImage.uiImage(from: text, fontSize: fontSize)
+
+        return SKTexture(image: image)
+    }
+}
+
+extension UIImage {
+    static func uiImage(from text: String, fontSize: CGFloat) -> UIImage {
         let attributes = [
             NSAttributedString.Key.font: UIFont.systemFont(ofSize: fontSize),
         ]
@@ -42,7 +42,13 @@ extension SKTexture {
         let image = renderer.image { _ in
             text.draw(in: CGRect(origin: .zero, size: size), withAttributes: attributes)
         }
+        return image
+    }
+}
 
-        return SKTexture(image: image)
+extension Image {
+    static func image(from text: String, fontSize: CGFloat) -> Image {
+        let image = UIImage.uiImage(from: text, fontSize: fontSize)
+        return Image(uiImage: image)
     }
 }

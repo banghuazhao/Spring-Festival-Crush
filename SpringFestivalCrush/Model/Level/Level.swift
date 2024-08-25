@@ -3,13 +3,14 @@ import Foundation
 class Level {
     let numColumns: Int
     let numRows: Int
-    let targetScore: Int
     let maximumMoves: Int
+
+    var levelGoal: LevelGoal
 
     var possibleSwaps: Set<Swap> = []
 
-    private var symbols: Array2D<Symbol>
     private var tiles: Array2D<Tile>
+    private var symbols: Array2D<Symbol>
     private var comboMultiplier = 0
 
     init?(filename: String) {
@@ -24,8 +25,9 @@ class Level {
         tiles = Array2D<Tile>(columns: numColumns, rows: numRows)
         symbols = Array2D<Symbol>(columns: numColumns, rows: numRows)
 
-        targetScore = levelData.targetScore
         maximumMoves = levelData.moves
+
+        levelGoal = levelData.levelGoal
 
         // 3
         for (row, rowArray) in tilesArray.enumerated() {
@@ -79,7 +81,7 @@ class Level {
                     symbolType = SymbolType.lock
                 default:
                     repeat {
-                        symbolType = SymbolType.random()
+                        symbolType = SymbolType.randomMovableSymbol()
                     } while (column >= 2 &&
                         symbols[column - 1, row]?.type == symbolType &&
                         symbols[column - 2, row]?.type == symbolType)
@@ -392,7 +394,7 @@ class Level {
                         // 3
                         var newSymbolType: SymbolType
                         repeat {
-                            newSymbolType = SymbolType.random()
+                            newSymbolType = SymbolType.randomMovableSymbol()
                         } while newSymbolType == symbolType
                         symbolType = newSymbolType
                         // 4
@@ -422,5 +424,15 @@ class Level {
 
     func resetComboMultiplier() {
         comboMultiplier = 1
+    }
+
+    func doesReachLevelTarget() -> Bool {
+        levelGoal.levelTarget.firecracker ?? 0 <= 0
+            && levelGoal.levelTarget.redPocket ?? 0 <= 0
+            && levelGoal.levelTarget.dumpling ?? 0 <= 0
+            && levelGoal.levelTarget.bowl ?? 0 <= 0
+            && levelGoal.levelTarget.lantern ?? 0 <= 0
+            && levelGoal.levelTarget.zodiac ?? 0 <= 0
+            && levelGoal.levelTarget.lock ?? 0 <= 0
     }
 }

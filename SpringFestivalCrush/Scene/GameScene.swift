@@ -93,8 +93,8 @@ class GameScene: SKScene {
             await animateSwap(swap)
         case let .onInvalidSwap(swap):
             await animateInvalidSwap(swap)
-        case let .onMatchedSprites(sprites):
-            await animateMatchedSymbols(for: sprites)
+        case let .onMatchedSymbols(chains):
+            await animateMatchedSymbols(for: chains)
         case let .onFallingSymbols(sprites):
             await animateFallingSymbols(in: sprites)
         case let .onNewSprites(sprites):

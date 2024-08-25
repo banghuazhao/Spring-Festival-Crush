@@ -13,22 +13,23 @@ enum SymbolType: Int {
     case lock
 
     var spriteName: String {
-        let spriteNames = [
-            "firecracker",
-            "redPocket",
-            "dumpling",
-            "bowl",
-            "lantern",
-        ]
-
-        return spriteNames[rawValue - 1]
+        switch self {
+        case .unknown: "unknown"
+        case .firecracker: "firecracker"
+        case .redPocket: "redPocket"
+        case .dumpling: "dumpling"
+        case .bowl: "bowl"
+        case .lantern: "lantern"
+        case .zodiac: "zodiac"
+        case .lock: "lock"
+        }
     }
 
     var highlightedSpriteName: String {
         return spriteName + "-Highlighted"
     }
 
-    static func random() -> SymbolType {
+    static func randomMovableSymbol() -> SymbolType {
         return SymbolType(rawValue: Int(arc4random_uniform(6)) + 1)!
     }
 }
@@ -78,7 +79,7 @@ class Symbol: CustomStringConvertible, Hashable {
             true
         }
     }
-    
+
     func isMatchable() -> Bool {
         switch type {
         case .lock:

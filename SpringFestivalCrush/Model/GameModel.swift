@@ -15,7 +15,7 @@ class GameModel: ObservableObject {
     enum CommandAsync {
         case onValidSwap(Swap)
         case onInvalidSwap(Swap)
-        case onMatchedSprites(Set<Chain>)
+        case onMatchedSymbols(Set<Chain>)
         case onFallingSymbols([[Symbol]])
         case onNewSprites([[Symbol]])
         case onGameBegin
@@ -57,24 +57,16 @@ class GameModel: ObservableObject {
         zodiac.gameBackground
     }
 
-    var levelLabel: String {
-        "Level\n \(currentLevel)/\(zodiac.numLevels)"
-    }
-
-    var scoreLabel: String {
-        "Score\n \(score)/\(level.targetScore)"
-    }
-
-    var moveLabel: String {
-        "Moves Left\n \(movesLeft)"
-    }
-
     var tileSize: CGSize {
         calculateTileSize(screenSize: screenSize)
     }
 
     func selectZodiac(_ chineseZodiac: ChineseZodiac) {
         zodiac = Zodiac(numLevels: 20, chineseZodiac: chineseZodiac)
+    }
+
+    func createLevelTargetDatas() -> [LevelTargetData] {
+        level.levelGoal.levelTarget.getLevelTargetDatas(gameZodiac: zodiac)
     }
 
     private func calculateTileSize(screenSize: CGSize) -> CGSize {
@@ -136,7 +128,7 @@ class GameModel: ObservableObject {
     }
 
     private func checkGameState() {
-        if score >= level.targetScore {
+        if level.doesReachLevelTarget() {
             gameState = .win
             return
         }
@@ -186,11 +178,10 @@ class GameModel: ObservableObject {
             chains.insert(lockChain)
         }
 
-        await invokeCommandAsync?(.onMatchedSprites(chains))
+        await invokeCommandAsync?(.onMatchedSymbols(chains))
 
-        for chain in chains {
-            score += chain.score
-        }
+        updateScores(from: chains)
+        updateLevelTarget(from: chains)
 
         let columns = level.fillHoles()
         await invokeCommandAsync?(.onFallingSymbols(columns))
@@ -199,6 +190,16 @@ class GameModel: ObservableObject {
         await invokeCommandAsync?(.onNewSprites(topUpColumns))
 
         await handleMatches()
+    }
+
+    func updateScores(from chains: Set<Chain>) {
+        for chain in chains {
+            score += chain.score
+        }
+    }
+
+    func updateLevelTarget(from chains: Set<Chain>) {
+        level.levelGoal.levelTarget.updates(from: chains)
     }
 
     func beginNextTurn() {
