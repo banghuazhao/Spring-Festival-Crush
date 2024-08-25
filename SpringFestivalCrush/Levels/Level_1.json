@@ -1,0 +1,20 @@
+{
+  "tiles" : [ [1, 1, 1, 1, 1, 1, 1 ],
+              [1, 1, 1, 1, 1, 1, 1 ],
+              [1, 1, 1, 1, 1, 1, 1 ],
+              [1, 1, 1, 1, 1, 1, 1 ],
+              [1, 1, 1, 1, 1, 1, 1 ],
+              [1, 1, 1, 1, 1, 1, 1 ],
+              [1, 1, 1, 1, 1, 1, 1 ] ],
+
+  "moves" : 20,
+  "possibleSymbols": ["firecracker", "redPocket", "dumpling", "bowl", "zodiac"],
+  "levelGoal": {
+      "firstStarScore": 500,
+      "secondStarScore": 800,
+      "thirdStarScore": 1200,
+      "levelTarget": {
+          "zodiac": 10
+      }
+  }
+}
