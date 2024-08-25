@@ -6,8 +6,8 @@
 import SwiftUI
 
 struct LevelFailedView: View {
-    let level: Int
-    let onTapTryAgainLevel: () -> Void
+    @EnvironmentObject var gameModel: GameModel
+
     var body: some View {
         ZStack {
             RadialGradient(
@@ -22,17 +22,29 @@ struct LevelFailedView: View {
             .edgesIgnoringSafeArea(.all)
             VStack {
                 HStack {
-                    StarView(fillColor: .gray)
-                    StarView(fillColor: .gray)
-                    StarView(fillColor: .gray)
+                    StarView(
+                        fillColor: (gameModel.score >= gameModel.level.levelGoal.firstStarScore)
+                            ? .yellow
+                            : .gray
+                    )
+                    StarView(
+                        fillColor: (gameModel.score >= gameModel.level.levelGoal.secondStarScore)
+                            ? .yellow
+                            : .gray
+                    )
+                    StarView(
+                        fillColor: (gameModel.score >= gameModel.level.levelGoal.thirdStarScore)
+                            ? .yellow
+                            : .gray
+                    )
                 }
                 .padding()
-                Text("Level \(level) failed")
+                Text("Level \(gameModel.currentLevel) failed")
                     .padding()
                 Text("Out of moves!")
                     .padding()
 
-                Button(action: onTapTryAgainLevel) {
+                Button(action: gameModel.onTapTryAgainLevel) {
                     Text("Try again")
                         .font(.headline)
                         .foregroundColor(.white)
@@ -46,11 +58,5 @@ struct LevelFailedView: View {
         }
         .frame(width: 300, height: 400)
         .clipShape(.rect(cornerRadius: 20))
-    }
-}
-
-#Preview {
-    VStack {
-        LevelFailedView(level: 2) {}
     }
 }

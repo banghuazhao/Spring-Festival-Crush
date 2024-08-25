@@ -3,8 +3,9 @@ import Foundation
 class Level {
     let numColumns: Int
     let numRows: Int
-    let maximumMoves: Int
 
+    let maximumMoves: Int
+    var possbileSymbols: [String]?
     var levelGoal: LevelGoal
 
     var possibleSwaps: Set<Swap> = []
@@ -26,7 +27,7 @@ class Level {
         symbols = Array2D<Symbol>(columns: numColumns, rows: numRows)
 
         maximumMoves = levelData.moves
-
+        possbileSymbols = levelData.possibleSymbols
         levelGoal = levelData.levelGoal
 
         // 3
@@ -81,7 +82,7 @@ class Level {
                     symbolType = SymbolType.lock
                 default:
                     repeat {
-                        symbolType = SymbolType.randomMovableSymbol()
+                        symbolType = SymbolType.randomMovableSymbolType(possbileSymbols)
                     } while (column >= 2 &&
                         symbols[column - 1, row]?.type == symbolType &&
                         symbols[column - 2, row]?.type == symbolType)
@@ -394,7 +395,7 @@ class Level {
                         // 3
                         var newSymbolType: SymbolType
                         repeat {
-                            newSymbolType = SymbolType.randomMovableSymbol()
+                            newSymbolType = SymbolType.randomMovableSymbolType(possbileSymbols)
                         } while newSymbolType == symbolType
                         symbolType = newSymbolType
                         // 4

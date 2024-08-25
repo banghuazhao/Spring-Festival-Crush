@@ -42,22 +42,16 @@ class GameScene: SKScene {
         let background = SKSpriteNode(imageNamed: gameModel.gameBackground)
         background.size = size
         background.aspectFillToSize(fillSize: size)
-
         addChild(background)
+
         addChild(gameLayer)
         gameLayer.isHidden = true
 
-        let layerPosition = CGPoint(
-            x: -gameModel.tileSize.width * CGFloat(gameModel.numColumns) / 2,
-            y: -gameModel.tileSize.width * CGFloat(gameModel.numRows) / 2)
-        tilesLayer.position = layerPosition
-        maskLayer.position = layerPosition
         cropLayer.maskNode = maskLayer
         gameLayer.addChild(tilesLayer)
         gameLayer.addChild(cropLayer)
-
-        symbolsLayer.position = layerPosition
         cropLayer.addChild(symbolsLayer)
+
         _ = SKLabelNode(fontNamed: "GillSans-BoldItalic")
 
         gameModel.invokeCommand = { [weak self] command in
@@ -76,6 +70,8 @@ class GameScene: SKScene {
 
     private func executeCommand(_ command: GameModel.Command) {
         switch command {
+        case .setupLayerPosition:
+            setupLayerPosition()
         case .setupTiles:
             removeAllTiles()
             addTiles()
@@ -104,6 +100,15 @@ class GameScene: SKScene {
         case .onGameOver:
             await animateGameOver()
         }
+    }
+
+    func setupLayerPosition() {
+        let layerPosition = CGPoint(
+            x: -gameModel.tileSize.width * CGFloat(gameModel.numColumns) / 2,
+            y: -gameModel.tileSize.width * CGFloat(gameModel.numRows) / 2)
+        tilesLayer.position = layerPosition
+        maskLayer.position = layerPosition
+        symbolsLayer.position = layerPosition
     }
 
     func shuffle(by newSymbols: Set<Symbol>) {

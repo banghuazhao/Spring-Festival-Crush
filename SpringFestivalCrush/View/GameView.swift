@@ -56,9 +56,9 @@ struct GameView: View {
                 }
 
                 if gameModel.gameState == .lose {
-                    LevelFailedView(level: gameModel.currentLevel, onTapTryAgainLevel: gameModel.onTapTryAgainLevel)
+                    LevelFailedView()
                 } else if gameModel.gameState == .win {
-                    LevelCompleteView(score: gameModel.score, level: gameModel.currentLevel, onTapNextLevel: gameModel.onTapNextLevel)
+                    LevelCompleteView()
                 }
             }
         }
@@ -205,10 +205,15 @@ struct LevelTargetView: View {
                             .scaledToFit()
                             .frame(width: 30, height: 30)
 
-                        Text("\(levelTargetData.targetNum)")
-                            .font(.system(size: 18, weight: .semibold))
-                            .foregroundColor(.white)
-                            .shadow(color: Color.black.opacity(0.3), radius: 2, x: 2, y: 2)
+                        if levelTargetData.targetNum >= 0 {
+                            Text("\(levelTargetData.targetNum)")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundColor(.white)
+                                .shadow(color: Color.black.opacity(0.3), radius: 2, x: 2, y: 2)
+                        } else {
+                            Text("✅")
+                                .font(.system(size: 18))
+                        }
                     }
                 }
             }

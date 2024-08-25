@@ -2,8 +2,8 @@ import SpriteKit
 
 // MARK: - SymbolType
 
-enum SymbolType: Int {
-    case unknown = 0
+enum SymbolType: String {
+    case unknown
     case firecracker
     case redPocket
     case dumpling
@@ -29,8 +29,37 @@ enum SymbolType: Int {
         return spriteName + "-Highlighted"
     }
 
-    static func randomMovableSymbol() -> SymbolType {
-        return SymbolType(rawValue: Int(arc4random_uniform(6)) + 1)!
+    init?(rawValue: String) {
+        switch rawValue {
+        case "unknown":
+            self = .unknown
+        case "firecracker":
+            self = .firecracker
+        case "redPocket":
+            self = .redPocket
+        case "dumpling":
+            self = .dumpling
+        case "bowl":
+            self = .bowl
+        case "lantern":
+            self = .lantern
+        case "zodiac":
+            self = .zodiac
+        case "lock":
+            self = .lock
+        default:
+            return nil
+        }
+    }
+
+    static func randomMovableSymbolType(_ possibleSymbols: [String]?) -> SymbolType {
+        var candidateSymbolTypes: [SymbolType]
+        if let possibleSymbols {
+            candidateSymbolTypes = possibleSymbols.compactMap { SymbolType(rawValue: $0) }
+        } else {
+            candidateSymbolTypes = [.firecracker, .redPocket, dumpling, .bowl, .lantern, .zodiac]
+        }
+        return candidateSymbolTypes.randomElement() ?? .zodiac
     }
 }
 

@@ -6,9 +6,8 @@
 import SwiftUI
 
 struct LevelCompleteView: View {
-    let score: Int
-    let level: Int
-    let onTapNextLevel: () -> Void
+    @EnvironmentObject var gameModel: GameModel
+
     var body: some View {
         ZStack {
             RadialGradient(
@@ -23,17 +22,29 @@ struct LevelCompleteView: View {
             .edgesIgnoringSafeArea(.all)
             VStack {
                 HStack {
-                    StarView(fillColor: .orange)
-                    StarView(fillColor: .orange)
-                    StarView(fillColor: .orange)
+                    StarView(
+                        fillColor: (gameModel.score >= gameModel.level.levelGoal.firstStarScore)
+                            ? .yellow
+                            : .gray
+                    )
+                    StarView(
+                        fillColor: (gameModel.score >= gameModel.level.levelGoal.secondStarScore)
+                            ? .yellow
+                            : .gray
+                    )
+                    StarView(
+                        fillColor: (gameModel.score >= gameModel.level.levelGoal.thirdStarScore)
+                            ? .yellow
+                            : .gray
+                    )
                 }
                 .padding()
-                Text("Level \(level) completed!")
+                Text("Level \(gameModel.currentLevel) completed!")
                     .padding()
-                Text("Your score: \(score)")
+                Text("Your score: \(gameModel.score)")
                     .padding()
 
-                Button(action: onTapNextLevel) {
+                Button(action: gameModel.onTapNextLevel) {
                     Text("Next Level")
                         .font(.headline)
                         .foregroundColor(.white)
@@ -60,11 +71,5 @@ struct StarView: View {
             .frame(width: 50, height: 50)
             .foregroundColor(fillColor)
             .shadow(color: fillColor.opacity(0.5), radius: 10, x: 0, y: 5)
-    }
-}
-
-#Preview {
-    VStack {
-        LevelCompleteView(score: 100, level: 2) {}
     }
 }

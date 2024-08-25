@@ -7,6 +7,7 @@ import SwiftUI
 
 class GameModel: ObservableObject {
     enum Command {
+        case setupLayerPosition
         case setupTiles
         case setupSymbols(Set<Symbol>)
         case shuffle(Set<Symbol>)
@@ -103,6 +104,7 @@ class GameModel: ObservableObject {
     func setupNewGame() async {
         movesLeft = level.maximumMoves
         score = 0
+        invokeCommand?(.setupLayerPosition)
         invokeCommand?(.setupTiles)
         let newSymbols = level.shuffle()
         invokeCommand?(.setupSymbols(newSymbols))

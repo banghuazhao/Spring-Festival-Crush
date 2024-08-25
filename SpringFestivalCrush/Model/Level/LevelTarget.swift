@@ -16,7 +16,7 @@ struct LevelTarget: Codable {
 
     func getLevelTargetDatas(gameZodiac: Zodiac) -> [LevelTargetData] {
         var levelTargetDatas = [LevelTargetData]()
-        if let firecracker, firecracker >= 0 {
+        if let firecracker {
             levelTargetDatas.append(
                 LevelTargetData(
                     image: Image("firecracker"),
@@ -25,7 +25,7 @@ struct LevelTarget: Codable {
                 )
             )
         }
-        if let redPocket, redPocket >= 0 {
+        if let redPocket {
             levelTargetDatas.append(
                 LevelTargetData(
                     image: Image("redPocket"),
@@ -34,7 +34,7 @@ struct LevelTarget: Codable {
                 )
             )
         }
-        if let dumpling, dumpling >= 0 {
+        if let dumpling {
             levelTargetDatas.append(
                 LevelTargetData(
                     image: Image("dumpling"),
@@ -43,7 +43,7 @@ struct LevelTarget: Codable {
                 )
             )
         }
-        if let bowl, bowl >= 0 {
+        if let bowl {
             levelTargetDatas.append(
                 LevelTargetData(
                     image: Image("bowl"),
@@ -52,7 +52,7 @@ struct LevelTarget: Codable {
                 )
             )
         }
-        if let lantern, lantern >= 0 {
+        if let lantern {
             levelTargetDatas.append(
                 LevelTargetData(
                     image: Image("lantern"),
@@ -61,7 +61,7 @@ struct LevelTarget: Codable {
                 )
             )
         }
-        if let zodiac, zodiac >= 0 {
+        if let zodiac {
             levelTargetDatas.append(
                 LevelTargetData(
                     image: Image.image(from: gameZodiac.emoji, fontSize: 40),
@@ -70,7 +70,7 @@ struct LevelTarget: Codable {
                 )
             )
         }
-        if let lock, lock >= 0 {
+        if let lock {
             levelTargetDatas.append(
                 LevelTargetData(
                     image: Image.image(from: "🔒", fontSize: 40),

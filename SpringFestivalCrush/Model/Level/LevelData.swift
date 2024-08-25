@@ -2,6 +2,7 @@ import Foundation
 
 class LevelData: Codable {
     let tiles: [[Int]]
+    var possibleSymbols: [String]?
     let moves: Int
     let levelGoal: LevelGoal
 
