@@ -1,22 +1,21 @@
 {
-  "tiles" : [ [2, 2, 2, 2, 2, 2, 2, 2 ],
+  "tiles" : [ [2, 1, 1, 1, 1, 1, 1, 2 ],
               [2, 1, 1, 1, 1, 1, 1, 2 ],
               [2, 1, 1, 1, 1, 1, 1, 2 ],
               [2, 1, 1, 1, 1, 1, 1, 2 ],
-              [2, 2, 2, 2, 2, 2, 2, 2 ],
               [2, 1, 1, 1, 1, 1, 1, 2 ],
               [2, 1, 1, 1, 1, 1, 1, 2 ],
               [2, 1, 1, 1, 1, 1, 1, 2 ],
-              [2, 1, 1, 1, 1, 1, 1, 2 ] ],
+              [2, 1, 1, 1, 1, 1, 1, 2 ]],
 
-  "moves" : 20,
+  "moves" : 23,
   "levelGoal": {
-      "firstStarScore": 500,
-      "secondStarScore": 800,
-      "thirdStarScore": 1200,
+      "firstStarScore": 700,
+      "secondStarScore": 1200,
+      "thirdStarScore": 1800,
       "levelTarget": {
           "zodiac": 10,
-          "redPocket": 5
+          "redPocket": 10
       }
   }
 }

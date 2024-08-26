@@ -222,7 +222,7 @@ class GameModel: ObservableObject {
     }
 
     func onTapTryAgainLevel() {
-        gameState = .loading
+        selectLevel(currentLevel)
         Task { @MainActor in
             await setupNewGame()
         }
