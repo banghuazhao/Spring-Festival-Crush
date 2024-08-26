@@ -205,7 +205,7 @@ struct LevelTargetView: View {
                             .scaledToFit()
                             .frame(width: 30, height: 30)
 
-                        if levelTargetData.targetNum >= 0 {
+                        if levelTargetData.targetNum > 0 {
                             Text("\(levelTargetData.targetNum)")
                                 .font(.system(size: 18, weight: .semibold))
                                 .foregroundColor(.white)
