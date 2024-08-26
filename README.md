@@ -11,25 +11,26 @@
 - **Festive Theme**: Celebrate the Spring Festival with beautifully designed levels and festive elements.
 - **Challenging Levels**: Many levels to keep you engaged with increasing difficulty.
 - **Smooth Gameplay**: Enjoy a seamless gaming experience with smooth animations and intuitive controls.
-- **Global Leaderboards**: Compete with players around the world and climb the leaderboards.
 
 ## Screenshots
 
-![Screenshot 1](./screenshots/s1.webp)
-
+<img src="./screenshots/s1.webp" width="200">
 
 ## Installation
 
 ### iOS
 
 The game is available for download on the App Store. Click the link below to download:
-
 [![Download on the App Store](https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg)](https://apps.apple.com/tw/app/spring-festival-crush-match-3/id1495828131?l=en)
+
+
 
 ### Requirements
 
-- **iOS Version**: iOS 12.0 or later
+- **iOS Version**: iOS 16.0 or later
 - **Compatible Devices**: iPhone, iPad, and Mac
+
+
 
 ## How to Play
 
@@ -37,21 +38,19 @@ The game is available for download on the App Store. Click the link below to dow
 2. **Complete Objectives**: Achieve the objectives set for each level within the given moves or time.
 3. **Advance Through Levels**: Progress through increasingly difficult levels and enjoy new challenges.
 
+
+
 ## Development
 
 ### Tech Stack
 
 - **Language**: Swift
-- **Framework**: UIKit, SpriteKit
+- **Framework**: SpriteKit, SwiftUI, Swift Concurrency
 - **Ad Integration**: Google AdMob
 
 ### Contributing
 
 We welcome contributions to the project! Please feel free to submit a pull request or open an issue if you have suggestions or find bugs.
-
-### License
-
-This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for more details.
 
 ---
 
