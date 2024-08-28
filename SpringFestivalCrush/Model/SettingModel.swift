@@ -7,4 +7,5 @@ import SwiftUI
 
 class SettingModel: ObservableObject {
     @AppStorage("isPlayBackgroundMusic") var isPlayBackgroundMusic: Bool = true
+    @AppStorage("unlockAllLevels") var unlockAllLevels: Bool = false
 }
