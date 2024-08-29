@@ -7,6 +7,7 @@ import SwiftUI
 
 struct MainView: View {
     @EnvironmentObject var gameModel: GameModel
+    @Environment(\.modelContext) private var modelContext
 
     var body: some View {
         NavigationStack {
@@ -18,6 +19,9 @@ struct MainView: View {
                             Image(systemName: "gearshape")
                         }
                     }
+                }
+                .onAppear {
+                    gameModel.initializeRecords(modelContext: modelContext)
                 }
         }
     }

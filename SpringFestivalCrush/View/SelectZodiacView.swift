@@ -6,10 +6,14 @@
 import SwiftUI
 
 struct SelectChineseZodiacView: View {
+    @Environment(\.modelContext) private var modelContext
     @EnvironmentObject var gameModel: GameModel
     @EnvironmentObject var themeModel: ThemeModel
+    @EnvironmentObject var settingModel: SettingModel
 
-    let chineseZodiacs: [ChineseZodiac] = ChineseZodiac.allCases
+    var unlockAll: Bool {
+        settingModel.unlockAllLevels
+    }
 
     @State private var selectedZodiac: ChineseZodiac?
     @State private var shouldPresentLevel: Bool = false
@@ -25,9 +29,12 @@ struct SelectChineseZodiacView: View {
 
                 ScrollView {
                     LazyVGrid(columns: geometry.size.width < 600 ? columnsCompact : columnsRegular, spacing: 20) {
-                        ForEach(chineseZodiacs, id: \.self) { chineseZodiac in
-                            ChineseZodiacButton(sign: chineseZodiac.rawValue) {
-                                gameModel.selectZodiac(chineseZodiac)
+                        ForEach(gameModel.zodiacRecords) { zodiacRecord in
+                            ChineseZodiacButton(
+                                title: zodiacRecord.zodiacType.title,
+                                isUnlocked: zodiacRecord.isUnlocked || unlockAll
+                            ) {
+                                gameModel.selectZodiac(zodiacRecord)
                                 shouldPresentLevel = true
                             }
                         }
@@ -43,12 +50,13 @@ struct SelectChineseZodiacView: View {
 }
 
 struct ChineseZodiacButton: View {
-    let sign: String
+    let title: String
+    let isUnlocked: Bool
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            Text(sign)
+            Text(title)
                 .font(.system(size: 20, weight: .semibold, design: .rounded)) // Rounded font for a playful look
                 .foregroundColor(Color.white)
                 .shadow(color: Color.black.opacity(0.3), radius: 2, x: 2, y: 2) // Subtle shadow for text
@@ -59,7 +67,7 @@ struct ChineseZodiacButton: View {
                             gradient: Gradient(
                                 colors: [
                                     Color(red: 1.0, green: 0.65, blue: 0.0), // Bright orange
-                                    Color(red: 1.0, green: 0.4, blue: 0.0),  // Deep orange
+                                    Color(red: 1.0, green: 0.4, blue: 0.0), // Deep orange
                                 ]
                             ),
                             startPoint: .topLeading,
@@ -71,7 +79,7 @@ struct ChineseZodiacButton: View {
                             gradient: Gradient(
                                 colors: [
                                     Color.white.opacity(0.5), // Softer highlight
-                                    Color.clear
+                                    Color.clear,
                                 ]),
                             startPoint: .top,
                             endPoint: .bottom
@@ -98,9 +106,26 @@ struct ChineseZodiacButton: View {
                 .padding(.all, 5)
         }
         .buttonStyle(PlainButtonStyle()) // Minimal button styling
+        .disabled(!isUnlocked)
+        .overlay {
+            if !isUnlocked {
+                HStack {
+                    Spacer()
+                    VStack {
+                        Spacer()
+                        Image(systemName: "lock.fill")
+                            .resizable()
+                            .frame(width: 24, height: 24)
+                            .foregroundColor(.white)
+                            .padding(8)
+                            .background(Color.black.opacity(0.7))
+                            .cornerRadius(12)
+                    }
+                }
+            }
+        }
     }
 }
-
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {

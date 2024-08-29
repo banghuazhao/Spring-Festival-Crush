@@ -26,6 +26,9 @@
 		994625C12C7860CD00FC2C6A /* SettingModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 994625C02C7860CD00FC2C6A /* SettingModel.swift */; };
 		994625C32C7AB14600FC2C6A /* LevelGoal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 994625C22C7AB14600FC2C6A /* LevelGoal.swift */; };
 		994625C62C7AC31F00FC2C6A /* LevelTarget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 994625C52C7AC31F00FC2C6A /* LevelTarget.swift */; };
+		9949A9232C8035E20027C480 /* ZodiacRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9949A9222C8035E20027C480 /* ZodiacRecord.swift */; };
+		9949A9262C8035EF0027C480 /* LevelRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9949A9252C8035EF0027C480 /* LevelRecord.swift */; };
+		9949A9282C805FAA0027C480 /* RecorderManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9949A9272C805FAA0027C480 /* RecorderManager.swift */; };
 		9955DB9823D7E424007786D5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9955DB9723D7E424007786D5 /* Assets.xcassets */; };
 		9955DB9B23D7E424007786D5 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 9955DB9923D7E424007786D5 /* LaunchScreen.storyboard */; };
 		9955DBA423D7E4D2007786D5 /* SKSpriteNode+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9955DBA323D7E4D2007786D5 /* SKSpriteNode+Extension.swift */; };
@@ -97,6 +100,9 @@
 		994625C02C7860CD00FC2C6A /* SettingModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingModel.swift; sourceTree = "<group>"; };
 		994625C22C7AB14600FC2C6A /* LevelGoal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LevelGoal.swift; sourceTree = "<group>"; };
 		994625C52C7AC31F00FC2C6A /* LevelTarget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LevelTarget.swift; sourceTree = "<group>"; };
+		9949A9222C8035E20027C480 /* ZodiacRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZodiacRecord.swift; sourceTree = "<group>"; };
+		9949A9252C8035EF0027C480 /* LevelRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LevelRecord.swift; sourceTree = "<group>"; };
+		9949A9272C805FAA0027C480 /* RecorderManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecorderManager.swift; sourceTree = "<group>"; };
 		9955DB8723D7E420007786D5 /* SpringFestivalCrush.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SpringFestivalCrush.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9955DB9723D7E424007786D5 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		9955DB9A23D7E424007786D5 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -191,6 +197,16 @@
 			path = Level;
 			sourceTree = "<group>";
 		};
+		9949A9212C8035D80027C480 /* Record */ = {
+			isa = PBXGroup;
+			children = (
+				9949A9222C8035E20027C480 /* ZodiacRecord.swift */,
+				9949A9252C8035EF0027C480 /* LevelRecord.swift */,
+				9949A9272C805FAA0027C480 /* RecorderManager.swift */,
+			);
+			path = Record;
+			sourceTree = "<group>";
+		};
 		9955DB7E23D7E420007786D5 = {
 			isa = PBXGroup;
 			children = (
@@ -247,6 +263,7 @@
 		9955DBB723D7E505007786D5 /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				9949A9212C8035D80027C480 /* Record */,
 				994625C42C7AC30F00FC2C6A /* Level */,
 				994625AB2C720E5600FC2C6A /* GameModel.swift */,
 				994625BE2C784CCB00FC2C6A /* ThemeModel.swift */,
@@ -451,6 +468,7 @@
 				994625B92C74A3F700FC2C6A /* SelectZodiacView.swift in Sources */,
 				994625B42C74A06000FC2C6A /* LevelFailedView.swift in Sources */,
 				994625A72C720AA600FC2C6A /* SelectLevelView.swift in Sources */,
+				9949A9232C8035E20027C480 /* ZodiacRecord.swift in Sources */,
 				9955DBE123D7F84D007786D5 /* Color+Extension.swift in Sources */,
 				994625A32C720A2800FC2C6A /* Match3GameApp.swift in Sources */,
 				994625BD2C76092000FC2C6A /* SKSpriteNode+Entension.swift in Sources */,
@@ -463,7 +481,9 @@
 				9955DBAF23D7E4E4007786D5 /* Chain.swift in Sources */,
 				994625C32C7AB14600FC2C6A /* LevelGoal.swift in Sources */,
 				9955DBA423D7E4D2007786D5 /* SKSpriteNode+Extension.swift in Sources */,
+				9949A9262C8035EF0027C480 /* LevelRecord.swift in Sources */,
 				994625BF2C784CCB00FC2C6A /* ThemeModel.swift in Sources */,
+				9949A9282C805FAA0027C480 /* RecorderManager.swift in Sources */,
 				9955DBB623D7E4E4007786D5 /* GameScene.swift in Sources */,
 				9955DBDF23D7EA14007786D5 /* Constants.swift in Sources */,
 				9971C95425FC6705008CFCF9 /* UIFont+Extension.swift in Sources */,
@@ -568,7 +588,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -627,7 +647,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
@@ -645,7 +665,7 @@
 				CURRENT_PROJECT_VERSION = 1.4.51;
 				DEVELOPMENT_TEAM = F694X76A5X;
 				INFOPLIST_FILE = SpringFestivalCrush/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -666,7 +686,7 @@
 				CURRENT_PROJECT_VERSION = 1.4.51;
 				DEVELOPMENT_TEAM = F694X76A5X;
 				INFOPLIST_FILE = SpringFestivalCrush/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
