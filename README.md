@@ -21,13 +21,14 @@
 ### iOS
 
 The game is available for download on the App Store. Click the link below to download:
+
 [![Download on the App Store](https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg)](https://apps.apple.com/tw/app/spring-festival-crush-match-3/id1495828131?l=en)
 
 
 
 ### Requirements
 
-- **iOS Version**: iOS 16.0 or later
+- **iOS Version**: iOS 17.0 or later
 - **Compatible Devices**: iPhone, iPad, and Mac
 
 
@@ -45,7 +46,7 @@ The game is available for download on the App Store. Click the link below to dow
 ### Tech Stack
 
 - **Language**: Swift
-- **Framework**: SpriteKit, SwiftUI, Swift Concurrency
+- **Framework**: SpriteKit, SwiftUI, Swift Concurrency, SwiftData
 - **Ad Integration**: Google AdMob
 
 ### Contributing
