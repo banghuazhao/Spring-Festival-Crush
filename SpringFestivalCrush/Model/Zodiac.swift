@@ -5,22 +5,55 @@
 
 import Foundation
 
-enum ChineseZodiac: String, CaseIterable {
-    case rat = "🐭 Rat"
-    case ox = "🐮 Ox"
-    case tiger = "🐯 Tiger"
-    case rabbit = "🐰 Rabbit"
-    case dragon = "🐲 Dragon"
-    case snake = "🐍 Snake"
-    case horse = "🐴 Horse"
-    case goat = "🐑 Goat"
-    case monkey = "🐵 Monkey"
-    case rooster = "🐔 Rooster"
-    case dog = "🐶 Dog"
-    case pig = "🐷 Pig"
+enum ChineseZodiac: Int, CaseIterable, Codable {
+    case rat
+    case ox
+    case tiger
+    case rabbit
+    case dragon
+    case snake
+    case horse
+    case goat
+    case monkey
+    case rooster
+    case dog
+    case pig
+
+    var title: String {
+        switch self {
+        case .rat:
+            "🐭 Rat"
+        case .ox:
+            "🐮 Ox"
+        case .tiger:
+            "🐯 Tiger"
+        case .rabbit:
+            "🐰 Rabbit"
+        case .dragon:
+            "🐲 Dragon"
+        case .snake:
+            "🐍 Snake"
+        case .horse:
+            "🐴 Horse"
+        case .goat:
+            "🐑 Goat"
+        case .monkey:
+            "🐵 Monkey"
+        case .rooster:
+            "🐔 Rooster"
+        case .dog:
+            "🐶 Dog"
+        case .pig:
+            "🐷 Pig"
+        }
+    }
 }
 
-struct Zodiac {
+struct Zodiac: Identifiable {
+    var id: Int {
+        chineseZodiac.rawValue
+    }
+
     let numLevels: Int
     let chineseZodiac: ChineseZodiac
 
@@ -52,7 +85,7 @@ struct Zodiac {
             "🐷"
         }
     }
-    
+
     var gameBackground: String {
         switch chineseZodiac {
         case .rat:
@@ -81,4 +114,19 @@ struct Zodiac {
             "Background"
         }
     }
+}
+
+extension Zodiac {
+    static let all: [Zodiac] = {
+        let allChineseZodiacs = ChineseZodiac.allCases
+        var zodiacs = [Zodiac]()
+        for chineseZodiac in allChineseZodiacs {
+            zodiacs.append(
+                Zodiac(
+                    numLevels: 20,
+                    chineseZodiac: chineseZodiac)
+            )
+        }
+        return zodiacs
+    }()
 }

@@ -3,9 +3,14 @@
 // Copyright Apps Bay Limited. All rights reserved.
 //
 
+import SwiftData
 import SwiftUI
 
 class GameModel: ObservableObject {
+    @Published var zodiacRecords: [ZodiacRecord] = []
+    @AppStorage("firstLaunch") var firstLaunch = true
+    private var modelContext: ModelContext?
+
     enum Command {
         case setupLayerPosition
         case setupTiles
@@ -41,6 +46,9 @@ class GameModel: ObservableObject {
 
     var level: Level!
     var zodiac: Zodiac!
+    var currentZodiacRecord: ZodiacRecord?
+    var currentLevelRecords = [LevelRecord]()
+    var currentLevelRecord: LevelRecord?
     var screenSize = UIScreen.main.bounds.size
 
     var invokeCommand: ((Command) -> Void)?
@@ -62,8 +70,46 @@ class GameModel: ObservableObject {
         calculateTileSize(screenSize: screenSize)
     }
 
-    func selectZodiac(_ chineseZodiac: ChineseZodiac) {
-        zodiac = Zodiac(numLevels: 20, chineseZodiac: chineseZodiac)
+    func initializeRecords(modelContext: ModelContext) {
+        self.modelContext = modelContext
+        if firstLaunch {
+            for zodiac in Zodiac.all {
+                let zodiacRecord = ZodiacRecord(
+                    zodiacType: zodiac.chineseZodiac,
+                    isUnlocked: zodiac.chineseZodiac == .rat
+                )
+
+                modelContext.insert(zodiacRecord)
+
+                for i in 1 ... zodiac.numLevels {
+                    let levelRecord = LevelRecord(
+                        number: i,
+                        isUnlocked: i == 1,
+                        zodiacRecord: zodiacRecord
+                    )
+                    modelContext.insert(levelRecord)
+                    zodiacRecord.levelRecords.append(levelRecord)
+                }
+                zodiacRecords.append(zodiacRecord)
+            }
+            firstLaunch = false
+        } else {
+            let request = FetchDescriptor<ZodiacRecord>()
+
+            do {
+                let records = try modelContext.fetch(request)
+                zodiacRecords = records
+            } catch {
+                print("Failed to fetch ZodiacRecords: \(error)")
+            }
+        }
+        zodiacRecords.sort { $0.zodiacType.rawValue < $1.zodiacType.rawValue }
+    }
+
+    func selectZodiac(_ zodiacRecord: ZodiacRecord) {
+        zodiac = Zodiac.all.first { $0.chineseZodiac == zodiacRecord.zodiacType }
+        currentZodiacRecord = zodiacRecord
+        currentLevelRecords = zodiacRecord.levelRecords.sorted { $0.number < $1.number }
     }
 
     func createLevelTargetDatas() -> [LevelTargetData] {
@@ -98,6 +144,7 @@ class GameModel: ObservableObject {
         currentLevel = selectedLevel
         level = Level(filename: "Level_\(selectedLevel)")
         level.resetComboMultiplier()
+        currentLevelRecord = currentZodiacRecord?.levelRecords.first { $0.number == selectedLevel }
     }
 
     @MainActor
@@ -131,6 +178,7 @@ class GameModel: ObservableObject {
 
     private func checkGameState() {
         if level.doesReachLevelTarget() {
+            updateRecord()
             gameState = .win
             return
         }
@@ -225,6 +273,45 @@ class GameModel: ObservableObject {
         selectLevel(currentLevel)
         Task { @MainActor in
             await setupNewGame()
+        }
+    }
+
+    func updateRecord() {
+        currentLevelRecord?.isComplete = true
+        let firstLevel = score >= level.levelGoal.firstStarScore ? 1 : 0
+        let secondLevel = score >= level.levelGoal.secondStarScore ? 1 : 0
+        let thirdLevel = score >= level.levelGoal.thirdStarScore ? 1 : 0
+        let currentStars = firstLevel + secondLevel + thirdLevel
+        let previousStars = currentLevelRecord?.stars ?? 0
+        currentLevelRecord?.stars = max(currentStars, previousStars)
+
+        if currentLevel < zodiac.numLevels {
+            let nextLevelRecord = currentZodiacRecord?.levelRecords.first {
+                $0.number == currentLevel + 1
+            }
+            nextLevelRecord?.isUnlocked = true
+        }
+        unlockNextZodiacIfNeeded()
+        do {
+            try modelContext?.save()
+        } catch {
+            print("Failed to save context: \(error)")
+        }
+    }
+
+    func unlockNextZodiacIfNeeded() {
+        guard let currentZodiacRecord else { return }
+        guard let currentZodiacIndex = Zodiac.all.firstIndex(where: { $0.chineseZodiac == currentZodiacRecord.zodiacType }),
+              currentZodiacIndex + 1 < Zodiac.all.count else {
+            return
+        }
+
+        guard let nextZodiac = zodiacRecords.first(where: {
+            $0.zodiacType == Zodiac.all[currentZodiacIndex + 1].chineseZodiac
+        }) else { return }
+
+        if currentZodiacRecord.levelRecords.allSatisfy({ $0.isComplete }) {
+            nextZodiac.isUnlocked = true
         }
     }
 }

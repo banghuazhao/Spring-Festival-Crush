@@ -9,8 +9,6 @@ struct SelectLevelView: View {
     @EnvironmentObject var gameModel: GameModel
     @EnvironmentObject var themeModel: ThemeModel
 
-    let levels = Array(1 ... 20) // Example: 10 levels available
-
     let columnsCompact = [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())]
     let columnsRegular = [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())]
 
@@ -22,9 +20,13 @@ struct SelectLevelView: View {
 
                 ScrollView {
                     LazyVGrid(columns: geometry.size.width < 600 ? columnsCompact : columnsRegular, spacing: 20) {
-                        ForEach(levels, id: \.self) { level in
-                            LevelView(level: level, stars: 1) {
-                                gameModel.selectLevel(level)
+                        ForEach(gameModel.currentLevelRecords, id: \.self) { levelRecord in
+                            LevelView(
+                                level: levelRecord.number,
+                                isUnlocked: levelRecord.isUnlocked,
+                                stars: levelRecord.stars
+                            ) {
+                                gameModel.selectLevel(levelRecord.number)
                                 gameModel.shouldPresentGame = true
                             }
                         }
@@ -45,6 +47,7 @@ struct SelectLevelView: View {
 
 struct LevelView: View {
     let level: Int
+    let isUnlocked: Bool
     let stars: Int
     let action: () -> Void
 
@@ -96,7 +99,26 @@ struct LevelView: View {
                     }
                 }
             }
-            .buttonStyle(PlainButtonStyle()) // Optional: To keep the button look minimal
+            .buttonStyle(PlainButtonStyle())
+            .disabled(!isUnlocked)
+            .overlay {
+                if !isUnlocked {
+                    HStack {
+                        Spacer()
+                        VStack {
+                            Spacer()
+                            Image(systemName: "lock.fill")
+                                .resizable()
+                                .frame(width: 24, height: 24)
+                                .foregroundColor(.white)
+                                .padding(8)
+                                .background(Color.black.opacity(0.7))
+                                .cornerRadius(12)
+                        }
+                    }
+                }
+            }
+
             HStack(spacing: 4) {
                 ForEach(0 ..< 3) { star in
                     Image(systemName: "star.fill")
