@@ -9,6 +9,12 @@ struct SelectLevelView: View {
     @EnvironmentObject var gameModel: GameModel
     @EnvironmentObject var themeModel: ThemeModel
 
+    @EnvironmentObject var settingModel: SettingModel
+
+    var unlockAll: Bool {
+        settingModel.unlockAllLevels
+    }
+    
     let columnsCompact = [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())]
     let columnsRegular = [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())]
 
@@ -23,7 +29,7 @@ struct SelectLevelView: View {
                         ForEach(gameModel.currentLevelRecords, id: \.self) { levelRecord in
                             LevelView(
                                 level: levelRecord.number,
-                                isUnlocked: levelRecord.isUnlocked,
+                                isUnlocked: levelRecord.isUnlocked || unlockAll,
                                 stars: levelRecord.stars
                             ) {
                                 gameModel.selectLevel(levelRecord.number)

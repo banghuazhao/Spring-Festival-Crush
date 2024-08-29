@@ -9,10 +9,15 @@ struct SelectChineseZodiacView: View {
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject var gameModel: GameModel
     @EnvironmentObject var themeModel: ThemeModel
+    @EnvironmentObject var settingModel: SettingModel
+
+    var unlockAll: Bool {
+        settingModel.unlockAllLevels
+    }
 
     @State private var selectedZodiac: ChineseZodiac?
     @State private var shouldPresentLevel: Bool = false
-    
+
     let columnsCompact = [GridItem(.flexible()), GridItem(.flexible())]
     let columnsRegular = [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())]
 
@@ -27,7 +32,7 @@ struct SelectChineseZodiacView: View {
                         ForEach(gameModel.zodiacRecords) { zodiacRecord in
                             ChineseZodiacButton(
                                 title: zodiacRecord.zodiacType.title,
-                                isUnlocked: zodiacRecord.isUnlocked
+                                isUnlocked: zodiacRecord.isUnlocked || unlockAll
                             ) {
                                 gameModel.selectZodiac(zodiacRecord)
                                 shouldPresentLevel = true
