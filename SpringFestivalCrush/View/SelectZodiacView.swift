@@ -20,6 +20,10 @@ struct SelectChineseZodiacView: View {
 
     let columnsCompact = [GridItem(.flexible()), GridItem(.flexible())]
     let columnsRegular = [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())]
+    
+    @State private var presentZodiacUnavailable: Bool = false
+    @State private var presentZodiacIsLocked = false
+
 
     var body: some View {
         GeometryReader { geometry in
@@ -30,12 +34,18 @@ struct SelectChineseZodiacView: View {
                 ScrollView {
                     LazyVGrid(columns: geometry.size.width < 600 ? columnsCompact : columnsRegular, spacing: 20) {
                         ForEach(gameModel.zodiacRecords) { zodiacRecord in
-                            ChineseZodiacButton(
+                            ZodiacButton(
                                 title: zodiacRecord.zodiacType.title,
-                                isUnlocked: zodiacRecord.isUnlocked || unlockAll
+                                isUnlocked: zodiacRecord.isUnlocked || unlockAll,
+                                presentZodiacIsLocked: $presentZodiacIsLocked
                             ) {
-                                gameModel.selectZodiac(zodiacRecord)
-                                shouldPresentLevel = true
+                                let zodiac = Zodiac.all.first { $0.zodiacType == zodiacRecord.zodiacType }
+                                if zodiac?.isAvailable ?? false {
+                                    gameModel.selectZodiac(zodiacRecord)
+                                    shouldPresentLevel = true
+                                } else {
+                                    presentZodiacUnavailable = true
+                                }
                             }
                         }
                     }
@@ -46,12 +56,15 @@ struct SelectChineseZodiacView: View {
                 SelectLevelView()
             })
         }
+        .toast(isPresented: $presentZodiacUnavailable, message: "Feature in Development. Coming Soon!")
+        .toast(isPresented: $presentZodiacIsLocked, message: "Complete previous levels to unlock")
     }
 }
 
-struct ChineseZodiacButton: View {
+struct ZodiacButton: View {
     let title: String
     let isUnlocked: Bool
+    @Binding var presentZodiacIsLocked: Bool
     let action: () -> Void
 
     var body: some View {
@@ -122,6 +135,11 @@ struct ChineseZodiacButton: View {
                             .cornerRadius(12)
                     }
                 }
+            }
+        }
+        .onTapGesture {
+            if !isUnlocked {
+                presentZodiacIsLocked = true
             }
         }
     }

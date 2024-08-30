@@ -28,5 +28,9 @@ class RecordManager {
         }
     }
     
+    func initRecords() {
+        
+    }
+    
     // Add any other data management methods here
 }
