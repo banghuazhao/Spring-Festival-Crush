@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		992A79922C81E3A50053159D /* EasyToast in Frameworks */ = {isa = PBXBuildFile; productRef = 992A79912C81E3A50053159D /* EasyToast */; };
 		994625932C71CC9000FC2C6A /* Localize_Swift in Frameworks */ = {isa = PBXBuildFile; productRef = 994625922C71CC9000FC2C6A /* Localize_Swift */; };
 		994625962C71CC9A00FC2C6A /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 994625952C71CC9A00FC2C6A /* GoogleMobileAds */; };
 		9946259E2C71CD5700FC2C6A /* Then in Frameworks */ = {isa = PBXBuildFile; productRef = 9946259D2C71CD5700FC2C6A /* Then */; };
@@ -29,8 +30,6 @@
 		9949A9232C8035E20027C480 /* ZodiacRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9949A9222C8035E20027C480 /* ZodiacRecord.swift */; };
 		9949A9262C8035EF0027C480 /* LevelRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9949A9252C8035EF0027C480 /* LevelRecord.swift */; };
 		9949A9282C805FAA0027C480 /* RecorderManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9949A9272C805FAA0027C480 /* RecorderManager.swift */; };
-		9949A92D2C8132100027C480 /* ToastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9949A92C2C8132100027C480 /* ToastView.swift */; };
-		9949A92F2C8132310027C480 /* ToastModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9949A92E2C8132310027C480 /* ToastModifier.swift */; };
 		9955DB9823D7E424007786D5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9955DB9723D7E424007786D5 /* Assets.xcassets */; };
 		9955DB9B23D7E424007786D5 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 9955DB9923D7E424007786D5 /* LaunchScreen.storyboard */; };
 		9955DBA423D7E4D2007786D5 /* SKSpriteNode+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9955DBA323D7E4D2007786D5 /* SKSpriteNode+Extension.swift */; };
@@ -61,6 +60,7 @@
 		9955DBE723D805F8007786D5 /* swap.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 9955DBE623D805F8007786D5 /* swap.mp3 */; };
 		9955DBE823D80648007786D5 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 9955DBEA23D80648007786D5 /* Localizable.strings */; };
 		9955DBEE23D823F9007786D5 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 9955DBF023D823F9007786D5 /* InfoPlist.strings */; };
+		9967C2B12C818ECC008263AE /* EasyToast in Frameworks */ = {isa = PBXBuildFile; productRef = 9967C2B02C818ECC008263AE /* EasyToast */; };
 		996C6F0F2431E85700C54425 /* Ox_Level_6.json in Resources */ = {isa = PBXBuildFile; fileRef = 996C6F0A2431E85600C54425 /* Ox_Level_6.json */; };
 		996C6F102431E85700C54425 /* Ox_Level_8.json in Resources */ = {isa = PBXBuildFile; fileRef = 996C6F0B2431E85600C54425 /* Ox_Level_8.json */; };
 		996C6F112431E85700C54425 /* Ox_Level_10.json in Resources */ = {isa = PBXBuildFile; fileRef = 996C6F0C2431E85700C54425 /* Ox_Level_10.json */; };
@@ -105,8 +105,6 @@
 		9949A9222C8035E20027C480 /* ZodiacRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZodiacRecord.swift; sourceTree = "<group>"; };
 		9949A9252C8035EF0027C480 /* LevelRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LevelRecord.swift; sourceTree = "<group>"; };
 		9949A9272C805FAA0027C480 /* RecorderManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecorderManager.swift; sourceTree = "<group>"; };
-		9949A92C2C8132100027C480 /* ToastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastView.swift; sourceTree = "<group>"; };
-		9949A92E2C8132310027C480 /* ToastModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastModifier.swift; sourceTree = "<group>"; };
 		9955DB8723D7E420007786D5 /* SpringFestivalCrush.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SpringFestivalCrush.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9955DB9723D7E424007786D5 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		9955DB9A23D7E424007786D5 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -171,6 +169,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				992A79922C81E3A50053159D /* EasyToast in Frameworks */,
+				9967C2B12C818ECC008263AE /* EasyToast in Frameworks */,
 				9946259E2C71CD5700FC2C6A /* Then in Frameworks */,
 				994625A12C71CD9600FC2C6A /* SnapKit in Frameworks */,
 				994625962C71CC9A00FC2C6A /* GoogleMobileAds in Frameworks */,
@@ -245,15 +245,6 @@
 			path = Ox;
 			sourceTree = "<group>";
 		};
-		9949A92B2C8131AE0027C480 /* SimpleToast */ = {
-			isa = PBXGroup;
-			children = (
-				9949A92C2C8132100027C480 /* ToastView.swift */,
-				9949A92E2C8132310027C480 /* ToastModifier.swift */,
-			);
-			path = SimpleToast;
-			sourceTree = "<group>";
-		};
 		9955DB7E23D7E420007786D5 = {
 			isa = PBXGroup;
 			children = (
@@ -295,7 +286,6 @@
 		9955DBA223D7E4D2007786D5 /* Util */ = {
 			isa = PBXGroup;
 			children = (
-				9949A92B2C8131AE0027C480 /* SimpleToast */,
 				9955DBA323D7E4D2007786D5 /* SKSpriteNode+Extension.swift */,
 				9955DBDE23D7EA14007786D5 /* Constants.swift */,
 				9955DBE023D7F84D007786D5 /* Color+Extension.swift */,
@@ -395,6 +385,8 @@
 				994625952C71CC9A00FC2C6A /* GoogleMobileAds */,
 				9946259D2C71CD5700FC2C6A /* Then */,
 				994625A02C71CD9600FC2C6A /* SnapKit */,
+				9967C2B02C818ECC008263AE /* EasyToast */,
+				992A79912C81E3A50053159D /* EasyToast */,
 			);
 			productName = "Spring Festival Crush";
 			productReference = 9955DB8723D7E420007786D5 /* SpringFestivalCrush.app */;
@@ -432,6 +424,7 @@
 				994625942C71CC9A00FC2C6A /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
 				9946259C2C71CD5700FC2C6A /* XCRemoteSwiftPackageReference "Then" */,
 				9946259F2C71CD9600FC2C6A /* XCRemoteSwiftPackageReference "SnapKit" */,
+				992A79902C81E3A50053159D /* XCRemoteSwiftPackageReference "EasyToast" */,
 			);
 			productRefGroup = 9955DB8823D7E420007786D5 /* Products */;
 			projectDirPath = "";
@@ -520,9 +513,7 @@
 				9971C95525FC6705008CFCF9 /* UIButtonLargerArea.swift in Sources */,
 				9955DBB123D7E4E4007786D5 /* Tile.swift in Sources */,
 				9971C95325FC6705008CFCF9 /* Ads.swift in Sources */,
-				9949A92F2C8132310027C480 /* ToastModifier.swift in Sources */,
 				9971C95E25FC6753008CFCF9 /* AppItem.swift in Sources */,
-				9949A92D2C8132100027C480 /* ToastView.swift in Sources */,
 				9955DBB523D7E4E4007786D5 /* Level.swift in Sources */,
 				994625B62C74A3D700FC2C6A /* SettingsView.swift in Sources */,
 				994625A92C720AE900FC2C6A /* GameView.swift in Sources */,
@@ -755,6 +746,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		992A79902C81E3A50053159D /* XCRemoteSwiftPackageReference "EasyToast" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/banghuazhao/EasyToast";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
 		994625912C71CC9000FC2C6A /* XCRemoteSwiftPackageReference "Localize-Swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/marmelroy/Localize-Swift.git";
@@ -790,6 +789,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		992A79912C81E3A50053159D /* EasyToast */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 992A79902C81E3A50053159D /* XCRemoteSwiftPackageReference "EasyToast" */;
+			productName = EasyToast;
+		};
 		994625922C71CC9000FC2C6A /* Localize_Swift */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 994625912C71CC9000FC2C6A /* XCRemoteSwiftPackageReference "Localize-Swift" */;
@@ -809,6 +813,10 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9946259F2C71CD9600FC2C6A /* XCRemoteSwiftPackageReference "SnapKit" */;
 			productName = SnapKit;
+		};
+		9967C2B02C818ECC008263AE /* EasyToast */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = EasyToast;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

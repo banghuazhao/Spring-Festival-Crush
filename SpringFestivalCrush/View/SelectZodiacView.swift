@@ -56,8 +56,11 @@ struct SelectChineseZodiacView: View {
                 SelectLevelView()
             })
         }
-        .toast(isPresented: $presentZodiacUnavailable, message: "Feature in Development. Coming Soon!")
-        .toast(isPresented: $presentZodiacIsLocked, message: "Complete previous levels to unlock")
+        .easyToast(isPresented: $presentZodiacUnavailable, message: "Feature in Development. Coming Soon!")
+        .easyToast(
+            isPresented: $presentZodiacIsLocked,
+            message: "Complete previous levels to unlock"
+        )
     }
 }
 
