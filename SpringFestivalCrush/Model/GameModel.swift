@@ -75,8 +75,8 @@ class GameModel: ObservableObject {
         if firstLaunch {
             for zodiac in Zodiac.all {
                 let zodiacRecord = ZodiacRecord(
-                    zodiacType: zodiac.chineseZodiac,
-                    isUnlocked: zodiac.chineseZodiac == .rat
+                    zodiacType: zodiac.zodiacType,
+                    isUnlocked: zodiac.zodiacType == .rat
                 )
 
                 modelContext.insert(zodiacRecord)
@@ -107,7 +107,7 @@ class GameModel: ObservableObject {
     }
 
     func selectZodiac(_ zodiacRecord: ZodiacRecord) {
-        zodiac = Zodiac.all.first { $0.chineseZodiac == zodiacRecord.zodiacType }
+        zodiac = Zodiac.all.first { $0.zodiacType == zodiacRecord.zodiacType }
         currentZodiacRecord = zodiacRecord
         currentLevelRecords = zodiacRecord.levelRecords.sorted { $0.number < $1.number }
     }
@@ -117,15 +117,10 @@ class GameModel: ObservableObject {
     }
 
     private func calculateTileSize(screenSize: CGSize) -> CGSize {
-        var size: CGFloat
-        if Constants.isIPhone {
-            if UIScreen.main.bounds.width <= 330 {
-                size = 32.0
-            } else {
-                size = 40.0
-            }
+        let size: CGFloat = if Constants.isIPhone {
+            UIScreen.main.bounds.width <= 330 ? 32.0 : 40.0
         } else {
-            size = 60.0
+            60.0
         }
 
         let playgroundWidth = screenSize.width - 20 * 2
@@ -142,8 +137,7 @@ class GameModel: ObservableObject {
     func selectLevel(_ selectedLevel: Int) {
         gameState = .loading
         currentLevel = selectedLevel
-        level = Level(filename: "Level_\(selectedLevel)")
-        level.resetComboMultiplier()
+        level = Level(filename: "\(zodiac.zodiacType.name)_Level_\(selectedLevel)")
         currentLevelRecord = currentZodiacRecord?.levelRecords.first { $0.number == selectedLevel }
     }
 
@@ -277,20 +271,8 @@ class GameModel: ObservableObject {
     }
 
     func updateRecord() {
-        currentLevelRecord?.isComplete = true
-        let firstLevel = score >= level.levelGoal.firstStarScore ? 1 : 0
-        let secondLevel = score >= level.levelGoal.secondStarScore ? 1 : 0
-        let thirdLevel = score >= level.levelGoal.thirdStarScore ? 1 : 0
-        let currentStars = firstLevel + secondLevel + thirdLevel
-        let previousStars = currentLevelRecord?.stars ?? 0
-        currentLevelRecord?.stars = max(currentStars, previousStars)
-
-        if currentLevel < zodiac.numLevels {
-            let nextLevelRecord = currentZodiacRecord?.levelRecords.first {
-                $0.number == currentLevel + 1
-            }
-            nextLevelRecord?.isUnlocked = true
-        }
+        updateCurrentLevel()
+        updateNextLevelIfNeeded()
         unlockNextZodiacIfNeeded()
         do {
             try modelContext?.save()
@@ -299,15 +281,33 @@ class GameModel: ObservableObject {
         }
     }
 
-    func unlockNextZodiacIfNeeded() {
+    private func updateCurrentLevel() {
+        currentLevelRecord?.isComplete = true
+        let firstLevel = score >= level.levelGoal.firstStarScore ? 1 : 0
+        let secondLevel = score >= level.levelGoal.secondStarScore ? 1 : 0
+        let thirdLevel = score >= level.levelGoal.thirdStarScore ? 1 : 0
+        let currentStars = firstLevel + secondLevel + thirdLevel
+        let previousStars = currentLevelRecord?.stars ?? 0
+        currentLevelRecord?.stars = max(currentStars, previousStars)
+    }
+
+    private func updateNextLevelIfNeeded() {
+        guard currentLevel < zodiac.numLevels else { return }
+        let nextLevelRecord = currentZodiacRecord?.levelRecords.first {
+            $0.number == currentLevel + 1
+        }
+        nextLevelRecord?.isUnlocked = true
+    }
+
+    private func unlockNextZodiacIfNeeded() {
         guard let currentZodiacRecord else { return }
-        guard let currentZodiacIndex = Zodiac.all.firstIndex(where: { $0.chineseZodiac == currentZodiacRecord.zodiacType }),
+        guard let currentZodiacIndex = Zodiac.all.firstIndex(where: { $0.zodiacType == currentZodiacRecord.zodiacType }),
               currentZodiacIndex + 1 < Zodiac.all.count else {
             return
         }
 
         guard let nextZodiac = zodiacRecords.first(where: {
-            $0.zodiacType == Zodiac.all[currentZodiacIndex + 1].chineseZodiac
+            $0.zodiacType == Zodiac.all[currentZodiacIndex + 1].zodiacType
         }) else { return }
 
         if currentZodiacRecord.levelRecords.allSatisfy({ $0.isComplete }) {

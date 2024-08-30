@@ -20,45 +20,40 @@ enum ChineseZodiac: Int, CaseIterable, Codable {
     case pig
 
     var title: String {
+        emoji + " " + name
+    }
+
+    var name: String {
         switch self {
         case .rat:
-            "🐭 Rat"
+            "Rat"
         case .ox:
-            "🐮 Ox"
+            "Ox"
         case .tiger:
-            "🐯 Tiger"
+            "Tiger"
         case .rabbit:
-            "🐰 Rabbit"
+            "Rabbit"
         case .dragon:
-            "🐲 Dragon"
+            "Dragon"
         case .snake:
-            "🐍 Snake"
+            "Snake"
         case .horse:
-            "🐴 Horse"
+            "Horse"
         case .goat:
-            "🐑 Goat"
+            "Goat"
         case .monkey:
-            "🐵 Monkey"
+            "Monkey"
         case .rooster:
-            "🐔 Rooster"
+            "Rooster"
         case .dog:
-            "🐶 Dog"
+            "Dog"
         case .pig:
-            "🐷 Pig"
+            "Pig"
         }
     }
-}
-
-struct Zodiac: Identifiable {
-    var id: Int {
-        chineseZodiac.rawValue
-    }
-
-    let numLevels: Int
-    let chineseZodiac: ChineseZodiac
 
     var emoji: String {
-        switch chineseZodiac {
+        switch self {
         case .rat:
             "🐭"
         case .ox:
@@ -85,46 +80,50 @@ struct Zodiac: Identifiable {
             "🐷"
         }
     }
+}
 
-    var gameBackground: String {
-        switch chineseZodiac {
-        case .rat:
-            "rat_bg"
-        case .ox:
-            "Background"
-        case .tiger:
-            "Background"
-        case .rabbit:
-            "Background"
-        case .dragon:
-            "Background"
-        case .snake:
-            "Background"
-        case .horse:
-            "Background"
-        case .goat:
-            "Background"
-        case .monkey:
-            "Background"
-        case .rooster:
-            "Background"
-        case .dog:
-            "Background"
-        case .pig:
-            "Background"
-        }
+struct Zodiac: Identifiable {
+    var id: Int {
+        zodiacType.rawValue
+    }
+
+    let numLevels: Int
+    let zodiacType: ChineseZodiac
+    let gameBackground: String
+    let isAvailable: Bool
+
+    var emoji: String {
+        zodiacType.emoji
     }
 }
 
 extension Zodiac {
     static let all: [Zodiac] = {
         let allChineseZodiacs = ChineseZodiac.allCases
+
+        let gameBackgrounds = [
+            "rat_bg", "Background", "Background", "Background",
+            "Background", "Background", "Background", "Background",
+            "Background", "Background", "Background", "Background",
+        ]
+
         var zodiacs = [Zodiac]()
-        for chineseZodiac in allChineseZodiacs {
+        for (i, chineseZodiac) in allChineseZodiacs.enumerated() {
+            var levelNum = 0
+
+            while true {
+                let filename = "\(chineseZodiac.name)_Level_\(levelNum + 1)"
+                guard let levelData = LevelData.loadFrom(file: filename) else { break }
+                levelNum += 1
+            }
+
             zodiacs.append(
                 Zodiac(
-                    numLevels: 20,
-                    chineseZodiac: chineseZodiac)
+                    numLevels: levelNum,
+                    zodiacType: chineseZodiac,
+                    gameBackground: gameBackgrounds[i],
+                    isAvailable: levelNum > 0
+                )
             )
         }
         return zodiacs

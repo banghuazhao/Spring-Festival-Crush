@@ -12,7 +12,6 @@ class Level {
 
     private var tiles: Array2D<Tile>
     private var symbols: Array2D<Symbol>
-    private var comboMultiplier = 0
 
     init?(filename: String) {
         // 1
@@ -419,12 +418,7 @@ class Level {
         // 3-chain is 60 pts, 4-chain is 120, 5-chain is 180, and so on
         for chain in chains {
             chain.score = 60 * (chain.length - 2)
-            comboMultiplier += 1
         }
-    }
-
-    func resetComboMultiplier() {
-        comboMultiplier = 1
     }
 
     func doesReachLevelTarget() -> Bool {

@@ -14,9 +14,11 @@ struct SelectLevelView: View {
     var unlockAll: Bool {
         settingModel.unlockAllLevels
     }
-    
+
     let columnsCompact = [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())]
     let columnsRegular = [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())]
+
+    @State private var presentLevelIsLocked = false
 
     var body: some View {
         GeometryReader { geometry in
@@ -30,7 +32,8 @@ struct SelectLevelView: View {
                             LevelView(
                                 level: levelRecord.number,
                                 isUnlocked: levelRecord.isUnlocked || unlockAll,
-                                stars: levelRecord.stars
+                                stars: levelRecord.stars,
+                                presentLevelIsLocked: $presentLevelIsLocked
                             ) {
                                 gameModel.selectLevel(levelRecord.number)
                                 gameModel.shouldPresentGame = true
@@ -48,6 +51,7 @@ struct SelectLevelView: View {
         }
         .navigationTitle("Select Level")
         .navigationBarTitleDisplayMode(.inline)
+        .toast(isPresented: $presentLevelIsLocked, message: "Complete previous levels to unlock")
     }
 }
 
@@ -55,6 +59,7 @@ struct LevelView: View {
     let level: Int
     let isUnlocked: Bool
     let stars: Int
+    @Binding var presentLevelIsLocked: Bool
     let action: () -> Void
 
     var body: some View {
@@ -122,6 +127,11 @@ struct LevelView: View {
                                 .cornerRadius(12)
                         }
                     }
+                }
+            }
+            .onTapGesture {
+                if !isUnlocked {
+                    presentLevelIsLocked = true
                 }
             }
 
