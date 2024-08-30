@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import EasyToast
 
 struct SelectLevelView: View {
     @EnvironmentObject var gameModel: GameModel
@@ -51,7 +52,7 @@ struct SelectLevelView: View {
         }
         .navigationTitle("Select Level")
         .navigationBarTitleDisplayMode(.inline)
-        .toast(isPresented: $presentLevelIsLocked, message: "Complete previous levels to unlock")
+        .easyToast(isPresented: $presentLevelIsLocked, message: "Complete previous levels to unlock")
     }
 }
 
