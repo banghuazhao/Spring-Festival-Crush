@@ -15,6 +15,7 @@ class GameModel: ObservableObject {
     enum Command {
         case setupLayers
         case setupTiles
+        case setUserInteraction(Bool)
     }
 
     enum CommandAsync {
@@ -180,10 +181,12 @@ class GameModel: ObservableObject {
 
     @MainActor
     private func handleGameWin() async {
+        invokeCommand?(.setUserInteraction(false))
         await handleRemainingSpecialSymbol()
         await handleExtraStepsBonus()
         updateRecord()
         gameState = .win
+        invokeCommand?(.setUserInteraction(true))
     }
 
     private func handleRemainingSpecialSymbol() async {
@@ -197,14 +200,17 @@ class GameModel: ObservableObject {
         if let lockChain = level.removeLocks() {
             chains.insert(lockChain)
         }
+        let allChains = chains
 
-        await invokeCommandAsync?(.onMatchedSymbols(chains))
+        let specialSymbols = level.createSpecialSymbols(for: allChains)
 
-        updateScores(from: chains)
-        level.updateLevelTarget(by: chains)
+        async let onMatchedSymbols: Void? = invokeCommandAsync?(.onMatchedSymbols(allChains))
+        async let onCreatingSpecialSymbols: Void? = invokeCommandAsync?(.onCreatingSpecialSymbols(specialSymbols))
 
-        let specialSymbols = level.createSpecialSymbols(for: chains)
-        await invokeCommandAsync?(.onCreatingSpecialSymbols(specialSymbols))
+        await _ = [onMatchedSymbols, onCreatingSpecialSymbols]
+
+        updateScores(from: allChains)
+        level.updateLevelTarget(by: allChains)
 
         let columns = level.fillHoles()
         await invokeCommandAsync?(.onFallingSymbols(columns))
@@ -243,7 +249,9 @@ class GameModel: ObservableObject {
             decreaseMove()
             level.performSwap(swap)
             await invokeCommandAsync?(.onValidSwap(swap))
+            invokeCommand?(.setUserInteraction(false))
             await handleMatches()
+            invokeCommand?(.setUserInteraction(true))
         } else {
             await invokeCommandAsync?(.onInvalidSwap(swap))
         }

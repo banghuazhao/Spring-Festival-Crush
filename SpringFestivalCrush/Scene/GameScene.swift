@@ -1,4 +1,3 @@
-import Combine
 import GameplayKit
 import SpriteKit
 import SwiftUI
@@ -46,7 +45,6 @@ class GameScene: SKScene {
 
         addChild(gameLayer)
         gameLayer.isHidden = true
-
         cropLayer.maskNode = maskLayer
         gameLayer.addChild(tilesLayer)
         gameLayer.addChild(cropLayer)
@@ -75,6 +73,8 @@ class GameScene: SKScene {
         case .setupTiles:
             removeAllTiles()
             addTiles()
+        case let .setUserInteraction(shouldEnable):
+            setUserInteraction(enabled: shouldEnable)
         }
     }
 
@@ -530,5 +530,9 @@ class GameScene: SKScene {
 
     func removeAllSymbols() {
         symbolsLayer.removeAllChildren()
+    }
+
+    func setUserInteraction(enabled: Bool) {
+        isUserInteractionEnabled = enabled
     }
 }
