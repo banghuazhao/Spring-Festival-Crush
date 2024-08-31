@@ -189,10 +189,9 @@ class GameScene: SKScene {
 
         await sprite.run(
             SKAction.sequence([
-                SKAction.wait(forDuration: 0.25, withRange: 0.5),
                 SKAction.group([
-                    SKAction.fadeIn(withDuration: 0.25),
-                    SKAction.scale(to: 1.0, duration: 0.25),
+                    SKAction.fadeIn(withDuration: 0.2),
+                    SKAction.scale(to: 1.0, duration: 0.2),
                 ]),
             ]))
     }
@@ -390,6 +389,9 @@ class GameScene: SKScene {
                 await self.run(self.themeModel.matchSound)
             }
         }
+    }
+
+    func animateEliminatedSymbols(for symbols: Set<Symbol>) async {
     }
 
     func animateCreatingSpecialSymbols(for specialSymbols: [Symbol]) async {

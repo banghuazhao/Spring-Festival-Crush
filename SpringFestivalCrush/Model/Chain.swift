@@ -9,7 +9,7 @@ class Chain: Hashable, CustomStringConvertible {
         case horizontal4
         case vertical4
         case five
-        case eliminate
+        case single
         case enhanced
 
         var description: String {
@@ -20,7 +20,7 @@ class Chain: Hashable, CustomStringConvertible {
             case .horizontal4: return "Horizontal4"
             case .vertical4: return "Vertical4"
             case .five: return "five"
-            case .eliminate: return "eliminate"
+            case .single: return "eliminate"
             case .enhanced: return "enhanced"
             }
         }

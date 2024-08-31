@@ -190,33 +190,17 @@ class GameModel: ObservableObject {
     }
 
     private func handleRemainingSpecialSymbol() async {
-        let specialChains = level.removeSpecialSymbols()
         let matchChains = level.removeMatches()
+        let specialChains = level.removeSpecialSymbols()
         var chains = specialChains.union(matchChains)
+        if let lockChain = level.removeLocks() {
+            chains.insert(lockChain)
+        }
         if chains.count == 0 {
             return
         }
 
-        if let lockChain = level.removeLocks() {
-            chains.insert(lockChain)
-        }
-        let allChains = chains
-
-        let specialSymbols = level.createSpecialSymbols(for: allChains)
-
-        async let onMatchedSymbols: Void? = invokeCommandAsync?(.onMatchedSymbols(allChains))
-        async let onCreatingSpecialSymbols: Void? = invokeCommandAsync?(.onCreatingSpecialSymbols(specialSymbols))
-
-        await _ = [onMatchedSymbols, onCreatingSpecialSymbols]
-
-        updateScores(from: allChains)
-        level.updateLevelTarget(by: allChains)
-
-        let columns = level.fillHoles()
-        await invokeCommandAsync?(.onFallingSymbols(columns))
-        let topUpColumns = level.topUpSymbols()
-
-        await invokeCommandAsync?(.onNewSprites(topUpColumns))
+        await handleMatches(for: chains)
 
         await handleRemainingSpecialSymbol()
     }
@@ -250,7 +234,7 @@ class GameModel: ObservableObject {
             level.performSwap(swap)
             await invokeCommandAsync?(.onValidSwap(swap))
             invokeCommand?(.setUserInteraction(false))
-            await handleMatches()
+            await handleRemoveAndMatches()
             invokeCommand?(.setUserInteraction(true))
         } else {
             await invokeCommandAsync?(.onInvalidSwap(swap))
@@ -258,32 +242,53 @@ class GameModel: ObservableObject {
     }
 
     @MainActor
-    func handleMatches() async {
+    func handleRemoveAndMatches() async {
         var chains = level.removeMatches()
+        if let lockChain = level.removeLocks() {
+            chains.insert(lockChain)
+        }
         if chains.count == 0 {
             await beginNextTurn()
             return
         }
 
-        if let lockChain = level.removeLocks() {
-            chains.insert(lockChain)
+        await handleMatches(for: chains)
+
+        await handleRemoveAndMatches()
+    }
+
+    private func handleMatches(for chains: Set<Chain>) async {
+        var allChains = chains
+        async let onMatchedSymbols: Void? = invokeCommandAsync?(.onMatchedSymbols(chains))
+
+        let explodeChains = level.explodeSpecialSymbols(for: chains)
+        allChains = allChains.union(explodeChains)
+        async let onSpecialSymbolExplode: Void? = invokeCommandAsync?(.onMatchedSymbols(explodeChains))
+
+        await _ = [onMatchedSymbols, onSpecialSymbolExplode]
+
+        var nextExplodeChains = explodeChains
+        while true {
+            if nextExplodeChains.contains(where: { $0.chainType == .enhanced }) {
+                nextExplodeChains = level.explodeSpecialSymbols(for: nextExplodeChains)
+                allChains = allChains.union(explodeChains)
+                await invokeCommandAsync?(.onMatchedSymbols(nextExplodeChains))
+            } else {
+                break
+            }
         }
-
-        await invokeCommandAsync?(.onMatchedSymbols(chains))
-
-        updateScores(from: chains)
-        level.updateLevelTarget(by: chains)
 
         let specialSymbols = level.createSpecialSymbols(for: chains)
         await invokeCommandAsync?(.onCreatingSpecialSymbols(specialSymbols))
+
+        updateScores(from: allChains)
+        level.updateLevelTarget(by: allChains)
 
         let columns = level.fillHoles()
         await invokeCommandAsync?(.onFallingSymbols(columns))
         let topUpColumns = level.topUpSymbols()
 
         await invokeCommandAsync?(.onNewSprites(topUpColumns))
-
-        await handleMatches()
     }
 
     func updateScores(from chains: Set<Chain>) {

@@ -328,6 +328,55 @@ class Level {
         return set
     }
 
+    func explodeSpecialSymbols(for chains: Set<Chain>) -> Set<Chain> {
+        var newChains = Set<Chain>()
+        let symbols = allSymbolsFor(for: chains)
+        for symbol in symbols {
+            if symbol.type.isEnhanced {
+                newChains = newChains.union(detectSpecialElimination(for: symbol))
+            }
+        }
+        newChains.subtract(chains)
+        removeSymbols(in: newChains)
+        calculateScores(for: newChains)
+        return newChains
+    }
+
+    func detectSpecialElimination(for symbol: Symbol) -> Set<Chain> {
+        guard symbol.type.isEnhanced else { return Set<Chain>() }
+        var set = Set<Chain>()
+        let surroundingPositions = surroundingPositions(
+            column: symbol.column,
+            row: symbol.row
+        )
+        for position in surroundingPositions {
+            let column = position[0]
+            let row = position[1]
+            if isPositionInside(column: column, row: row),
+               let symbol = symbols[column, row] {
+                let chainType: Chain.ChainType = if symbol.type.isEnhanced {
+                    .enhanced
+                } else {
+                    .single
+                }
+                let chain = Chain(chainType: chainType)
+                chain.add(symbol: symbol)
+                set.insert(chain)
+            }
+        }
+        return set
+    }
+
+    func allSymbolsFor(for chains: Set<Chain>) -> Set<Symbol> {
+        var set = Set<Symbol>()
+        for chain in chains {
+            for symbol in chain.symbols {
+                set.insert(symbol)
+            }
+        }
+        return set
+    }
+
     func detectElimination(for chains: Set<Chain>) -> Set<Chain> {
         var set = Set<Chain>()
         var eliminationSymbols = [Symbol]()
@@ -350,7 +399,7 @@ class Level {
         }
 
         if eliminationSymbols.count > 0 {
-            let chain = Chain(chainType: .eliminate)
+            let chain = Chain(chainType: .single)
             chain.add(symbols: eliminationSymbols)
             set.insert(chain)
         }
@@ -390,50 +439,36 @@ class Level {
 
         let matchChains = horizontalChains.union(verticalChains)
 
-        let eliminationChains = detectElimination(for: matchChains)
+//        let eliminationChains = detectElimination(for: matchChains)
 
-        let allChains = matchChains.union(eliminationChains)
+//        let allChains = matchChains.union(eliminationChains)
 
-        removeSymbols(in: allChains)
-        calculateScores(for: allChains)
+        removeSymbols(in: matchChains)
+        calculateScores(for: matchChains)
 
-        return allChains
+        return matchChains
     }
 
     func removeSpecialSymbols() -> Set<Chain> {
-        var set = Set<Chain>()
-        if let enhancedSymbolChain = detectEnhancedSymbols() {
-            set.insert(enhancedSymbolChain)
-        }
-
-        let eliminationChains = detectElimination(for: set)
-
-        let allChains = set.union(eliminationChains)
-
-        removeSymbols(in: allChains)
-
-        calculateScores(for: allChains)
-
-        return allChains
+        let enhancedChains = detectEnhancedChains()
+        removeSymbols(in: enhancedChains)
+        calculateScores(for: enhancedChains)
+        return enhancedChains
     }
 
-    private func detectEnhancedSymbols() -> Chain? {
-        var enhancedSymbols = [Symbol]()
+    private func detectEnhancedChains() -> Set<Chain> {
+        var chains = Set<Chain>()
         for row in 0 ..< numRows {
             for column in 0 ..< numColumns {
                 if let symbol = symbols[column, row],
                    symbol.type.isEnhanced {
-                    enhancedSymbols.append(symbol)
+                    let chain = Chain(chainType: .enhanced)
+                    chain.add(symbol: symbol)
+                    chains.insert(chain)
                 }
             }
         }
-        if enhancedSymbols.count > 0 {
-            let chain = Chain(chainType: .enhanced)
-            chain.add(symbols: enhancedSymbols)
-            return chain
-        } else {
-            return nil
-        }
+        return chains
     }
 
     private func removeSymbols(in chains: Set<Chain>) {
@@ -577,16 +612,23 @@ class Level {
         // 5-chain: 180 pts
         // Enhanced symbol: 100 pts
         for chain in chains {
-            let length = chain.length
-            if chain.chainType == .eliminate {
-                chain.score += 20 * length
-            } else {
-                chain.score = 60 * (length - 2)
-            }
-            for symbol in chain.symbols {
-                if symbol.type.isEnhanced {
-                    chain.score += 100
-                }
+            switch chain.chainType {
+            case .horizontal3:
+                chain.score = 60
+            case .vertical3:
+                chain.score = 60
+            case .locks:
+                chain.score = 20
+            case .horizontal4:
+                chain.score = 120
+            case .vertical4:
+                chain.score = 120
+            case .five:
+                chain.score = 200
+            case .single:
+                chain.score = 20
+            case .enhanced:
+                chain.score = 100
             }
         }
     }
@@ -602,39 +644,38 @@ class Level {
     }
 
     func updateLevelTarget(by chains: Set<Chain>) {
-        for chain in chains {
-            for symbol in chain.symbols {
-                switch symbol.type {
-                case .firecracker, .firecrackerEnhanced:
-                    if let firecracker = levelGoal.levelTarget.firecracker {
-                        levelGoal.levelTarget.firecracker = firecracker - 1
-                    }
-                case .redPocket, .redPocketEnhanced:
-                    if let redPocket = levelGoal.levelTarget.redPocket {
-                        levelGoal.levelTarget.redPocket = redPocket - 1
-                    }
-                case .dumpling, .dumplingEnhanced:
-                    if let dumpling = levelGoal.levelTarget.dumpling {
-                        levelGoal.levelTarget.dumpling = dumpling - 1
-                    }
-                case .bowl, .bowlEnhanced:
-                    if let bowl = levelGoal.levelTarget.bowl {
-                        levelGoal.levelTarget.bowl = bowl - 1
-                    }
-                case .lantern, .lanternEnhanced:
-                    if let lantern = levelGoal.levelTarget.lantern {
-                        levelGoal.levelTarget.lantern = lantern - 1
-                    }
-                case .zodiac, .zodiacEnhanced:
-                    if let zodiac = levelGoal.levelTarget.zodiac {
-                        levelGoal.levelTarget.zodiac = zodiac - 1
-                    }
-                case .lock:
-                    if let lock = levelGoal.levelTarget.lock {
-                        levelGoal.levelTarget.lock = lock - 1
-                    }
-                default: continue
+        let allSymbols = allSymbolsFor(for: chains)
+        for symbol in allSymbols {
+            switch symbol.type {
+            case .firecracker, .firecrackerEnhanced:
+                if let firecracker = levelGoal.levelTarget.firecracker {
+                    levelGoal.levelTarget.firecracker = firecracker - 1
                 }
+            case .redPocket, .redPocketEnhanced:
+                if let redPocket = levelGoal.levelTarget.redPocket {
+                    levelGoal.levelTarget.redPocket = redPocket - 1
+                }
+            case .dumpling, .dumplingEnhanced:
+                if let dumpling = levelGoal.levelTarget.dumpling {
+                    levelGoal.levelTarget.dumpling = dumpling - 1
+                }
+            case .bowl, .bowlEnhanced:
+                if let bowl = levelGoal.levelTarget.bowl {
+                    levelGoal.levelTarget.bowl = bowl - 1
+                }
+            case .lantern, .lanternEnhanced:
+                if let lantern = levelGoal.levelTarget.lantern {
+                    levelGoal.levelTarget.lantern = lantern - 1
+                }
+            case .zodiac, .zodiacEnhanced:
+                if let zodiac = levelGoal.levelTarget.zodiac {
+                    levelGoal.levelTarget.zodiac = zodiac - 1
+                }
+            case .lock:
+                if let lock = levelGoal.levelTarget.lock {
+                    levelGoal.levelTarget.lock = lock - 1
+                }
+            default: continue
             }
         }
     }
