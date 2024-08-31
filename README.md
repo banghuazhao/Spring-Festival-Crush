@@ -4,19 +4,31 @@
 
 ## Overview
 
-**Spring Festival Crush - Match 3** is an exciting and colorful match-3 puzzle game that immerses players in the festive spirit of the Spring Festival. With a wide range of levels, and beautifully designed graphics, this game is perfect for fans of match-3 puzzles looking for a fresh and thematic challenge.
+**Spring Festival Crush - Match 3** is a vibrant match-3 puzzle game that captures the essence of the Spring Festival. Immerse yourself in a world filled with festive joy, challenging puzzles, and stunning graphics that celebrate the season.
 
 ## Features
 
-- **Festive Theme**: Celebrate the Spring Festival with beautifully designed levels and festive elements.
-- **Challenging Levels**: Many levels to keep you engaged with increasing difficulty.
-- **Smooth Gameplay**: Enjoy a seamless gaming experience with smooth animations and intuitive controls.
+* 🎉 **Festive Theme**: Dive into the spirit of the Spring Festival with themed levels and elements that bring the celebration to life.
+
+* 🧩 **Challenging Gameplay**: Overcome a variety of levels that increase in difficulty, offering endless fun and a test of your puzzle-solving skills.
+
+* ⚡ **Smooth Experience**: Enjoy fluid animations and intuitive controls for a seamless gaming experience.
 
 ## Screenshots
 
-<img src="./screenshots/s1.webp" width="200">
+<p align="center">
+    <img src="./screenshots/1.gif" width="200">
+    <img src="./screenshots/s1.webp" width="200">
+    <img src="./screenshots/3.png" width="200">
+</p>
 
-## Installation
+## 🧳 Requirements
+
+- **iOS Version**: iOS 17.0 or later
+- **Compatible Devices**: iPhone, iPad
+- Swift 5+
+
+## 💻 Installation
 
 ### iOS
 
@@ -26,20 +38,23 @@ The game is available for download on the App Store. Click the link below to dow
 
 
 
-### Requirements
+### Local Development
 
-- **iOS Version**: iOS 17.0 or later
-- **Compatible Devices**: iPhone, iPad, and Mac
+1. Clone the repository:
 
+   ```
+   git clone https://github.com/banghuazhao/Spring-Festival-Crush.git
+   ```
 
+2. Open the project in Xcode.
+
+3. Build and run the project on your device or simulator.
 
 ## How to Play
 
-1. **Match 3 or More**: Swipe to match three or more identical elements in a row.
-2. **Complete Objectives**: Achieve the objectives set for each level within the given moves or time.
-3. **Advance Through Levels**: Progress through increasingly difficult levels and enjoy new challenges.
-
-
+1. **Match 3 or More**: Swipe to match three or more identical elements in a row to clear them from the board.
+2. **Complete Objectives**: Meet the goals for each level within the allotted moves or time limit.
+3. **Progress Through Levels**: Advance through increasingly difficult levels and unlock new challenges as you go.
 
 ## Development
 
@@ -55,4 +70,4 @@ We welcome contributions to the project! Please feel free to submit a pull reque
 
 ---
 
-**Spring Festival Crush - Match 3** © 2024 by Appsbay. All rights reserved.
+© 2019 - 2024 **Spring Festival Crush - Match 3** by Appsbay. All rights reserved.
