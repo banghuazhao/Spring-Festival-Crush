@@ -100,7 +100,7 @@ class Level {
     }
 
     private func hasChain(atColumn column: Int, row: Int) -> Bool {
-        let symbolType = symbols[column, row]!.type
+        guard let symbolType = symbols[column, row]?.type else { return false }
 
         // Horizontal chain check
         var horizontalLength = 1
@@ -109,14 +109,16 @@ class Level {
         var i = column - 1
         while i >= 0,
               let symbol = symbols[i, row],
-              symbol.type == symbolType {
+              symbol.type.isMatchableTo(symbolType) {
             i -= 1
             horizontalLength += 1
         }
 
         // Right
         i = column + 1
-        while i < numColumns && symbols[i, row]?.type == symbolType {
+        while i < numColumns,
+              let symbol = symbols[i, row],
+              symbol.type.isMatchableTo(symbolType) {
             i += 1
             horizontalLength += 1
         }
@@ -127,14 +129,18 @@ class Level {
 
         // Down
         i = row - 1
-        while i >= 0 && symbols[column, i]?.type == symbolType {
+        while i >= 0,
+              let symbol = symbols[column, i],
+              symbol.type.isMatchableTo(symbolType) {
             i -= 1
             verticalLength += 1
         }
 
         // Up
         i = row + 1
-        while i < numRows && symbols[column, i]?.type == symbolType {
+        while i < numRows,
+              let symbol = symbols[column, i],
+              symbol.type.isMatchableTo(symbolType) {
             i += 1
             verticalLength += 1
         }
@@ -234,25 +240,42 @@ class Level {
         for row in 0 ..< numRows {
             var column = 0
             while column < numColumns - 2 {
-                // 3
-                if let symbol = symbols[column, row], symbol.isMatchable() {
-                    let matchType = symbol.type
-                    // 4
-                    if symbols[column + 1, row]?.type == matchType &&
-                        symbols[column + 2, row]?.type == matchType {
-                        // 5
-                        let chain = Chain(chainType: .horizontal)
-                        repeat {
-                            chain.add(symbol: symbols[column, row]!)
-                            column += 1
-                        } while column < numColumns && symbols[column, row]?.type == matchType
-
-                        set.insert(chain)
-                        continue
-                    }
+                guard let symbol = symbols[column, row], symbol.isMatchable() else {
+                    column += 1
+                    continue
                 }
-                // 6
-                column += 1
+                let matchType = symbol.type
+
+                guard let symbol1 = symbols[column + 1, row],
+                      symbol1.type.isMatchableTo(matchType),
+                      let symbol2 = symbols[column + 2, row],
+                      symbol2.type.isMatchableTo(matchType) else {
+                    column += 1
+                    continue
+                }
+
+                let chain = Chain(chainType: .horizontal3)
+                var symbolsToAdd = [symbol, symbol1, symbol2]
+                column += 3
+
+                if column < numColumns,
+                   let symbol3 = symbols[column, row],
+                   symbol3.type.isMatchableTo(matchType) {
+                    chain.chainType = .horizontal4
+                    symbolsToAdd.append(symbol3)
+                    column += 1
+                }
+
+                if column < numColumns,
+                   let symbol4 = symbols[column, row],
+                   symbol4.type.isMatchableTo(matchType) {
+                    chain.chainType = .five
+                    symbolsToAdd.append(symbol4)
+                    column += 1
+                }
+
+                chain.add(symbols: symbolsToAdd)
+                set.insert(chain)
             }
         }
         return set
@@ -264,23 +287,82 @@ class Level {
         for column in 0 ..< numColumns {
             var row = 0
             while row < numRows - 2 {
-                if let symbol = symbols[column, row], symbol.isMatchable() {
-                    let matchType = symbol.type
+                guard let symbol = symbols[column, row], symbol.isMatchable() else {
+                    row += 1
+                    continue
+                }
+                let matchType = symbol.type
 
-                    if symbols[column, row + 1]?.type == matchType &&
-                        symbols[column, row + 2]?.type == matchType {
-                        let chain = Chain(chainType: .vertical)
-                        repeat {
-                            chain.add(symbol: symbols[column, row]!)
-                            row += 1
-                        } while row < numRows && symbols[column, row]?.type == matchType
+                guard let symbol1 = symbols[column, row + 1],
+                      symbol1.type.isMatchableTo(matchType),
+                      let symbol2 = symbols[column, row + 2],
+                      symbol2.type.isMatchableTo(matchType) else {
+                    row += 1
+                    continue
+                }
 
-                        set.insert(chain)
-                        continue
+                let chain = Chain(chainType: .vertical3)
+                var symbolsToAdd = [symbol, symbol1, symbol2]
+                row += 3
+
+                if row < numRows,
+                   let symbol3 = symbols[column, row],
+                   symbol3.type.isMatchableTo(matchType) {
+                    chain.chainType = .vertical4
+                    symbolsToAdd.append(symbol3)
+                    row += 1
+                }
+
+                if row < numRows,
+                   let symbol4 = symbols[column, row],
+                   symbol4.type.isMatchableTo(matchType) {
+                    chain.chainType = .five
+                    symbolsToAdd.append(symbol4)
+                    row += 1
+                }
+
+                chain.add(symbols: symbolsToAdd)
+                set.insert(chain)
+            }
+        }
+        return set
+    }
+
+    func detectElimination(for chains: Set<Chain>) -> Set<Chain> {
+        var set = Set<Chain>()
+        var eliminationSymbols = [Symbol]()
+        for chain in chains {
+            for symbol in chain.symbols {
+                guard symbol.type.isEnhanced else { continue }
+                let column = symbol.column
+                let row = symbol.row
+                let adjacentPositions = [
+                    [column + 1, row],
+                    [column - 1, row],
+                    [column + 1, row + 1],
+                    [column - 1, row + 1],
+                    [column + 1, row - 1],
+                    [column - 1, row - 1],
+                    [column, row + 1],
+                    [column, row - 1],
+                ]
+                for adjacentPosition in adjacentPositions {
+                    let adjacentRow = adjacentPosition[1]
+                    let adjacentColumn = adjacentPosition[0]
+                    if adjacentRow >= 0 && adjacentRow < numRows,
+                       adjacentColumn >= 0 && adjacentColumn < numColumns,
+                       let symbol = symbols[adjacentColumn, adjacentRow] {
+                        eliminationSymbols.append(symbol)
+                        symbols[adjacentColumn, adjacentRow] = nil
                     }
                 }
-                row += 1
             }
+        }
+
+        if eliminationSymbols.count > 0 {
+            let chain = Chain(chainType: .eliminate)
+            chain.add(symbols: eliminationSymbols)
+            set.insert(chain)
         }
         return set
     }
@@ -289,13 +371,16 @@ class Level {
         let horizontalChains = detectHorizontalMatches()
         let verticalChains = detectVerticalMatches()
 
-        removeSymbols(in: horizontalChains)
-        removeSymbols(in: verticalChains)
+        let chains = horizontalChains.union(verticalChains)
 
-        calculateScores(for: horizontalChains)
-        calculateScores(for: verticalChains)
+        removeSymbols(in: chains)
+        calculateScores(for: chains)
 
-        return horizontalChains.union(verticalChains)
+        let elimination = detectElimination(for: chains)
+
+        let allChains = chains.union(elimination)
+
+        return allChains
     }
 
     private func removeSymbols(in chains: Set<Chain>) {
@@ -344,6 +429,27 @@ class Level {
             }
             return chain
         }
+    }
+
+    func createSpecialSymbols(for chains: Set<Chain>) -> [Symbol] {
+        var specialSymbols = [Symbol]()
+        for chain in chains {
+            guard chain.chainType == .horizontal4 ||
+                chain.chainType == .vertical4 else {
+                continue
+            }
+            guard let firstSymbol = chain.symbols.first else { continue }
+            let column = firstSymbol.column
+            let row = firstSymbol.row
+            let specialSymbol = Symbol(
+                column: column,
+                row: row,
+                symbolType: firstSymbol.type.enhancedType
+            )
+            symbols[column, row] = specialSymbol
+            specialSymbols.append(specialSymbol)
+        }
+        return specialSymbols
     }
 
     func fillHoles() -> [[Symbol]] {
@@ -415,9 +521,23 @@ class Level {
     }
 
     private func calculateScores(for chains: Set<Chain>) {
-        // 3-chain is 60 pts, 4-chain is 120, 5-chain is 180, and so on
+        // 1-chain: 20 pts
+        // 3-chain: 60 pts
+        // 4-chain: 120 pts
+        // 5-chain: 180 pts
+        // Enhanced symbol: 100 pts
         for chain in chains {
-            chain.score = 60 * (chain.length - 2)
+            let length = chain.length
+            if length <= 2 {
+                chain.score += 20 * length
+                continue
+            }
+            chain.score = 60 * (length - 2)
+            for symbol in chain.symbols {
+                if symbol.type.isEnhanced {
+                    chain.score += 100
+                }
+            }
         }
     }
 
@@ -429,5 +549,43 @@ class Level {
             && levelGoal.levelTarget.lantern ?? 0 <= 0
             && levelGoal.levelTarget.zodiac ?? 0 <= 0
             && levelGoal.levelTarget.lock ?? 0 <= 0
+    }
+
+    func updateLevelTarget(by chains: Set<Chain>) {
+        for chain in chains {
+            for symbol in chain.symbols {
+                switch symbol.type {
+                case .firecracker, .firecrackerEnhanced:
+                    if let firecracker = levelGoal.levelTarget.firecracker {
+                        levelGoal.levelTarget.firecracker = firecracker - 1
+                    }
+                case .redPocket, .redPocketEnhanced:
+                    if let redPocket = levelGoal.levelTarget.redPocket {
+                        levelGoal.levelTarget.redPocket = redPocket - 1
+                    }
+                case .dumpling, .dumplingEnhanced:
+                    if let dumpling = levelGoal.levelTarget.dumpling {
+                        levelGoal.levelTarget.dumpling = dumpling - 1
+                    }
+                case .bowl, .bowlEnhanced:
+                    if let bowl = levelGoal.levelTarget.bowl {
+                        levelGoal.levelTarget.bowl = bowl - 1
+                    }
+                case .lantern, .lanternEnhanced:
+                    if let lantern = levelGoal.levelTarget.lantern {
+                        levelGoal.levelTarget.lantern = lantern - 1
+                    }
+                case .zodiac, .zodiacEnhanced:
+                    if let zodiac = levelGoal.levelTarget.zodiac {
+                        levelGoal.levelTarget.zodiac = zodiac - 1
+                    }
+                case .lock:
+                    if let lock = levelGoal.levelTarget.lock {
+                        levelGoal.levelTarget.lock = lock - 1
+                    }
+                default: continue
+                }
+            }
+        }
     }
 }

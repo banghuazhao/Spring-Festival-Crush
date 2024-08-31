@@ -14,18 +14,19 @@ class GameModel: ObservableObject {
     enum Command {
         case setupLayerPosition
         case setupTiles
-        case setupSymbols(Set<Symbol>)
-        case shuffle(Set<Symbol>)
     }
 
     enum CommandAsync {
+        case setupSymbols(Set<Symbol>)
         case onValidSwap(Swap)
         case onInvalidSwap(Swap)
         case onMatchedSymbols(Set<Chain>)
+        case onCreatingSpecialSymbols([Symbol])
         case onFallingSymbols([[Symbol]])
         case onNewSprites([[Symbol]])
         case onGameBegin
         case onGameOver
+        case shuffle(Set<Symbol>)
     }
 
     enum GameState {
@@ -147,15 +148,15 @@ class GameModel: ObservableObject {
         score = 0
         invokeCommand?(.setupLayerPosition)
         invokeCommand?(.setupTiles)
-        let newSymbols = level.shuffle()
-        invokeCommand?(.setupSymbols(newSymbols))
         await invokeCommandAsync?(.onGameBegin)
         gameState = .inProgress
+        let newSymbols = level.shuffle()
+        await invokeCommandAsync?(.setupSymbols(newSymbols))
     }
 
-    func shuffle() {
+    func shuffle() async {
         let newSymbols = level.shuffle()
-        invokeCommand?(.shuffle(newSymbols))
+        await invokeCommandAsync?(.shuffle(newSymbols))
     }
 
     func decreaseMove() {
@@ -166,7 +167,9 @@ class GameModel: ObservableObject {
         decreaseMove()
         checkGameState()
         if gameState == .inProgress {
-            shuffle()
+            Task { @MainActor in
+                await shuffle()
+            }
         }
     }
 
@@ -225,7 +228,10 @@ class GameModel: ObservableObject {
         await invokeCommandAsync?(.onMatchedSymbols(chains))
 
         updateScores(from: chains)
-        updateLevelTarget(from: chains)
+        level.updateLevelTarget(by: chains)
+
+        let specialSymbols = level.createSpecialSymbols(for: chains)
+        await invokeCommandAsync?(.onCreatingSpecialSymbols(specialSymbols))
 
         let columns = level.fillHoles()
         await invokeCommandAsync?(.onFallingSymbols(columns))
@@ -240,10 +246,6 @@ class GameModel: ObservableObject {
         for chain in chains {
             score += chain.score
         }
-    }
-
-    func updateLevelTarget(from chains: Set<Chain>) {
-        level.levelGoal.levelTarget.updates(from: chains)
     }
 
     func beginNextTurn() {
