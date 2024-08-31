@@ -10,6 +10,7 @@ class Chain: Hashable, CustomStringConvertible {
         case vertical4
         case five
         case eliminate
+        case enhanced
 
         var description: String {
             switch self {
@@ -20,6 +21,7 @@ class Chain: Hashable, CustomStringConvertible {
             case .vertical4: return "Vertical4"
             case .five: return "five"
             case .eliminate: return "eliminate"
+            case .enhanced: return "enhanced"
             }
         }
     }
@@ -54,10 +56,15 @@ class Chain: Hashable, CustomStringConvertible {
     }
 
     func hash(into hasher: inout Hasher) {
-        hasher.combine(symbols.reduce(0) { $0.hashValue ^ $1.hashValue })
+        hasher.combine(
+            symbols.reduce(0) {
+                $0.hashValue ^ $1.hashValue
+            }
+        )
+        hasher.combine(chainType)
     }
 
     static func == (lhs: Chain, rhs: Chain) -> Bool {
-        return lhs.symbols == rhs.symbols
+        lhs.symbols == rhs.symbols && lhs.chainType == lhs.chainType
     }
 }

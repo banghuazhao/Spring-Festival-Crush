@@ -54,7 +54,12 @@ enum SymbolType: String {
         [.firecrackerEnhanced, .redPocketEnhanced, .dumplingEnhanced,
          .bowlEnhanced, .lanternEnhanced, .zodiacEnhanced].contains(self)
     }
-    
+
+    var isNormalMatchable: Bool {
+        [.firecracker, .redPocket, .dumpling,
+         .bowl, .lantern, .zodiac].contains(self)
+    }
+
     var enhancedType: Self {
         switch self {
         case .firecracker: .firecrackerEnhanced
@@ -99,13 +104,13 @@ enum SymbolType: String {
         }
         return candidateSymbolTypes.randomElement() ?? .zodiac
     }
-    
+
     func isMatchableTo(_ symbolType: SymbolType) -> Bool {
         if self == symbolType {
             return true
         }
-        
-        if self.enhancedType == symbolType.enhancedType {
+
+        if enhancedType == symbolType.enhancedType {
             return true
         }
         return false
@@ -197,6 +202,10 @@ class Symbol: CustomStringConvertible, Hashable {
         default:
             true
         }
+    }
+
+    func enhance() {
+        type = type.enhancedType
     }
 }
 

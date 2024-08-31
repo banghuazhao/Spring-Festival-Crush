@@ -70,7 +70,7 @@ class GameScene: SKScene {
 
     private func executeCommand(_ command: GameModel.Command) {
         switch command {
-        case .setupLayerPosition:
+        case .setupLayers:
             setupLayerPosition()
         case .setupTiles:
             removeAllTiles()
@@ -82,7 +82,7 @@ class GameScene: SKScene {
         switch command {
         case let .setupSymbols(newSprites):
             removeAllSymbols()
-            await addSymbols(for: newSprites)
+            await addSymbols(for: newSprites, shouldAnimate: false)
         case let .onValidSwap(swap):
             await animateSwap(swap)
         case let .onInvalidSwap(swap):
@@ -95,6 +95,8 @@ class GameScene: SKScene {
             await animateFallingSymbols(in: symbols)
         case let .onNewSprites(symbols):
             await animateNewSymbols(in: symbols)
+        case let .onEnhanceSymbols(symbols):
+            await animateEnhancedSymbols(for: symbols)
         case .onGameBegin:
             await animateBeginGame()
         case .onGameOver:
@@ -161,22 +163,24 @@ class GameScene: SKScene {
         }
     }
 
-    func addSymbols(for symbols: Set<Symbol>) async {
+    func addSymbols(for symbols: Set<Symbol>, shouldAnimate: Bool = true) async {
         await withTaskGroup(of: Void.self) { taskGroup in
             for symbol in symbols {
                 taskGroup.addTask {
-                    await self.createSpriteForSymbolAndShow(symbol)
+                    await self.createSpriteForSymbol(symbol, shouldAnimate: shouldAnimate)
                 }
             }
         }
     }
 
-    private func createSpriteForSymbolAndShow(_ symbol: Symbol) async {
+    private func createSpriteForSymbol(_ symbol: Symbol, shouldAnimate: Bool = true) async {
         let sprite = symbol.createSpriteNode(zodiac: gameModel.zodiac)
         sprite.size = gameModel.tileSize
         sprite.position = pointFor(column: symbol.column, row: symbol.row)
         symbolsLayer.addChild(sprite)
         symbol.sprite = sprite
+
+        guard shouldAnimate else { return }
 
         // Give each symbol sprite a small, random delay. Then fade them in.
         sprite.alpha = 0
@@ -392,7 +396,7 @@ class GameScene: SKScene {
         await withTaskGroup(of: Void.self) { taskGroup in
             for specialSymbol in specialSymbols {
                 taskGroup.addTask {
-                    await self.createSpriteForSymbolAndShow(specialSymbol)
+                    await self.createSpriteForSymbol(specialSymbol)
                 }
             }
         }
@@ -453,6 +457,30 @@ class GameScene: SKScene {
                     }
                 }
             }
+        }
+    }
+
+    func animateEnhancedSymbols(for symbols: [Symbol]) async {
+        for symbol in symbols {
+            symbol.sprite?.removeFromParent()
+            let sprite = symbol.createSpriteNode(zodiac: gameModel.zodiac)
+            sprite.size = gameModel.tileSize
+            sprite.position = pointFor(column: symbol.column, row: symbol.row)
+            symbolsLayer.addChild(sprite)
+            symbol.sprite = sprite
+
+            await sprite.run(
+                SKAction.sequence(
+                    [
+                        SKAction.group(
+                            [
+                                SKAction.fadeIn(withDuration: 0.2),
+                            ]
+                        ),
+                    ]
+                )
+            )
+            gameModel.decreaseMove()
         }
     }
 

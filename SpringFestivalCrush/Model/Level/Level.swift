@@ -334,26 +334,16 @@ class Level {
         for chain in chains {
             for symbol in chain.symbols {
                 guard symbol.type.isEnhanced else { continue }
-                let column = symbol.column
-                let row = symbol.row
-                let adjacentPositions = [
-                    [column + 1, row],
-                    [column - 1, row],
-                    [column + 1, row + 1],
-                    [column - 1, row + 1],
-                    [column + 1, row - 1],
-                    [column - 1, row - 1],
-                    [column, row + 1],
-                    [column, row - 1],
-                ]
-                for adjacentPosition in adjacentPositions {
-                    let adjacentRow = adjacentPosition[1]
-                    let adjacentColumn = adjacentPosition[0]
-                    if adjacentRow >= 0 && adjacentRow < numRows,
-                       adjacentColumn >= 0 && adjacentColumn < numColumns,
-                       let symbol = symbols[adjacentColumn, adjacentRow] {
+                let surroundingPositions = surroundingPositions(
+                    column: symbol.column,
+                    row: symbol.row
+                )
+                for position in surroundingPositions {
+                    let column = position[0]
+                    let row = position[1]
+                    if isPositionInside(column: column, row: row),
+                       let symbol = symbols[column, row] {
                         eliminationSymbols.append(symbol)
-                        symbols[adjacentColumn, adjacentRow] = nil
                     }
                 }
             }
@@ -367,20 +357,83 @@ class Level {
         return set
     }
 
+    private func surroundingPositions(column: Int, row: Int) -> [[Int]] {
+        return [
+            [column + 1, row],
+            [column - 1, row],
+            [column + 1, row + 1],
+            [column - 1, row + 1],
+            [column + 1, row - 1],
+            [column - 1, row - 1],
+            [column, row + 1],
+            [column, row - 1],
+        ]
+    }
+
+    private func adjacentPositions(column: Int, row: Int) -> [[Int]] {
+        [
+            [column + 1, row],
+            [column - 1, row],
+            [column, row + 1],
+            [column, row - 1],
+        ]
+    }
+
+    private func isPositionInside(column: Int, row: Int) -> Bool {
+        column >= 0 && column < numColumns &&
+            row >= 0 && row < numRows
+    }
+
     func removeMatches() -> Set<Chain> {
         let horizontalChains = detectHorizontalMatches()
         let verticalChains = detectVerticalMatches()
 
-        let chains = horizontalChains.union(verticalChains)
+        let matchChains = horizontalChains.union(verticalChains)
 
-        removeSymbols(in: chains)
-        calculateScores(for: chains)
+        let eliminationChains = detectElimination(for: matchChains)
 
-        let elimination = detectElimination(for: chains)
+        let allChains = matchChains.union(eliminationChains)
 
-        let allChains = chains.union(elimination)
+        removeSymbols(in: allChains)
+        calculateScores(for: allChains)
 
         return allChains
+    }
+
+    func removeSpecialSymbols() -> Set<Chain> {
+        var set = Set<Chain>()
+        if let enhancedSymbolChain = detectEnhancedSymbols() {
+            set.insert(enhancedSymbolChain)
+        }
+
+        let eliminationChains = detectElimination(for: set)
+
+        let allChains = set.union(eliminationChains)
+
+        removeSymbols(in: allChains)
+
+        calculateScores(for: allChains)
+
+        return allChains
+    }
+
+    private func detectEnhancedSymbols() -> Chain? {
+        var enhancedSymbols = [Symbol]()
+        for row in 0 ..< numRows {
+            for column in 0 ..< numColumns {
+                if let symbol = symbols[column, row],
+                   symbol.type.isEnhanced {
+                    enhancedSymbols.append(symbol)
+                }
+            }
+        }
+        if enhancedSymbols.count > 0 {
+            let chain = Chain(chainType: .enhanced)
+            chain.add(symbols: enhancedSymbols)
+            return chain
+        } else {
+            return nil
+        }
     }
 
     private func removeSymbols(in chains: Set<Chain>) {
@@ -396,17 +449,14 @@ class Level {
         for column in 0 ..< numColumns {
             for row in 0 ..< numRows {
                 if let symbol = symbols[column, row], symbol.type == .lock {
-                    let adjacentPositions = [
-                        [column + 1, row],
-                        [column - 1, row],
-                        [column, row + 1],
-                        [column, row - 1],
-                    ]
+                    let adjacentPositions = adjacentPositions(
+                        column: symbol.column,
+                        row: symbol.row
+                    )
                     for adjacentPosition in adjacentPositions {
-                        let adjacentRow = adjacentPosition[1]
                         let adjacentColumn = adjacentPosition[0]
-                        if (adjacentRow >= 0 && adjacentRow < numRows)
-                            && (adjacentColumn >= 0 && adjacentColumn < numColumns)
+                        let adjacentRow = adjacentPosition[1]
+                        if isPositionInside(column: adjacentColumn, row: adjacentRow)
                             && symbols[adjacentColumn, adjacentRow] == nil {
                             lockPositionsToRemove.insert([column, row])
                         }
@@ -521,18 +571,18 @@ class Level {
     }
 
     private func calculateScores(for chains: Set<Chain>) {
-        // 1-chain: 20 pts
+        // elimination-chain: 20 pts
         // 3-chain: 60 pts
         // 4-chain: 120 pts
         // 5-chain: 180 pts
         // Enhanced symbol: 100 pts
         for chain in chains {
             let length = chain.length
-            if length <= 2 {
+            if chain.chainType == .eliminate {
                 chain.score += 20 * length
-                continue
+            } else {
+                chain.score = 60 * (length - 2)
             }
-            chain.score = 60 * (length - 2)
             for symbol in chain.symbols {
                 if symbol.type.isEnhanced {
                     chain.score += 100
@@ -587,5 +637,30 @@ class Level {
                 }
             }
         }
+    }
+
+    func enhanceSymbols(num: Int) -> [Symbol] {
+        var enhancedSymbols = [Symbol]()
+        var remaining = num
+        while remaining > 0 {
+            guard symbols.normalMatchableElements() > 0 else {
+                break
+            }
+
+            let symbolCandidates = symbols.nonNilElements()
+
+            var symbolToEnhance: Symbol?
+            while symbolToEnhance == nil {
+                guard let symbol = symbolCandidates.randomElement(),
+                      !symbol.type.isEnhanced else { continue }
+                symbolToEnhance = symbol
+            }
+            if let symbolToEnhance {
+                symbolToEnhance.enhance()
+                enhancedSymbols.append(symbolToEnhance)
+            }
+            remaining -= 1
+        }
+        return enhancedSymbols
     }
 }
