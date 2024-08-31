@@ -85,17 +85,19 @@ class GameModel: ObservableObject {
                 )
 
                 modelContext.insert(zodiacRecord)
-
-                for i in 1 ... zodiac.numLevels {
-                    let levelRecord = LevelRecord(
-                        number: i,
-                        isUnlocked: i == 1,
-                        zodiacRecord: zodiacRecord
-                    )
-                    modelContext.insert(levelRecord)
-                    zodiacRecord.levelRecords.append(levelRecord)
-                }
                 zodiacRecords.append(zodiacRecord)
+
+                if zodiac.numLevels > 0 {
+                    for i in 1 ... zodiac.numLevels {
+                        let levelRecord = LevelRecord(
+                            number: i,
+                            isUnlocked: i == 1,
+                            zodiacRecord: zodiacRecord
+                        )
+                        modelContext.insert(levelRecord)
+                        zodiacRecord.levelRecords.append(levelRecord)
+                    }
+                }
             }
             firstLaunch = false
         } else {
