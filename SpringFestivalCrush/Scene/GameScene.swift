@@ -98,11 +98,20 @@ class GameScene: SKScene {
         case let .onEnhanceSymbols(symbols):
             await animateEnhancedSymbols(for: symbols)
         case .onGameBegin:
+            setupBgMusic()
             await animateBeginGame()
         case .onGameOver:
             await animateGameOver()
         case let .shuffle(newSprites):
             await shuffle(by: newSprites)
+        }
+    }
+
+    func setupBgMusic() {
+        if let bgMusic = gameModel.level.bgMusic {
+            Task {
+                await BackgroundMusicManager.shared.playBackgroundMusic(filename: bgMusic, repeatForever: true)
+            }
         }
     }
 
@@ -317,7 +326,9 @@ class GameScene: SKScene {
 
         await _ = [runMoveA, runMoveB]
 
-        await run(themeModel.swapSound)
+        if settingModel.playSoundEffect {
+            await run(themeModel.swapSound)
+        }
     }
 
     func animateInvalidSwap(_ swap: Swap) async {
@@ -340,7 +351,9 @@ class GameScene: SKScene {
 
         await _ = [runMoveA, runMoveB]
 
-        await run(themeModel.invalidSwapSound)
+        if settingModel.playSoundEffect {
+            await run(themeModel.invalidSwapSound)
+        }
     }
 
     func showSelectionIndicator(of symbol: Symbol) {
@@ -385,8 +398,10 @@ class GameScene: SKScene {
                     }
                 }
             }
-            taskGroup.addTask {
-                await self.run(self.themeModel.matchSound)
+            if settingModel.playSoundEffect {
+                taskGroup.addTask {
+                    await self.run(self.themeModel.matchSound)
+                }
             }
         }
     }
@@ -424,8 +439,10 @@ class GameScene: SKScene {
                     }
                 }
             }
-            taskGroup.addTask {
-                await self.run(self.themeModel.fallingSymbolSound)
+            if settingModel.playSoundEffect {
+                taskGroup.addTask {
+                    await self.run(self.themeModel.fallingSymbolSound)
+                }
             }
         }
     }
@@ -454,8 +471,11 @@ class GameScene: SKScene {
                                 SKAction.group([
                                     SKAction.fadeIn(withDuration: 0.05),
                                     moveAction,
-                                    self.themeModel.addSymbolSound]),
+                                ]),
                             ]))
+                        if self.settingModel.playSoundEffect {
+                            await sprite.run(self.themeModel.addSymbolSound)
+                        }
                     }
                 }
             }

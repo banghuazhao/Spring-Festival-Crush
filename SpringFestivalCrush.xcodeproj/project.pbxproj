@@ -71,7 +71,7 @@
 		9971C95525FC6705008CFCF9 /* UIButtonLargerArea.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9971C95025FC6705008CFCF9 /* UIButtonLargerArea.swift */; };
 		9971C95E25FC6753008CFCF9 /* AppItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9971C95D25FC6753008CFCF9 /* AppItem.swift */; };
 		99AA8BEB23D95915001EBD04 /* Colorful.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 99AA8BEA23D95915001EBD04 /* Colorful.mp3 */; };
-		99AA8BED23D9597B001EBD04 /* Music.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99AA8BEC23D9597B001EBD04 /* Music.swift */; };
+		99AA8BED23D9597B001EBD04 /* BackgroundMusicManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99AA8BEC23D9597B001EBD04 /* BackgroundMusicManager.swift */; };
 		99AA8BF223D95D7E001EBD04 /* Rat_Level_4.json in Resources */ = {isa = PBXBuildFile; fileRef = 99AA8BF123D95D77001EBD04 /* Rat_Level_4.json */; };
 		99AA8BF523D95DDA001EBD04 /* Rat_Level_5.json in Resources */ = {isa = PBXBuildFile; fileRef = 99AA8BF323D95DA0001EBD04 /* Rat_Level_5.json */; };
 		99AA8BF623D95E01001EBD04 /* Rat_Level_9.json in Resources */ = {isa = PBXBuildFile; fileRef = 99AA8BEE23D95CF4001EBD04 /* Rat_Level_9.json */; };
@@ -151,7 +151,7 @@
 		9971C97C25FC67FB008CFCF9 /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hant"; path = "zh-Hant.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
 		9971C97D25FC67FC008CFCF9 /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hant"; path = "zh-Hant.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		99AA8BEA23D95915001EBD04 /* Colorful.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = Colorful.mp3; sourceTree = "<group>"; };
-		99AA8BEC23D9597B001EBD04 /* Music.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Music.swift; sourceTree = "<group>"; };
+		99AA8BEC23D9597B001EBD04 /* BackgroundMusicManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BackgroundMusicManager.swift; sourceTree = "<group>"; };
 		99AA8BEE23D95CF4001EBD04 /* Rat_Level_9.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Rat_Level_9.json; sourceTree = "<group>"; };
 		99AA8BF123D95D77001EBD04 /* Rat_Level_4.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Rat_Level_4.json; sourceTree = "<group>"; };
 		99AA8BF323D95DA0001EBD04 /* Rat_Level_5.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Rat_Level_5.json; sourceTree = "<group>"; };
@@ -181,6 +181,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		9931ABFA2C83CB13004A4E66 /* bgMusic */ = {
+			isa = PBXGroup;
+			children = (
+				99AA8BEA23D95915001EBD04 /* Colorful.mp3 */,
+				9955DBC823D7E852007786D5 /* Chinatown.mp3 */,
+				99AA8BF823D99946001EBD04 /* glitter-blast.mp3 */,
+			);
+			path = bgMusic;
+			sourceTree = "<group>";
+		};
 		99340CE12C715EA50096BBF5 /* Config */ = {
 			isa = PBXGroup;
 			children = (
@@ -290,7 +300,6 @@
 				9955DBA323D7E4D2007786D5 /* SKSpriteNode+Extension.swift */,
 				9955DBDE23D7EA14007786D5 /* Constants.swift */,
 				9955DBE023D7F84D007786D5 /* Color+Extension.swift */,
-				99AA8BEC23D9597B001EBD04 /* Music.swift */,
 				9971C95225FC6705008CFCF9 /* Ads.swift */,
 				9971C95025FC6705008CFCF9 /* UIButtonLargerArea.swift */,
 				9971C95125FC6705008CFCF9 /* UIFont+Extension.swift */,
@@ -302,17 +311,11 @@
 		9955DBB723D7E505007786D5 /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				9980C05D2C83CDEB001C7EA5 /* Settings */,
+				9980C05B2C83CDCE001C7EA5 /* Music */,
 				9949A9212C8035D80027C480 /* Record */,
 				994625C42C7AC30F00FC2C6A /* Level */,
-				994625AB2C720E5600FC2C6A /* GameModel.swift */,
-				994625BE2C784CCB00FC2C6A /* ThemeModel.swift */,
-				994625C02C7860CD00FC2C6A /* SettingModel.swift */,
-				9955DBAB23D7E4E4007786D5 /* Symbol.swift */,
-				9955DBA623D7E4E3007786D5 /* Chain.swift */,
-				9955DBA723D7E4E3007786D5 /* Array2D.swift */,
-				9955DBA823D7E4E3007786D5 /* Tile.swift */,
-				9955DBA923D7E4E4007786D5 /* Swap.swift */,
-				9971C95D25FC6753008CFCF9 /* AppItem.swift */,
+				9980C05C2C83CDD4001C7EA5 /* Game */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -328,15 +331,13 @@
 		9955DBC023D7E852007786D5 /* Sounds */ = {
 			isa = PBXGroup;
 			children = (
+				9931ABFA2C83CB13004A4E66 /* bgMusic */,
 				9955DBC123D7E852007786D5 /* Scrape.wav */,
 				9955DBC323D7E852007786D5 /* Ka-Ching.wav */,
 				9955DBC523D7E852007786D5 /* Drip.wav */,
 				9955DBC623D7E852007786D5 /* Chomp.wav */,
 				9955DBC723D7E852007786D5 /* Error.wav */,
-				99AA8BEA23D95915001EBD04 /* Colorful.mp3 */,
-				9955DBC823D7E852007786D5 /* Chinatown.mp3 */,
 				9955DBE623D805F8007786D5 /* swap.mp3 */,
-				99AA8BF823D99946001EBD04 /* glitter-blast.mp3 */,
 			);
 			path = Sounds;
 			sourceTree = "<group>";
@@ -354,7 +355,7 @@
 			isa = PBXGroup;
 			children = (
 				994625A42C720A6C00FC2C6A /* MainView.swift */,
-				994625B52C74A3D700FC2C6A /* SettingsView.swift */,
+				9980C05E2C83CE1D001C7EA5 /* Settings */,
 				994625A82C720AE900FC2C6A /* GameView.swift */,
 				994625B32C74A06000FC2C6A /* LevelFailedView.swift */,
 				994625B12C7493ED00FC2C6A /* LevelCompleteView.swift */,
@@ -362,6 +363,45 @@
 				994625A62C720AA600FC2C6A /* SelectLevelView.swift */,
 			);
 			path = View;
+			sourceTree = "<group>";
+		};
+		9980C05B2C83CDCE001C7EA5 /* Music */ = {
+			isa = PBXGroup;
+			children = (
+				99AA8BEC23D9597B001EBD04 /* BackgroundMusicManager.swift */,
+			);
+			path = Music;
+			sourceTree = "<group>";
+		};
+		9980C05C2C83CDD4001C7EA5 /* Game */ = {
+			isa = PBXGroup;
+			children = (
+				994625AB2C720E5600FC2C6A /* GameModel.swift */,
+				9955DBAB23D7E4E4007786D5 /* Symbol.swift */,
+				9955DBA623D7E4E3007786D5 /* Chain.swift */,
+				9955DBA723D7E4E3007786D5 /* Array2D.swift */,
+				9955DBA823D7E4E3007786D5 /* Tile.swift */,
+				9955DBA923D7E4E4007786D5 /* Swap.swift */,
+			);
+			path = Game;
+			sourceTree = "<group>";
+		};
+		9980C05D2C83CDEB001C7EA5 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				994625BE2C784CCB00FC2C6A /* ThemeModel.swift */,
+				994625C02C7860CD00FC2C6A /* SettingModel.swift */,
+				9971C95D25FC6753008CFCF9 /* AppItem.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		9980C05E2C83CE1D001C7EA5 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				994625B52C74A3D700FC2C6A /* SettingsView.swift */,
+			);
+			path = Settings;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -497,7 +537,7 @@
 				994625BD2C76092000FC2C6A /* SKSpriteNode+Entension.swift in Sources */,
 				994625C12C7860CD00FC2C6A /* SettingModel.swift in Sources */,
 				994625C62C7AC31F00FC2C6A /* LevelTarget.swift in Sources */,
-				99AA8BED23D9597B001EBD04 /* Music.swift in Sources */,
+				99AA8BED23D9597B001EBD04 /* BackgroundMusicManager.swift in Sources */,
 				994625AC2C720E5600FC2C6A /* GameModel.swift in Sources */,
 				9955DBB423D7E4E4007786D5 /* Symbol.swift in Sources */,
 				9955DBB223D7E4E4007786D5 /* Swap.swift in Sources */,

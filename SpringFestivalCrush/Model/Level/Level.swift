@@ -6,6 +6,8 @@ class Level {
 
     let maximumMoves: Int
     var possbileSymbols: [String]?
+    var bgMusic: String?
+
     var levelGoal: LevelGoal
 
     var possibleSwaps: Set<Swap> = []
@@ -27,6 +29,12 @@ class Level {
 
         maximumMoves = levelData.moves
         possbileSymbols = levelData.possibleSymbols
+        if let bgMusic = levelData.bgMusic {
+            self.bgMusic = bgMusic
+        } else {
+            bgMusic = "Chinatown.mp3"
+        }
+
         levelGoal = levelData.levelGoal
 
         // 3
@@ -438,10 +446,6 @@ class Level {
         let verticalChains = detectVerticalMatches()
 
         let matchChains = horizontalChains.union(verticalChains)
-
-//        let eliminationChains = detectElimination(for: matchChains)
-
-//        let allChains = matchChains.union(eliminationChains)
 
         removeSymbols(in: matchChains)
         calculateScores(for: matchChains)

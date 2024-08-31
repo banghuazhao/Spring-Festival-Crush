@@ -227,6 +227,9 @@ class GameModel: ObservableObject {
     func onTapBack() {
         gameState = .notStart
         shouldPresentGame = false
+        Task {
+            await BackgroundMusicManager.shared.playDefaultBackgroundMusic()
+        }
     }
 
     @MainActor

@@ -5,6 +5,7 @@ class LevelData: Codable {
     var possibleSymbols: [String]?
     let moves: Int
     let levelGoal: LevelGoal
+    var bgMusic: String?
 
     static func loadFrom(file filename: String) -> LevelData? {
         var data: Data

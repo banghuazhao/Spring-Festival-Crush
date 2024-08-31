@@ -1,6 +1,6 @@
 //
 //  Color.swift
-//  Crazy Pyramid
+//  BackgroundMusicManager
 //
 //  Created by Banghua Zhao on 12/15/19.
 //  Copyright © 2019 Banghua Zhao. All rights reserved.

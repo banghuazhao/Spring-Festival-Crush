@@ -10,8 +10,6 @@ import SwiftData
 
 @main
 struct Match3GameApp: App {
-    @AppStorage("isPlayBackgroundMusic") private var isPlayBackgroundMusic = true
-
     var body: some Scene {
         WindowGroup {
             MainView()
@@ -19,11 +17,6 @@ struct Match3GameApp: App {
                 .environmentObject(GameModel())
                 .environmentObject(ThemeModel())
                 .environmentObject(SettingModel())
-                .onAppear {
-                    if isPlayBackgroundMusic {
-                        playBackgroundMusic(filename: "Chinatown.mp3", repeatForever: true)
-                    }
-                }
         }
     }
 }

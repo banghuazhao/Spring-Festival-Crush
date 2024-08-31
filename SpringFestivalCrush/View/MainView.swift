@@ -7,6 +7,7 @@ import SwiftUI
 
 struct MainView: View {
     @EnvironmentObject var gameModel: GameModel
+    @EnvironmentObject var settingModel: SettingModel
     @Environment(\.modelContext) private var modelContext
 
     var body: some View {
@@ -23,6 +24,9 @@ struct MainView: View {
                 .onAppear {
                     gameModel.initializeRecords(modelContext: modelContext)
                 }
+        }
+        .task {
+            await BackgroundMusicManager.shared.playDefaultBackgroundMusic()
         }
     }
 }
