@@ -1,4 +1,3 @@
-import Combine
 import GameplayKit
 import SpriteKit
 import SwiftUI
@@ -46,7 +45,6 @@ class GameScene: SKScene {
 
         addChild(gameLayer)
         gameLayer.isHidden = true
-
         cropLayer.maskNode = maskLayer
         gameLayer.addChild(tilesLayer)
         gameLayer.addChild(cropLayer)
@@ -70,35 +68,41 @@ class GameScene: SKScene {
 
     private func executeCommand(_ command: GameModel.Command) {
         switch command {
-        case .setupLayerPosition:
+        case .setupLayers:
             setupLayerPosition()
         case .setupTiles:
             removeAllTiles()
             addTiles()
-        case let .setupSymbols(newSprites):
-            removeAllSymbols()
-            addSymbols(for: newSprites)
-        case let .shuffle(newSprites):
-            shuffle(by: newSprites)
+        case let .setUserInteraction(shouldEnable):
+            setUserInteraction(enabled: shouldEnable)
         }
     }
 
     private func executeCommandAsync(_ command: GameModel.CommandAsync) async {
         switch command {
+        case let .setupSymbols(newSprites):
+            removeAllSymbols()
+            await addSymbols(for: newSprites, shouldAnimate: false)
         case let .onValidSwap(swap):
             await animateSwap(swap)
         case let .onInvalidSwap(swap):
             await animateInvalidSwap(swap)
         case let .onMatchedSymbols(chains):
             await animateMatchedSymbols(for: chains)
-        case let .onFallingSymbols(sprites):
-            await animateFallingSymbols(in: sprites)
-        case let .onNewSprites(sprites):
-            await animateNewSymbols(in: sprites)
+        case let .onCreatingSpecialSymbols(symbols):
+            await animateCreatingSpecialSymbols(for: symbols)
+        case let .onFallingSymbols(symbols):
+            await animateFallingSymbols(in: symbols)
+        case let .onNewSprites(symbols):
+            await animateNewSymbols(in: symbols)
+        case let .onEnhanceSymbols(symbols):
+            await animateEnhancedSymbols(for: symbols)
         case .onGameBegin:
             await animateBeginGame()
         case .onGameOver:
             await animateGameOver()
+        case let .shuffle(newSprites):
+            await shuffle(by: newSprites)
         }
     }
 
@@ -111,9 +115,9 @@ class GameScene: SKScene {
         symbolsLayer.position = layerPosition
     }
 
-    func shuffle(by newSymbols: Set<Symbol>) {
+    func shuffle(by newSymbols: Set<Symbol>) async {
         removeAllSymbols()
-        addSymbols(for: newSymbols)
+        await addSymbols(for: newSymbols)
     }
 
     func addTiles() {
@@ -159,28 +163,37 @@ class GameScene: SKScene {
         }
     }
 
-    func addSymbols(for symbols: Set<Symbol>) {
-        for symbol in symbols {
-            let sprite = symbol.createSpriteNode(zodiac: gameModel.zodiac)
-            sprite.size = gameModel.tileSize
-            sprite.position = pointFor(column: symbol.column, row: symbol.row)
-            symbolsLayer.addChild(sprite)
-            symbol.sprite = sprite
-
-            // Give each symbol sprite a small, random delay. Then fade them in.
-            sprite.alpha = 0
-            sprite.xScale = 0.5
-            sprite.yScale = 0.5
-
-            sprite.run(
-                SKAction.sequence([
-                    SKAction.wait(forDuration: 0.25, withRange: 0.5),
-                    SKAction.group([
-                        SKAction.fadeIn(withDuration: 0.25),
-                        SKAction.scale(to: 1.0, duration: 0.25),
-                    ]),
-                ]))
+    func addSymbols(for symbols: Set<Symbol>, shouldAnimate: Bool = true) async {
+        await withTaskGroup(of: Void.self) { taskGroup in
+            for symbol in symbols {
+                taskGroup.addTask {
+                    await self.createSpriteForSymbol(symbol, shouldAnimate: shouldAnimate)
+                }
+            }
         }
+    }
+
+    private func createSpriteForSymbol(_ symbol: Symbol, shouldAnimate: Bool = true) async {
+        let sprite = symbol.createSpriteNode(zodiac: gameModel.zodiac)
+        sprite.size = gameModel.tileSize
+        sprite.position = pointFor(column: symbol.column, row: symbol.row)
+        symbolsLayer.addChild(sprite)
+        symbol.sprite = sprite
+
+        guard shouldAnimate else { return }
+
+        // Give each symbol sprite a small, random delay. Then fade them in.
+        sprite.alpha = 0
+        sprite.xScale = 0.5
+        sprite.yScale = 0.5
+
+        await sprite.run(
+            SKAction.sequence([
+                SKAction.group([
+                    SKAction.fadeIn(withDuration: 0.2),
+                    SKAction.scale(to: 1.0, duration: 0.2),
+                ]),
+            ]))
     }
 
     private func pointFor(column: Int, row: Int) -> CGPoint {
@@ -362,31 +375,31 @@ class GameScene: SKScene {
             for chain in chains {
                 animateScore(for: chain)
                 for symbol in chain.symbols {
-                    if let sprite = symbol.sprite {
-                        if chain.chainType == .locks {
-                            if sprite.action(forKey: "removing") == nil {
-                                let scaleAction = SKAction.scale(to: 0.1, duration: 0.3)
-                                scaleAction.timingMode = .easeOut
-                                taskGroup.addTask {
-                                    await sprite.run(SKAction.sequence([scaleAction, SKAction.removeFromParent()]),
-                                                     withKey: "removing")
-                                }
-                            }
-                        } else {
-                            if sprite.action(forKey: "removing") == nil {
-                                let scaleAction = SKAction.scale(to: 0.1, duration: 0.3)
-                                scaleAction.timingMode = .easeOut
-                                taskGroup.addTask {
-                                    await sprite.run(SKAction.sequence([scaleAction, SKAction.removeFromParent()]),
-                                                     withKey: "removing")
-                                }
-                            }
-                        }
+                    guard let sprite = symbol.sprite else { continue }
+                    guard sprite.action(forKey: "removing") == nil else { continue }
+                    let scaleAction = SKAction.scale(to: 0.1, duration: 0.3)
+                    scaleAction.timingMode = .easeOut
+                    taskGroup.addTask {
+                        await sprite.run(SKAction.sequence([scaleAction, SKAction.removeFromParent()]),
+                                         withKey: "removing")
                     }
                 }
             }
             taskGroup.addTask {
                 await self.run(self.themeModel.matchSound)
+            }
+        }
+    }
+
+    func animateEliminatedSymbols(for symbols: Set<Symbol>) async {
+    }
+
+    func animateCreatingSpecialSymbols(for specialSymbols: [Symbol]) async {
+        await withTaskGroup(of: Void.self) { taskGroup in
+            for specialSymbol in specialSymbols {
+                taskGroup.addTask {
+                    await self.createSpriteForSymbol(specialSymbol)
+                }
             }
         }
     }
@@ -449,6 +462,30 @@ class GameScene: SKScene {
         }
     }
 
+    func animateEnhancedSymbols(for symbols: [Symbol]) async {
+        for symbol in symbols {
+            symbol.sprite?.removeFromParent()
+            let sprite = symbol.createSpriteNode(zodiac: gameModel.zodiac)
+            sprite.size = gameModel.tileSize
+            sprite.position = pointFor(column: symbol.column, row: symbol.row)
+            symbolsLayer.addChild(sprite)
+            symbol.sprite = sprite
+
+            await sprite.run(
+                SKAction.sequence(
+                    [
+                        SKAction.group(
+                            [
+                                SKAction.fadeIn(withDuration: 0.2),
+                            ]
+                        ),
+                    ]
+                )
+            )
+            gameModel.decreaseMove()
+        }
+    }
+
     func animateScore(for chain: Chain) {
         // Figure out what the midpoint of the chain is.
         guard chain.chainType != .locks else { return }
@@ -495,5 +532,9 @@ class GameScene: SKScene {
 
     func removeAllSymbols() {
         symbolsLayer.removeAllChildren()
+    }
+
+    func setUserInteraction(enabled: Bool) {
+        isUserInteractionEnabled = enabled
     }
 }

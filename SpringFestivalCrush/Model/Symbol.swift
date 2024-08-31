@@ -11,6 +11,13 @@ enum SymbolType: String {
     case lantern
     case zodiac
     case lock
+    case firecrackerEnhanced
+    case redPocketEnhanced
+    case dumplingEnhanced
+    case bowlEnhanced
+    case lanternEnhanced
+    case zodiacEnhanced
+    case five
 
     var spriteName: String {
         switch self {
@@ -22,11 +29,47 @@ enum SymbolType: String {
         case .lantern: "lantern"
         case .zodiac: "zodiac"
         case .lock: "lock"
+        case .firecrackerEnhanced:
+            "firecracker"
+        case .redPocketEnhanced:
+            "redPocket"
+        case .dumplingEnhanced:
+            "dumpling"
+        case .bowlEnhanced:
+            "bowl"
+        case .lanternEnhanced:
+            "lantern"
+        case .zodiacEnhanced:
+            "zodiac"
+        case .five:
+            "five"
         }
     }
 
     var highlightedSpriteName: String {
         return spriteName + "-Highlighted"
+    }
+
+    var isEnhanced: Bool {
+        [.firecrackerEnhanced, .redPocketEnhanced, .dumplingEnhanced,
+         .bowlEnhanced, .lanternEnhanced, .zodiacEnhanced].contains(self)
+    }
+
+    var isNormalMatchable: Bool {
+        [.firecracker, .redPocket, .dumpling,
+         .bowl, .lantern, .zodiac].contains(self)
+    }
+
+    var enhancedType: Self {
+        switch self {
+        case .firecracker: .firecrackerEnhanced
+        case .redPocket: .redPocketEnhanced
+        case .dumpling: .dumplingEnhanced
+        case .bowl: .bowlEnhanced
+        case .lantern: .lanternEnhanced
+        case .zodiac: .zodiacEnhanced
+        default: self
+        }
     }
 
     init?(rawValue: String) {
@@ -61,6 +104,17 @@ enum SymbolType: String {
         }
         return candidateSymbolTypes.randomElement() ?? .zodiac
     }
+
+    func isMatchableTo(_ symbolType: SymbolType) -> Bool {
+        if self == symbolType {
+            return true
+        }
+
+        if enhancedType == symbolType.enhancedType {
+            return true
+        }
+        return false
+    }
 }
 
 // MARK: - Symbol
@@ -76,7 +130,7 @@ class Symbol: CustomStringConvertible, Hashable {
 
     var column: Int
     var row: Int
-    let type: SymbolType
+    var type: SymbolType
     var sprite: SKSpriteNode?
 
     init(column: Int, row: Int, symbolType: SymbolType) {
@@ -88,7 +142,7 @@ class Symbol: CustomStringConvertible, Hashable {
     func createSpriteNode(zodiac: Zodiac) -> SKSpriteNode {
         let spriteNode: SKSpriteNode
         switch type {
-        case .zodiac:
+        case .zodiac, .zodiacEnhanced:
             let emojiTexture = SKTexture.texture(from: zodiac.emoji, fontSize: 40)
             spriteNode = SKSpriteNode(texture: emojiTexture)
         case .lock:
@@ -97,7 +151,39 @@ class Symbol: CustomStringConvertible, Hashable {
         default:
             spriteNode = SKSpriteNode(imageNamed: type.spriteName)
         }
+        if type.isEnhanced {
+            addMagicEffect(to: spriteNode)
+        }
         return spriteNode
+    }
+
+    private func addMagicEffect(to sprite: SKSpriteNode) {
+        let magicLightEffect = createMagicLightEffect()
+        magicLightEffect.position = CGPoint(x: 0, y: 0) // Center the effect on the sprite
+        sprite.addChild(magicLightEffect)
+    }
+
+    private func createMagicLightEffect() -> SKEmitterNode {
+        let magicLight = SKEmitterNode()
+
+        // Create a simple circular texture
+        let circle = SKShapeNode(circleOfRadius: 10)
+        circle.fillColor = .white
+        let textureView = SKView()
+        let texture = textureView.texture(from: circle)
+
+        magicLight.particleTexture = texture // Use the circle texture
+        magicLight.particleBirthRate = 20 // Lower the birth rate for a more subtle effect
+        magicLight.particleLifetime = 1.0
+        magicLight.particlePositionRange = CGVector(dx: 2, dy: 2) // Smaller range to localize the effect
+        magicLight.emissionAngleRange = 360 // Emit in a semi-circle around the sprite
+        magicLight.particleSpeed = 30 // Slower speed to keep particles close to the sprite
+        magicLight.particleScale = 0.1 // Smaller particle size
+        magicLight.particleAlpha = 0.75
+        magicLight.particleColor = UIColor.white
+        magicLight.particleBlendMode = .add
+
+        return magicLight
     }
 
     func isMovable() -> Bool {
@@ -116,6 +202,10 @@ class Symbol: CustomStringConvertible, Hashable {
         default:
             true
         }
+    }
+
+    func enhance() {
+        type = type.enhancedType
     }
 }
 

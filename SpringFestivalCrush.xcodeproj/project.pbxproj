@@ -193,6 +193,7 @@
 		994625C42C7AC30F00FC2C6A /* Level */ = {
 			isa = PBXGroup;
 			children = (
+				994625BA2C76022C00FC2C6A /* Zodiac.swift */,
 				9955DBAC23D7E4E4007786D5 /* Level.swift */,
 				9955DBA523D7E4E3007786D5 /* LevelData.swift */,
 				994625C22C7AB14600FC2C6A /* LevelGoal.swift */,
@@ -306,7 +307,6 @@
 				994625AB2C720E5600FC2C6A /* GameModel.swift */,
 				994625BE2C784CCB00FC2C6A /* ThemeModel.swift */,
 				994625C02C7860CD00FC2C6A /* SettingModel.swift */,
-				994625BA2C76022C00FC2C6A /* Zodiac.swift */,
 				9955DBAB23D7E4E4007786D5 /* Symbol.swift */,
 				9955DBA623D7E4E3007786D5 /* Chain.swift */,
 				9955DBA723D7E4E3007786D5 /* Array2D.swift */,

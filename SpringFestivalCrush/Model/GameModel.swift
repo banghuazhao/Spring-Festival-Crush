@@ -6,26 +6,30 @@
 import SwiftData
 import SwiftUI
 
+@MainActor
 class GameModel: ObservableObject {
     @Published var zodiacRecords: [ZodiacRecord] = []
     @AppStorage("firstLaunch") var firstLaunch = true
     private var modelContext: ModelContext?
 
     enum Command {
-        case setupLayerPosition
+        case setupLayers
         case setupTiles
-        case setupSymbols(Set<Symbol>)
-        case shuffle(Set<Symbol>)
+        case setUserInteraction(Bool)
     }
 
     enum CommandAsync {
+        case setupSymbols(Set<Symbol>)
         case onValidSwap(Swap)
         case onInvalidSwap(Swap)
         case onMatchedSymbols(Set<Chain>)
+        case onCreatingSpecialSymbols([Symbol])
         case onFallingSymbols([[Symbol]])
         case onNewSprites([[Symbol]])
+        case onEnhanceSymbols([Symbol])
         case onGameBegin
         case onGameOver
+        case shuffle(Set<Symbol>)
     }
 
     enum GameState {
@@ -70,6 +74,7 @@ class GameModel: ObservableObject {
         calculateTileSize(screenSize: screenSize)
     }
 
+    @MainActor
     func initializeRecords(modelContext: ModelContext) {
         self.modelContext = modelContext
         if firstLaunch {
@@ -134,6 +139,7 @@ class GameModel: ObservableObject {
         return CGSize(width: minSize, height: minSize)
     }
 
+    @MainActor
     func selectLevel(_ selectedLevel: Int) {
         gameState = .loading
         currentLevel = selectedLevel
@@ -145,17 +151,12 @@ class GameModel: ObservableObject {
     func setupNewGame() async {
         movesLeft = level.maximumMoves
         score = 0
-        invokeCommand?(.setupLayerPosition)
+        invokeCommand?(.setupLayers)
         invokeCommand?(.setupTiles)
         let newSymbols = level.shuffle()
-        invokeCommand?(.setupSymbols(newSymbols))
+        await invokeCommandAsync?(.setupSymbols(newSymbols))
         await invokeCommandAsync?(.onGameBegin)
         gameState = .inProgress
-    }
-
-    func shuffle() {
-        let newSymbols = level.shuffle()
-        invokeCommand?(.shuffle(newSymbols))
     }
 
     func decreaseMove() {
@@ -164,27 +165,63 @@ class GameModel: ObservableObject {
 
     func onTapShuffle() {
         decreaseMove()
-        checkGameState()
-        if gameState == .inProgress {
-            shuffle()
-        }
-    }
-
-    private func checkGameState() {
-        if level.doesReachLevelTarget() {
-            updateRecord()
-            gameState = .win
-            return
-        }
-
-        if movesLeft <= 0 {
-            gameState = .lose
-            Task { @MainActor in
-                await invokeCommandAsync?(.onGameOver)
+        Task { @MainActor in
+            if hasGameLose() {
+                await handleGameLose()
+            } else {
+                let newSymbols = level.shuffle()
+                await invokeCommandAsync?(.shuffle(newSymbols))
             }
         }
     }
 
+    private func hasGameWin() -> Bool {
+        level.doesReachLevelTarget()
+    }
+
+    @MainActor
+    private func handleGameWin() async {
+        invokeCommand?(.setUserInteraction(false))
+        await handleRemainingSpecialSymbol()
+        await handleExtraStepsBonus()
+        updateRecord()
+        gameState = .win
+        invokeCommand?(.setUserInteraction(true))
+    }
+
+    private func handleRemainingSpecialSymbol() async {
+        let matchChains = level.removeMatches()
+        let specialChains = level.removeSpecialSymbols()
+        var chains = specialChains.union(matchChains)
+        if let lockChain = level.removeLocks() {
+            chains.insert(lockChain)
+        }
+        if chains.count == 0 {
+            return
+        }
+
+        await handleMatches(for: chains)
+
+        await handleRemainingSpecialSymbol()
+    }
+
+    private func handleExtraStepsBonus() async {
+        let enhancedSymbols = level.enhanceSymbols(num: movesLeft)
+        await invokeCommandAsync?(.onEnhanceSymbols(enhancedSymbols))
+        await handleRemainingSpecialSymbol()
+    }
+
+    private func hasGameLose() -> Bool {
+        movesLeft <= 0
+    }
+
+    @MainActor
+    private func handleGameLose() async {
+        gameState = .lose
+        await invokeCommandAsync?(.onGameOver)
+    }
+
+    @MainActor
     func onTapBack() {
         gameState = .notStart
         shouldPresentGame = false
@@ -193,47 +230,65 @@ class GameModel: ObservableObject {
     @MainActor
     func handleSwipe(_ swap: Swap) async {
         if level.isPossibleSwap(swap) {
+            decreaseMove()
             level.performSwap(swap)
-            let swapSet = level.possibleSwaps
-            for swap in swapSet {
-                let elementA = swap.symbolA
-                let elementB = swap.symbolB
-                elementA.sprite?.removeAction(forKey: "hintAction")
-                elementA.sprite?.isHidden = false
-                elementB.sprite?.removeAction(forKey: "hintAction")
-                elementB.sprite?.isHidden = false
-            }
             await invokeCommandAsync?(.onValidSwap(swap))
-            await handleMatches()
+            invokeCommand?(.setUserInteraction(false))
+            await handleRemoveAndMatches()
+            invokeCommand?(.setUserInteraction(true))
         } else {
             await invokeCommandAsync?(.onInvalidSwap(swap))
         }
     }
 
     @MainActor
-    func handleMatches() async {
+    func handleRemoveAndMatches() async {
         var chains = level.removeMatches()
-        if chains.count == 0 {
-            beginNextTurn()
-            return
-        }
-
         if let lockChain = level.removeLocks() {
             chains.insert(lockChain)
         }
+        if chains.count == 0 {
+            await beginNextTurn()
+            return
+        }
 
-        await invokeCommandAsync?(.onMatchedSymbols(chains))
+        await handleMatches(for: chains)
 
-        updateScores(from: chains)
-        updateLevelTarget(from: chains)
+        await handleRemoveAndMatches()
+    }
+
+    private func handleMatches(for chains: Set<Chain>) async {
+        var allChains = chains
+        async let onMatchedSymbols: Void? = invokeCommandAsync?(.onMatchedSymbols(chains))
+
+        let explodeChains = level.explodeSpecialSymbols(for: chains)
+        allChains = allChains.union(explodeChains)
+        async let onSpecialSymbolExplode: Void? = invokeCommandAsync?(.onMatchedSymbols(explodeChains))
+
+        await _ = [onMatchedSymbols, onSpecialSymbolExplode]
+
+        var nextExplodeChains = explodeChains
+        while true {
+            if nextExplodeChains.contains(where: { $0.chainType == .enhanced }) {
+                nextExplodeChains = level.explodeSpecialSymbols(for: nextExplodeChains)
+                allChains = allChains.union(explodeChains)
+                await invokeCommandAsync?(.onMatchedSymbols(nextExplodeChains))
+            } else {
+                break
+            }
+        }
+
+        let specialSymbols = level.createSpecialSymbols(for: chains)
+        await invokeCommandAsync?(.onCreatingSpecialSymbols(specialSymbols))
+
+        updateScores(from: allChains)
+        level.updateLevelTarget(by: allChains)
 
         let columns = level.fillHoles()
         await invokeCommandAsync?(.onFallingSymbols(columns))
         let topUpColumns = level.topUpSymbols()
 
         await invokeCommandAsync?(.onNewSprites(topUpColumns))
-
-        await handleMatches()
     }
 
     func updateScores(from chains: Set<Chain>) {
@@ -242,16 +297,18 @@ class GameModel: ObservableObject {
         }
     }
 
-    func updateLevelTarget(from chains: Set<Chain>) {
-        level.levelGoal.levelTarget.updates(from: chains)
+    @MainActor
+    func beginNextTurn() async {
+        if hasGameWin() {
+            await handleGameWin()
+        } else if hasGameLose() {
+            await handleGameLose()
+        } else {
+            level.detectPossibleSwaps()
+        }
     }
 
-    func beginNextTurn() {
-        level.detectPossibleSwaps()
-        decreaseMove()
-        checkGameState()
-    }
-
+    @MainActor
     func onTapNextLevel() {
         if currentLevel >= zodiac.numLevels {
             gameState = .notStart
@@ -264,12 +321,13 @@ class GameModel: ObservableObject {
     }
 
     func onTapTryAgainLevel() {
-        selectLevel(currentLevel)
         Task { @MainActor in
+            selectLevel(currentLevel)
             await setupNewGame()
         }
     }
 
+    @MainActor
     func updateRecord() {
         updateCurrentLevel()
         updateNextLevelIfNeeded()
@@ -299,6 +357,7 @@ class GameModel: ObservableObject {
         nextLevelRecord?.isUnlocked = true
     }
 
+    @MainActor
     private func unlockNextZodiacIfNeeded() {
         guard let currentZodiacRecord else { return }
         guard let currentZodiacIndex = Zodiac.all.firstIndex(where: { $0.zodiacType == currentZodiacRecord.zodiacType }),
