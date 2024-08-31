@@ -17,5 +17,6 @@
       "levelTarget": {
           "dumpling": 20
       }
-  }
+  },
+  "bgMusic": "Colorful.mp3"
 }

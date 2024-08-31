@@ -15,5 +15,6 @@
       "levelTarget": {
           "redPocket": 15
       }
-  }
+  },
+  "bgMusic": "Colorful.mp3"
 }

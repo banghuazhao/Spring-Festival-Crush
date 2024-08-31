@@ -19,6 +19,10 @@ struct SettingsView: View {
                     Text("Play Background Music")
                         .font(.headline)
                 }
+                Toggle(isOn: $settingModel.playSoundEffect) {
+                    Text("Play Sound Effect")
+                        .font(.headline)
+                }
                 if showUnlockLevelsToggle {
                     Toggle(isOn: $settingModel.unlockAllLevels) {
                         Text("Unlock All Levels")
@@ -28,12 +32,14 @@ struct SettingsView: View {
             }
             .padding()
             .onChange(of: settingModel.isPlayBackgroundMusic) { newValue in
-                if newValue {
-                    // Start playing background music
-                    playBackgroundMusic(filename: "Chinatown.mp3", repeatForever: true)
-                } else {
-                    // Stop playing background music
-                    stopPlayBackgroundMusic()
+                Task {
+                    if newValue {
+                        // Start playing background music
+                        await BackgroundMusicManager.shared.turnOnBackgroundMusic()
+                    } else {
+                        // Stop playing background music
+                        BackgroundMusicManager.shared.stopBackgroundMusic()
+                    }
                 }
             }
 
