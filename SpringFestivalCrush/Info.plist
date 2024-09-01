@@ -6,6 +6,8 @@
 	<string>$(InterstitialAdID)</string>
 	<key>BannerAdUnitID</key>
 	<string>$(BannerAdUnitID)</string>
+	<key>AppOpenAdID</key>
+	<string>$(AppOpenAdID)</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleExecutable</key>
@@ -21,7 +23,7 @@
 	<key>CFBundleShortVersionString</key>
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
-	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<string>2409011304</string>
 	<key>GADApplicationIdentifier</key>
 	<string>$(GADApplicationIdentifier)</string>
 	<key>LSRequiresIPhoneOS</key>

@@ -20,9 +20,6 @@ struct Constants {
     static let fourGreatClassicalNovelsAppID = "1526758926"
     static let novelsHubAppID = "1528820845"
 
-    static let bannerAdUnitID = Bundle.main.object(forInfoDictionaryKey: "BannerAdUnitID") as? String ?? ""
-    static let interstitialAdID = Bundle.main.object(forInfoDictionaryKey: "InterstitialAdID") as? String ?? ""
-
     struct UserDefaultsKeys {
         static let OPEN_COUNT = "OPEN_COUNT"
     }
