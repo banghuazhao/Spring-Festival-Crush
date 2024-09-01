@@ -24,9 +24,14 @@ struct MainView: View {
                 .onAppear {
                     gameModel.initializeRecords(modelContext: modelContext)
                 }
-        }
-        .task {
-            await BackgroundMusicManager.shared.playDefaultBackgroundMusic()
+            #if !targetEnvironment(macCatalyst)
+                .onAppear {
+                    AdManager.requestATTPermission(with: 1)
+                }
+            #endif
+                .task {
+                    await BackgroundMusicManager.shared.playDefaultBackgroundMusic()
+                }
         }
     }
 }

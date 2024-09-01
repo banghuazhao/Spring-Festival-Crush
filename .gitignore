@@ -63,3 +63,6 @@ fastlane/screenshots/**/*.png
 fastlane/test_output
 
 Resource/
+
+fastlane/.env
+fastlane/*.p8

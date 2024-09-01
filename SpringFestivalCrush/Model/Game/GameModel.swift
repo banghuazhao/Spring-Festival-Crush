@@ -77,6 +77,7 @@ class GameModel: ObservableObject {
     @MainActor
     func initializeRecords(modelContext: ModelContext) {
         self.modelContext = modelContext
+        var newZodiacRecords = [ZodiacRecord]()
         if firstLaunch {
             for zodiac in Zodiac.all {
                 let zodiacRecord = ZodiacRecord(
@@ -85,7 +86,7 @@ class GameModel: ObservableObject {
                 )
 
                 modelContext.insert(zodiacRecord)
-                zodiacRecords.append(zodiacRecord)
+                newZodiacRecords.append(zodiacRecord)
 
                 if zodiac.numLevels > 0 {
                     for i in 1 ... zodiac.numLevels {
@@ -99,7 +100,12 @@ class GameModel: ObservableObject {
                     }
                 }
             }
-            firstLaunch = false
+            do {
+                try modelContext.save()
+            } catch {
+                print(error)
+            }
+            zodiacRecords = newZodiacRecords
         } else {
             let request = FetchDescriptor<ZodiacRecord>()
 

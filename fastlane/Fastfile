@@ -1,0 +1,58 @@
+default_platform(:ios)
+
+before_all do
+  dotenv = Dotenv.load('.env')
+end
+
+project   = "SpringFestivalCrush.xcodeproj"
+workspace = "SpringFestivalCrush.xcodeproj/project.xcworkspace"
+
+platform :ios do
+  desc "Push a new beta build to TestFlight"
+  lane :beta do
+    set_build_number()
+    archive_appstore()
+    add_change_log()
+    upload_to_appstore()
+  end
+
+  lane :set_build_number do
+    UI.header "⏰ Setting time as build number"
+
+    build_number = Time.new.strftime('%y%m%d%H%M')
+
+    increment_build_number(build_number:, xcodeproj: project)
+  end
+
+  lane :archive_appstore do
+    UI.header "⏰ Archiving AppStore"
+    gym(
+      workspace: workspace,
+      scheme: "SpringFestivalCrush",
+      export_method: "app-store",
+      xcargs: "-allowProvisioningUpdates"
+    )
+  end
+
+  lane :add_change_log do
+    changelog_from_git_commits(
+      commits_count: 20,
+      pretty: '- %s',
+      date_format: 'short',
+      match_lightweight_tag: false,
+      merge_commit_filtering: 'include_merges'
+    )
+  end
+
+  lane :upload_to_appstore do
+    UI.header "🚀 Uploading to TestFlight"
+    upload_to_testflight(
+      api_key: app_store_connect_api_key(
+        key_id: ENV['APPSTORE_KEY_ID'], 
+        issuer_id: ENV['APPSTORE_ISSUER_ID'], 
+        key_filepath: ENV['APPSTORE_KEY_FILEPATH']
+      )
+    )
+  end
+ 
+end
