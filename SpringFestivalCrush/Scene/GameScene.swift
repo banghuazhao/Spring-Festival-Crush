@@ -3,17 +3,19 @@ import SpriteKit
 import SwiftUI
 
 class GameScene: SKScene {
+    // MARK: - Dependencies
     let gameModel: GameModel
     let themeModel: ThemeModel
     let settingModel: SettingModel
 
+    // MARK: - Layers
     let gameLayer = SKNode()
     let tilesLayer = SKNode()
-    // A crop node only draws its children where the mask contains pixels. This lets you draw the cookies only where there is a tile, but never on the background.
     let maskLayer = SKNode()
     let cropLayer = SKCropNode()
     let symbolsLayer = SKNode()
 
+    // MARK: - State
     private var swipeFromColumn: Int?
     private var swipeFromRow: Int?
     private var selectionSprite = SKSpriteNode()
@@ -36,8 +38,14 @@ class GameScene: SKScene {
 
         self.gameModel.screenSize = size
 
+        setupScene()
+        setupBindings()
+    }
+    
+    // MARK: - Setup
+    private func setupScene() {
         anchorPoint = CGPoint(x: 0.5, y: 0.5)
-
+        
         let background = SKSpriteNode(imageNamed: gameModel.gameBackground)
         background.size = size
         background.aspectFillToSize(fillSize: size)
@@ -51,7 +59,9 @@ class GameScene: SKScene {
         cropLayer.addChild(symbolsLayer)
 
         _ = SKLabelNode(fontNamed: "GillSans-BoldItalic")
-
+    }
+    
+    private func setupBindings() {
         gameModel.invokeCommand = { [weak self] command in
             guard let self else { return }
             executeCommand(command)
