@@ -5,7 +5,7 @@ class Level {
     let numRows: Int
 
     let maximumMoves: Int
-    var possbileSymbols: [String]?
+    var possibleSymbols: [String]?
     var bgMusic: String?
 
     var levelGoal: LevelGoal
@@ -28,7 +28,7 @@ class Level {
         symbols = Array2D<Symbol>(columns: numColumns, rows: numRows)
 
         maximumMoves = levelData.moves
-        possbileSymbols = levelData.possibleSymbols
+        possibleSymbols = levelData.possibleSymbols
         if let bgMusic = levelData.bgMusic {
             self.bgMusic = bgMusic
         } else {
@@ -89,7 +89,7 @@ class Level {
                     symbolType = SymbolType.lock
                 default:
                     repeat {
-                        symbolType = SymbolType.randomMovableSymbolType(possbileSymbols)
+                        symbolType = SymbolType.randomMovableSymbolType(possibleSymbols)
                     } while (column >= 2 &&
                         symbols[column - 1, row]?.type == symbolType &&
                         symbols[column - 2, row]?.type == symbolType)
@@ -385,35 +385,6 @@ class Level {
         return set
     }
 
-    func detectElimination(for chains: Set<Chain>) -> Set<Chain> {
-        var set = Set<Chain>()
-        var eliminationSymbols = [Symbol]()
-        for chain in chains {
-            for symbol in chain.symbols {
-                guard symbol.type.isEnhanced else { continue }
-                let surroundingPositions = surroundingPositions(
-                    column: symbol.column,
-                    row: symbol.row
-                )
-                for position in surroundingPositions {
-                    let column = position[0]
-                    let row = position[1]
-                    if isPositionInside(column: column, row: row),
-                       let symbol = symbols[column, row] {
-                        eliminationSymbols.append(symbol)
-                    }
-                }
-            }
-        }
-
-        if eliminationSymbols.count > 0 {
-            let chain = Chain(chainType: .single)
-            chain.add(symbols: eliminationSymbols)
-            set.insert(chain)
-        }
-        return set
-    }
-
     private func surroundingPositions(column: Int, row: Int) -> [[Int]] {
         return [
             [column + 1, row],
@@ -589,7 +560,7 @@ class Level {
                         // 3
                         var newSymbolType: SymbolType
                         repeat {
-                            newSymbolType = SymbolType.randomMovableSymbolType(possbileSymbols)
+                            newSymbolType = SymbolType.randomMovableSymbolType(possibleSymbols)
                         } while newSymbolType == symbolType
                         symbolType = newSymbolType
                         // 4
@@ -688,22 +659,12 @@ class Level {
         var enhancedSymbols = [Symbol]()
         var remaining = num
         while remaining > 0 {
-            guard symbols.normalMatchableElements() > 0 else {
+            let normalCandidates = symbols.nonNilElements().filter { $0.type.isNormalMatchable }
+            guard !normalCandidates.isEmpty, let symbolToEnhance = normalCandidates.randomElement() else {
                 break
             }
-
-            let symbolCandidates = symbols.nonNilElements()
-
-            var symbolToEnhance: Symbol?
-            while symbolToEnhance == nil {
-                guard let symbol = symbolCandidates.randomElement(),
-                      !symbol.type.isEnhanced else { continue }
-                symbolToEnhance = symbol
-            }
-            if let symbolToEnhance {
-                symbolToEnhance.enhance()
-                enhancedSymbols.append(symbolToEnhance)
-            }
+            symbolToEnhance.enhance()
+            enhancedSymbols.append(symbolToEnhance)
             remaining -= 1
         }
         return enhancedSymbols

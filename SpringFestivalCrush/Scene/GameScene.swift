@@ -128,7 +128,7 @@ class GameScene: SKScene {
     func setupLayerPosition() {
         let layerPosition = CGPoint(
             x: -gameModel.tileSize.width * CGFloat(gameModel.numColumns) / 2,
-            y: -gameModel.tileSize.width * CGFloat(gameModel.numRows) / 2)
+            y: -gameModel.tileSize.height * CGFloat(gameModel.numRows) / 2)
         tilesLayer.position = layerPosition
         maskLayer.position = layerPosition
         symbolsLayer.position = layerPosition
@@ -307,7 +307,7 @@ class GameScene: SKScene {
         if let toSymbol = gameModel.level.symbol(atColumn: toColumn, row: toRow),
            toSymbol.isMovable(),
            let fromSymbol = gameModel.level.symbol(atColumn: swipeFromColumn!, row: swipeFromRow!),
-           toSymbol.isMovable() {
+           fromSymbol.isMovable() {
             // 4
             let swap = Swap(symbolA: fromSymbol, symbolB: toSymbol)
             Task { @MainActor in
@@ -414,9 +414,6 @@ class GameScene: SKScene {
                 }
             }
         }
-    }
-
-    func animateEliminatedSymbols(for symbols: Set<Symbol>) async {
     }
 
     func animateCreatingSpecialSymbols(for specialSymbols: [Symbol]) async {
@@ -555,9 +552,6 @@ class GameScene: SKScene {
     func removeAllTiles() {
         maskLayer.removeAllChildren()
         tilesLayer.removeAllChildren()
-    }
-
-    func removeAllBarriers() {
     }
 
     func removeAllSymbols() {

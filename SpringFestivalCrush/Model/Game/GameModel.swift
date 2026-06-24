@@ -105,6 +105,7 @@ class GameModel: ObservableObject {
             } catch {
                 print(error)
             }
+            firstLaunch = false
             zodiacRecords = newZodiacRecords
         } else {
             let request = FetchDescriptor<ZodiacRecord>()
@@ -282,7 +283,7 @@ class GameModel: ObservableObject {
         while true {
             if nextExplodeChains.contains(where: { $0.chainType == .enhanced }) {
                 nextExplodeChains = level.explodeSpecialSymbols(for: nextExplodeChains)
-                allChains = allChains.union(explodeChains)
+                allChains = allChains.union(nextExplodeChains)
                 await invokeCommandAsync?(.onMatchedSymbols(nextExplodeChains))
             } else {
                 break

@@ -100,7 +100,7 @@ enum SymbolType: String {
         if let possibleSymbols {
             candidateSymbolTypes = possibleSymbols.compactMap { SymbolType(rawValue: $0) }
         } else {
-            candidateSymbolTypes = [.firecracker, .redPocket, dumpling, .bowl, .lantern, .zodiac]
+            candidateSymbolTypes = [.firecracker, .redPocket, .dumpling, .bowl, .lantern, .zodiac]
         }
         return candidateSymbolTypes.randomElement() ?? .zodiac
     }
@@ -121,7 +121,8 @@ enum SymbolType: String {
 
 class Symbol: CustomStringConvertible, Hashable {
     func hash(into hasher: inout Hasher) {
-        hasher.combine(row * 10 + column)
+        hasher.combine(column)
+        hasher.combine(row)
     }
 
     var description: String {
@@ -163,26 +164,28 @@ class Symbol: CustomStringConvertible, Hashable {
         sprite.addChild(magicLightEffect)
     }
 
+    private static let magicParticleTexture: SKTexture = {
+        let size = CGSize(width: 20, height: 20)
+        let renderer = UIGraphicsImageRenderer(size: size)
+        let image = renderer.image { ctx in
+            UIColor.white.setFill()
+            UIBezierPath(ovalIn: CGRect(origin: .zero, size: size)).fill()
+        }
+        return SKTexture(image: image)
+    }()
+
     private func createMagicLightEffect() -> SKEmitterNode {
         let magicLight = SKEmitterNode()
-
-        // Create a simple circular texture
-        let circle = SKShapeNode(circleOfRadius: 10)
-        circle.fillColor = .white
-        let textureView = SKView()
-        let texture = textureView.texture(from: circle)
-
-        magicLight.particleTexture = texture // Use the circle texture
-        magicLight.particleBirthRate = 20 // Lower the birth rate for a more subtle effect
+        magicLight.particleTexture = Symbol.magicParticleTexture
+        magicLight.particleBirthRate = 20
         magicLight.particleLifetime = 1.0
-        magicLight.particlePositionRange = CGVector(dx: 2, dy: 2) // Smaller range to localize the effect
-        magicLight.emissionAngleRange = 360 // Emit in a semi-circle around the sprite
-        magicLight.particleSpeed = 30 // Slower speed to keep particles close to the sprite
-        magicLight.particleScale = 0.1 // Smaller particle size
+        magicLight.particlePositionRange = CGVector(dx: 2, dy: 2)
+        magicLight.emissionAngleRange = 360
+        magicLight.particleSpeed = 30
+        magicLight.particleScale = 0.1
         magicLight.particleAlpha = 0.75
         magicLight.particleColor = UIColor.white
         magicLight.particleBlendMode = .add
-
         return magicLight
     }
 

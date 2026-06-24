@@ -56,15 +56,13 @@ class Chain: Hashable, CustomStringConvertible {
     }
 
     func hash(into hasher: inout Hasher) {
-        hasher.combine(
-            symbols.reduce(0) {
-                $0.hashValue ^ $1.hashValue
-            }
-        )
+        for symbol in symbols {
+            hasher.combine(symbol)
+        }
         hasher.combine(chainType)
     }
 
     static func == (lhs: Chain, rhs: Chain) -> Bool {
-        lhs.symbols == rhs.symbols && lhs.chainType == lhs.chainType
+        lhs.symbols == rhs.symbols && lhs.chainType == rhs.chainType
     }
 }
