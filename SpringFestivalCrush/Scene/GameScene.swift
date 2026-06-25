@@ -413,16 +413,25 @@ class GameScene: SKScene {
                 case .single:
                     taskGroup.addTask { await self.animateSingleExplosionEffect(for: chain) }
                 default:
-                    for symbol in chain.symbols {
-                        guard let sprite = symbol.sprite else { continue }
-                        guard sprite.action(forKey: "removing") == nil else { continue }
-                        let scaleAction = SKAction.scale(to: 0.1, duration: 0.3)
-                        scaleAction.timingMode = .easeOut
-                        taskGroup.addTask {
-                            await sprite.run(
-                                SKAction.sequence([scaleAction, SKAction.removeFromParent()]),
-                                withKey: "removing"
-                            )
+                    // An enhanced tile swapped into a normal match must still explode.
+                    if let enhancedSymbol = chain.symbols.first(where: { $0.type.isEnhanced }),
+                       let sprite = enhancedSymbol.sprite {
+                        fireShockwave(at: sprite.position)
+                        for symbol in chain.symbols {
+                            taskGroup.addTask { await self.popExplode(symbol: symbol) }
+                        }
+                    } else {
+                        for symbol in chain.symbols {
+                            guard let sprite = symbol.sprite else { continue }
+                            guard sprite.action(forKey: "removing") == nil else { continue }
+                            let scaleAction = SKAction.scale(to: 0.1, duration: 0.3)
+                            scaleAction.timingMode = .easeOut
+                            taskGroup.addTask {
+                                await sprite.run(
+                                    SKAction.sequence([scaleAction, SKAction.removeFromParent()]),
+                                    withKey: "removing"
+                                )
+                            }
                         }
                     }
                 }
@@ -583,28 +592,30 @@ class GameScene: SKScene {
 
     // Enhanced explosion: large shockwave ring from the enhanced tile's center, all tiles pop.
     private func animateEnhancedChainEffect(for chain: Chain) async {
-        // Big shockwave ring radiating from the enhanced tile (single symbol in the chain).
         if let sprite = chain.symbols.first?.sprite {
-            let shockwave = SKShapeNode(circleOfRadius: gameModel.tileSize.width * 0.5)
-            shockwave.fillColor   = UIColor.orange.withAlphaComponent(0.35)
-            shockwave.strokeColor = UIColor.orange.withAlphaComponent(0.95)
-            shockwave.lineWidth   = 4
-            shockwave.glowWidth   = 6
-            shockwave.position    = sprite.position
-            shockwave.zPosition   = 210
-            symbolsLayer.addChild(shockwave)
-            shockwave.run(SKAction.sequence([
-                SKAction.group([SKAction.scale(to: 5.0, duration: 0.38),
-                                SKAction.fadeOut(withDuration: 0.38)]),
-                SKAction.removeFromParent()
-            ]), completion: {})
+            fireShockwave(at: sprite.position)
         }
-
         await withTaskGroup(of: Void.self) { taskGroup in
             for symbol in chain.symbols {
                 taskGroup.addTask { await self.popExplode(symbol: symbol) }
             }
         }
+    }
+
+    private func fireShockwave(at position: CGPoint) {
+        let shockwave = SKShapeNode(circleOfRadius: gameModel.tileSize.width * 0.5)
+        shockwave.fillColor   = UIColor.orange.withAlphaComponent(0.35)
+        shockwave.strokeColor = UIColor.orange.withAlphaComponent(0.95)
+        shockwave.lineWidth   = 4
+        shockwave.glowWidth   = 6
+        shockwave.position    = position
+        shockwave.zPosition   = 210
+        symbolsLayer.addChild(shockwave)
+        shockwave.run(SKAction.sequence([
+            SKAction.group([SKAction.scale(to: 5.0, duration: 0.38),
+                            SKAction.fadeOut(withDuration: 0.38)]),
+            SKAction.removeFromParent()
+        ]), completion: {})
     }
 
     // Tiles cleared by an enhanced explosion (single chains) also pop.
