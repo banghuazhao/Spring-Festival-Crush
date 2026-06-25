@@ -48,6 +48,18 @@ enum SymbolType: String {
         return spriteName + "-Highlighted"
     }
 
+    // Returns the emoji string for types whose sprite is rendered from an emoji texture.
+    // nil = type uses an image asset and has a corresponding *-Highlighted asset.
+    var emojiForHighlight: String? {
+        switch self {
+        case .lock: return "🔒"
+        case .heavyLock: return "⛓️"
+        case .five: return "🌟"
+        case .lightning: return "⚡️"
+        default: return nil
+        }
+    }
+
     var isEnhanced: Bool {
         [.firecrackerEnhanced, .redPocketEnhanced, .dumplingEnhanced,
          .bowlEnhanced, .lanternEnhanced, .zodiacEnhanced].contains(self)

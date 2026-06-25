@@ -372,9 +372,15 @@ class GameScene: SKScene {
         }
 
         if let sprite = symbol.sprite {
-            if symbol.type == .zodiac {
+            if symbol.type == .zodiac || symbol.type == .zodiacEnhanced {
                 selectionSprite = SKSpriteNode.highLightSprite(for: symbol, zodiac: gameModel.zodiac, size: gameModel.tileSize.width)
                 selectionSprite.size = gameModel.tileSize
+            } else if let emoji = symbol.type.emojiForHighlight,
+                      let texture = SKTexture.texture(from: emoji, fontSize: gameModel.tileSize.width) {
+                selectionSprite = SKSpriteNode(texture: texture)
+                selectionSprite.size = gameModel.tileSize
+                selectionSprite.color = UIColor.orange.withAlphaComponent(0.5)
+                selectionSprite.colorBlendFactor = 0.6
             } else {
                 selectionSprite = SKSpriteNode()
                 let texture = SKTexture(imageNamed: symbol.type.highlightedSpriteName)
