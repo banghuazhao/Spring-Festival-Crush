@@ -13,14 +13,19 @@ platform :ios do
     set_build_number()
     archive_appstore()
     add_change_log()
-    upload_to_appstore()
+    upload_to_testflight_lane()
+  end
+
+  desc "Build, upload to App Store Connect, and submit for review"
+  lane :release do
+    set_build_number()
+    archive_appstore()
+    upload_to_appstore_lane()
   end
 
   lane :set_build_number do
     UI.header "⏰ Setting time as build number"
-
     build_number = Time.new.strftime('%y%m%d%H%M')
-
     increment_build_number(build_number:, xcodeproj: project)
   end
 
@@ -44,15 +49,33 @@ platform :ios do
     )
   end
 
-  lane :upload_to_appstore do
+  lane :upload_to_testflight_lane do
     UI.header "🚀 Uploading to TestFlight"
     upload_to_testflight(
       api_key: app_store_connect_api_key(
-        key_id: ENV['APPSTORE_KEY_ID'], 
-        issuer_id: ENV['APPSTORE_ISSUER_ID'], 
+        key_id: ENV['APPSTORE_KEY_ID'],
+        issuer_id: ENV['APPSTORE_ISSUER_ID'],
         key_filepath: ENV['APPSTORE_KEY_FILEPATH']
       )
     )
   end
- 
+
+  lane :upload_to_appstore_lane do
+    UI.header "🚀 Uploading to App Store Connect"
+    deliver(
+      api_key: app_store_connect_api_key(
+        key_id: ENV['APPSTORE_KEY_ID'],
+        issuer_id: ENV['APPSTORE_ISSUER_ID'],
+        key_filepath: ENV['APPSTORE_KEY_FILEPATH']
+      ),
+      app_identifier: ENV['APP_IDENTIFIER'],
+      submit_for_review: false,
+      automatic_release: false,
+      force: true,
+      skip_metadata: true,
+      skip_screenshots: true,
+      precheck_include_in_app_purchases: false
+    )
+  end
+
 end
