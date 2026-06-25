@@ -23,6 +23,7 @@
 * 🎵 **Immersive Audio**: Experience traditional Chinese music and sound effects that enhance the festive atmosphere.
 * 🌟 **Multiple Zodiac Themes**: Play through different Chinese zodiac animal themes with unique challenges.
 * 📊 **Progress Tracking**: Save your progress and track your achievements across all levels.
+* 💥 **Special Power-Up Tiles**: Earn powerful tiles through skillful matches for explosive chain reactions.
 
 ## 📱 Screenshots
 
@@ -70,6 +71,18 @@ The game is available for download on the App Store. Click the link below to dow
 3. **Progress Through Levels**: Advance through increasingly difficult levels and unlock new challenges as you go.
 4. **Unlock Zodiac Themes**: Complete levels to unlock different Chinese zodiac animal themes.
 
+### 💥 Special Tiles
+
+| Match | Tile | Effect |
+|-------|------|--------|
+| 4 in a row | 💥 Enhanced | Explodes all surrounding tiles with a shockwave |
+| 5 in a row | 🌟 Universal (Five) | Swap with any tile to clear **every** tile of that type on the board |
+| L / T shape | ⚡ Lightning | Clears the entire row **and** column instantly |
+| 🔒 Lock | Lock | Requires an adjacent match to break free |
+| ⛓️ Heavy Lock | Heavy Lock | Takes two adjacent matches to remove |
+
+Special tiles can be swapped directly to trigger their effect at any time.
+
 ## 🏗️ Project Structure
 
 ```
@@ -109,7 +122,17 @@ SpringFestivalCrush/
 
 ## 📋 Release Notes
 
-### Version 2.0 (Latest)
+### Version 3.0 (Latest)
+- 🌟 New **Universal (Five)** power-up tile: match 5 in a row to earn it, then swap to clear every tile of one type
+- ⚡ New **Lightning** power-up tile: formed from L/T-shape matches, clears an entire row and column at once
+- 💥 **Double-lock** tile mechanic: heavy locks require two adjacent matches to break
+- 🎨 Distinct activation effects for each power-up (shockwave ring, beam chain-link pull, yellow flash bar)
+- 🐾 **Tiger** zodiac: 10 new levels added
+- 📈 **Rat** and **Ox** zodiacs extended to 15 levels each
+- 🐛 Fixed selection indicator showing a broken-image cross on emoji-rendered tiles
+- 🔧 Enhanced tile now spawns at the exact position of the swapped tile
+
+### Version 2.0
 - ✨ Enhanced graphics and animations
 - 🎵 Improved audio experience with traditional Chinese music
 - 🌟 Added new zodiac themes and levels
@@ -170,4 +193,4 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 
 ---
 
-© 2019 - 2025 **Spring Festival Crush - Match 3** by Appsbay. All rights reserved.
+© 2019 - 2026 **Spring Festival Crush - Match 3** by Appsbay. All rights reserved.
