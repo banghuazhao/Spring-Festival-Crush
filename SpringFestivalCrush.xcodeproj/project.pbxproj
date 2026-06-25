@@ -10,8 +10,6 @@
 		992A79922C81E3A50053159D /* EasyToast in Frameworks */ = {isa = PBXBuildFile; productRef = 992A79912C81E3A50053159D /* EasyToast */; };
 		994625932C71CC9000FC2C6A /* Localize_Swift in Frameworks */ = {isa = PBXBuildFile; productRef = 994625922C71CC9000FC2C6A /* Localize_Swift */; };
 		994625962C71CC9A00FC2C6A /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 994625952C71CC9A00FC2C6A /* GoogleMobileAds */; };
-		9946259E2C71CD5700FC2C6A /* Then in Frameworks */ = {isa = PBXBuildFile; productRef = 9946259D2C71CD5700FC2C6A /* Then */; };
-		994625A12C71CD9600FC2C6A /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = 994625A02C71CD9600FC2C6A /* SnapKit */; };
 		994625A32C720A2800FC2C6A /* Match3GameApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 994625A22C720A2800FC2C6A /* Match3GameApp.swift */; };
 		994625A52C720A6C00FC2C6A /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 994625A42C720A6C00FC2C6A /* MainView.swift */; };
 		994625A72C720AA600FC2C6A /* SelectLevelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 994625A62C720AA600FC2C6A /* SelectLevelView.swift */; };
@@ -171,8 +169,6 @@
 			files = (
 				992A79922C81E3A50053159D /* EasyToast in Frameworks */,
 				9967C2B12C818ECC008263AE /* EasyToast in Frameworks */,
-				9946259E2C71CD5700FC2C6A /* Then in Frameworks */,
-				994625A12C71CD9600FC2C6A /* SnapKit in Frameworks */,
 				994625962C71CC9A00FC2C6A /* GoogleMobileAds in Frameworks */,
 				994625932C71CC9000FC2C6A /* Localize_Swift in Frameworks */,
 			);
@@ -423,8 +419,6 @@
 			packageProductDependencies = (
 				994625922C71CC9000FC2C6A /* Localize_Swift */,
 				994625952C71CC9A00FC2C6A /* GoogleMobileAds */,
-				9946259D2C71CD5700FC2C6A /* Then */,
-				994625A02C71CD9600FC2C6A /* SnapKit */,
 				9967C2B02C818ECC008263AE /* EasyToast */,
 				992A79912C81E3A50053159D /* EasyToast */,
 			);
@@ -462,8 +456,6 @@
 			packageReferences = (
 				994625912C71CC9000FC2C6A /* XCRemoteSwiftPackageReference "Localize-Swift" */,
 				994625942C71CC9A00FC2C6A /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
-				9946259C2C71CD5700FC2C6A /* XCRemoteSwiftPackageReference "Then" */,
-				9946259F2C71CD9600FC2C6A /* XCRemoteSwiftPackageReference "SnapKit" */,
 				992A79902C81E3A50053159D /* XCRemoteSwiftPackageReference "EasyToast" */,
 			);
 			productRefGroup = 9955DB8823D7E420007786D5 /* Products */;
@@ -810,22 +802,6 @@
 				minimumVersion = 11.8.0;
 			};
 		};
-		9946259C2C71CD5700FC2C6A /* XCRemoteSwiftPackageReference "Then" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/devxoul/Then";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 3.0.0;
-			};
-		};
-		9946259F2C71CD9600FC2C6A /* XCRemoteSwiftPackageReference "SnapKit" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/SnapKit/SnapKit.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 5.7.1;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -843,16 +819,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 994625942C71CC9A00FC2C6A /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
 			productName = GoogleMobileAds;
-		};
-		9946259D2C71CD5700FC2C6A /* Then */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 9946259C2C71CD5700FC2C6A /* XCRemoteSwiftPackageReference "Then" */;
-			productName = Then;
-		};
-		994625A02C71CD9600FC2C6A /* SnapKit */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 9946259F2C71CD9600FC2C6A /* XCRemoteSwiftPackageReference "SnapKit" */;
-			productName = SnapKit;
 		};
 		9967C2B02C818ECC008263AE /* EasyToast */ = {
 			isa = XCSwiftPackageProductDependency;
