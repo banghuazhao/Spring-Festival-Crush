@@ -11,6 +11,9 @@ class Level {
 
     var levelGoal: LevelGoal
     var noShuffle: Bool = false
+    // Tracks the two tiles involved in the most recent swap so createSpecialSymbols
+    // can place the new enhanced/special tile at the swapped position.
+    private(set) var lastSwappedSymbols: (Symbol, Symbol)? = nil
 
     var possibleSwaps: Set<Swap> = []
 
@@ -252,6 +255,8 @@ class Level {
         symbols[columnB, rowB] = swap.symbolA
         swap.symbolA.column = columnB
         swap.symbolA.row = rowB
+
+        lastSwappedSymbols = (swap.symbolA, swap.symbolB)
     }
 
     func isPossibleSwap(_ swap: Swap) -> Bool {
@@ -634,9 +639,17 @@ class Level {
             switch chain.chainType {
             case .horizontal4, .vertical4:
                 guard let first = chain.symbols.first else { continue }
-                let special = Symbol(column: first.column, row: first.row,
-                                     symbolType: first.type.enhancedType)
-                symbols[first.column, first.row] = special
+                // Prefer the position of whichever swapped symbol landed in this chain.
+                let anchor: Symbol
+                if let (a, b) = lastSwappedSymbols,
+                   let swapped = chain.symbols.first(where: { $0 == a || $0 == b }) {
+                    anchor = swapped
+                } else {
+                    anchor = first
+                }
+                let special = Symbol(column: anchor.column, row: anchor.row,
+                                     symbolType: anchor.type.enhancedType)
+                symbols[anchor.column, anchor.row] = special
                 specialSymbols.append(special)
 
             case .five:
