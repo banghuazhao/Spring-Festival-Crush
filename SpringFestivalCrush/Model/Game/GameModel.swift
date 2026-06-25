@@ -116,6 +116,8 @@ class GameModel: ObservableObject {
             } catch {
                 print("Failed to fetch ZodiacRecords: \(error)")
             }
+
+            reconcileNewLevels(modelContext: modelContext)
         }
         zodiacRecords.sort { $0.zodiacType.rawValue < $1.zodiacType.rawValue }
     }
@@ -383,6 +385,33 @@ class GameModel: ObservableObject {
 
         if currentZodiacRecord.levelRecords.allSatisfy({ $0.isComplete }) {
             nextZodiac.isUnlocked = true
+        }
+    }
+
+    // Adds missing LevelRecords when new levels are bundled into an existing install.
+    private func reconcileNewLevels(modelContext: ModelContext) {
+        var didChange = false
+        for zodiac in Zodiac.all {
+            guard zodiac.numLevels > 0,
+                  let zodiacRecord = zodiacRecords.first(where: { $0.zodiacType == zodiac.zodiacType })
+            else { continue }
+
+            let existingMax = zodiacRecord.levelRecords.map { $0.number }.max() ?? 0
+            guard zodiac.numLevels > existingMax else { continue }
+
+            for i in (existingMax + 1) ... zodiac.numLevels {
+                let levelRecord = LevelRecord(
+                    number: i,
+                    isUnlocked: existingMax == 0 && i == 1,
+                    zodiacRecord: zodiacRecord
+                )
+                modelContext.insert(levelRecord)
+                zodiacRecord.levelRecords.append(levelRecord)
+                didChange = true
+            }
+        }
+        if didChange {
+            try? modelContext.save()
         }
     }
 
