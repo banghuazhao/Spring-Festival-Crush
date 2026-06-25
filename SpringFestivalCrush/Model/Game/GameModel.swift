@@ -248,6 +248,9 @@ class GameModel: ObservableObject {
             level.performSwap(swap)
             await invokeCommandAsync?(.onValidSwap(swap))
             invokeCommand?(.setUserInteraction(false))
+            if let powerUpChains = level.tryActivateSpecialSwap(swap) {
+                await handleMatches(for: powerUpChains)
+            }
             await handleRemoveAndMatches()
             invokeCommand?(.setUserInteraction(true))
         } else {

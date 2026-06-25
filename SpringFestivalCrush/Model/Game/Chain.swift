@@ -11,6 +11,12 @@ class Chain: Hashable, CustomStringConvertible {
         case five
         case single
         case enhanced
+        // L/T-shape match (horizontal3 + vertical3 sharing one symbol) → creates lightning symbol
+        case lShape
+        // Result of activating a five-universal symbol (clears all of one type)
+        case fiveEffect
+        // Result of activating a lightning symbol (clears full row + column)
+        case lightning
 
         var description: String {
             switch self {
@@ -22,6 +28,9 @@ class Chain: Hashable, CustomStringConvertible {
             case .five: return "five"
             case .single: return "eliminate"
             case .enhanced: return "enhanced"
+            case .lShape: return "LShape"
+            case .fiveEffect: return "FiveEffect"
+            case .lightning: return "Lightning"
             }
         }
     }

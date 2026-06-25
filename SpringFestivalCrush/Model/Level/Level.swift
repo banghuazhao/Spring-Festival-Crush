@@ -241,7 +241,66 @@ class Level {
     }
 
     func isPossibleSwap(_ swap: Swap) -> Bool {
+        // Power-up symbols can always be swapped with any movable symbol.
+        if swap.symbolA.isSpecialPowerUp { return swap.symbolB.isMovable() }
+        if swap.symbolB.isSpecialPowerUp { return swap.symbolA.isMovable() }
         return possibleSwaps.contains(swap)
+    }
+
+    // Returns non-nil chains when the swap activates a five or lightning power-up.
+    // Symbols are already removed from the board when this returns.
+    func tryActivateSpecialSwap(_ swap: Swap) -> Set<Chain>? {
+        if swap.symbolA.type == .five || swap.symbolB.type == .five {
+            return activateFiveEffect(for: swap)
+        }
+        if swap.symbolA.type == .lightning || swap.symbolB.type == .lightning {
+            return activateLightningEffect(for: swap)
+        }
+        return nil
+    }
+
+    private func activateFiveEffect(for swap: Swap) -> Set<Chain> {
+        let fiveSymbol   = swap.symbolA.type == .five ? swap.symbolA : swap.symbolB
+        let targetSymbol = swap.symbolA.type == .five ? swap.symbolB : swap.symbolA
+        let targetType   = targetSymbol.type
+
+        let chain = Chain(chainType: .fiveEffect)
+        chain.add(symbol: fiveSymbol)
+        for c in 0 ..< numColumns {
+            for r in 0 ..< numRows {
+                if let sym = symbols[c, r], sym != fiveSymbol,
+                   sym.type.isMatchableTo(targetType) {
+                    chain.add(symbol: sym)
+                }
+            }
+        }
+        chain.score = 200 * chain.symbols.count
+        removeSymbols(in: [chain])
+        return [chain]
+    }
+
+    private func activateLightningEffect(for swap: Swap) -> Set<Chain> {
+        let ls = swap.symbolA.type == .lightning ? swap.symbolA : swap.symbolB
+        var chains = Set<Chain>()
+
+        let rowChain = Chain(chainType: .lightning)
+        for c in 0 ..< numColumns {
+            if let sym = symbols[c, ls.row] { rowChain.add(symbol: sym) }
+        }
+
+        let colChain = Chain(chainType: .lightning)
+        for r in 0 ..< numRows {
+            if let sym = symbols[ls.column, r], sym.row != ls.row {
+                colChain.add(symbol: sym)
+            }
+        }
+
+        if !rowChain.symbols.isEmpty { chains.insert(rowChain) }
+        if !colChain.symbols.isEmpty { chains.insert(colChain) }
+
+        for chain in chains { chain.score = 150 * chain.symbols.count }
+        removeSymbols(in: chains)
+        return chains
     }
 
     private func detectHorizontalMatches() -> Set<Chain> {
@@ -419,12 +478,52 @@ class Level {
         let horizontalChains = detectHorizontalMatches()
         let verticalChains = detectVerticalMatches()
 
-        let matchChains = horizontalChains.union(verticalChains)
+        let (lShapeChains, consumed) = detectLShapeMatches(
+            horizontal: horizontalChains,
+            vertical: verticalChains
+        )
+
+        let matchChains = horizontalChains
+            .union(verticalChains)
+            .subtracting(consumed)
+            .union(lShapeChains)
 
         removeSymbols(in: matchChains)
         calculateScores(for: matchChains)
-
         return matchChains
+    }
+
+    // Finds pairs of exactly-3 horizontal + vertical chains that share one symbol.
+    // Returns merged lShape chains (5 unique symbols, intersection first) and the consumed h/v chains.
+    private func detectLShapeMatches(
+        horizontal: Set<Chain>,
+        vertical: Set<Chain>
+    ) -> (lShapes: Set<Chain>, consumed: Set<Chain>) {
+        var lShapes = Set<Chain>()
+        var consumed = Set<Chain>()
+
+        let h3 = horizontal.filter { $0.chainType == .horizontal3 }
+        let v3 = vertical.filter   { $0.chainType == .vertical3   }
+
+        for hChain in h3 {
+            for vChain in v3 {
+                guard !consumed.contains(hChain), !consumed.contains(vChain) else { continue }
+                let hSet = Set(hChain.symbols)
+                let vSet = Set(vChain.symbols)
+                let shared = hSet.intersection(vSet)
+                guard shared.count == 1, let pivot = shared.first else { continue }
+
+                let lChain = Chain(chainType: .lShape)
+                lChain.add(symbol: pivot)
+                hChain.symbols.filter { $0 != pivot }.forEach { lChain.add(symbol: $0) }
+                vChain.symbols.filter { $0 != pivot }.forEach { lChain.add(symbol: $0) }
+
+                lShapes.insert(lChain)
+                consumed.insert(hChain)
+                consumed.insert(vChain)
+            }
+        }
+        return (lShapes, consumed)
     }
 
     func removeSpecialSymbols() -> Set<Chain> {
@@ -518,20 +617,32 @@ class Level {
     func createSpecialSymbols(for chains: Set<Chain>) -> [Symbol] {
         var specialSymbols = [Symbol]()
         for chain in chains {
-            guard chain.chainType == .horizontal4 ||
-                chain.chainType == .vertical4 else {
+            switch chain.chainType {
+            case .horizontal4, .vertical4:
+                guard let first = chain.symbols.first else { continue }
+                let special = Symbol(column: first.column, row: first.row,
+                                     symbolType: first.type.enhancedType)
+                symbols[first.column, first.row] = special
+                specialSymbols.append(special)
+
+            case .five:
+                // Place universal (five) symbol at the centre of the matched row/column.
+                guard chain.symbols.count >= 3 else { continue }
+                let mid = chain.symbols[chain.symbols.count / 2]
+                let universal = Symbol(column: mid.column, row: mid.row, symbolType: .five)
+                symbols[mid.column, mid.row] = universal
+                specialSymbols.append(universal)
+
+            case .lShape:
+                // First symbol in the chain is the pivot (intersection).
+                guard let pivot = chain.symbols.first else { continue }
+                let lightning = Symbol(column: pivot.column, row: pivot.row, symbolType: .lightning)
+                symbols[pivot.column, pivot.row] = lightning
+                specialSymbols.append(lightning)
+
+            default:
                 continue
             }
-            guard let firstSymbol = chain.symbols.first else { continue }
-            let column = firstSymbol.column
-            let row = firstSymbol.row
-            let specialSymbol = Symbol(
-                column: column,
-                row: row,
-                symbolType: firstSymbol.type.enhancedType
-            )
-            symbols[column, row] = specialSymbol
-            specialSymbols.append(specialSymbol)
         }
         return specialSymbols
     }
@@ -628,6 +739,12 @@ class Level {
                 chain.score = 20
             case .enhanced:
                 chain.score = 100
+            case .lShape:
+                chain.score = 120
+            case .fiveEffect:
+                chain.score = 200 * chain.length
+            case .lightning:
+                chain.score = 150 * chain.length
             }
         }
     }

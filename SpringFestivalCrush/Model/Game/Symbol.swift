@@ -12,13 +12,15 @@ enum SymbolType: String {
     case zodiac
     case lock
     case heavyLock
+    // Special power-up symbols
+    case five       // universal: clears all of one type when swapped
+    case lightning  // clears full row + column when swapped
     case firecrackerEnhanced
     case redPocketEnhanced
     case dumplingEnhanced
     case bowlEnhanced
     case lanternEnhanced
     case zodiacEnhanced
-    case five
 
     var spriteName: String {
         switch self {
@@ -31,20 +33,14 @@ enum SymbolType: String {
         case .zodiac: "zodiac"
         case .lock: "lock"
         case .heavyLock: "heavyLock"
-        case .firecrackerEnhanced:
-            "firecracker"
-        case .redPocketEnhanced:
-            "redPocket"
-        case .dumplingEnhanced:
-            "dumpling"
-        case .bowlEnhanced:
-            "bowl"
-        case .lanternEnhanced:
-            "lantern"
-        case .zodiacEnhanced:
-            "zodiac"
-        case .five:
-            "five"
+        case .five: "five"
+        case .lightning: "lightning"
+        case .firecrackerEnhanced: "firecracker"
+        case .redPocketEnhanced: "redPocket"
+        case .dumplingEnhanced: "dumpling"
+        case .bowlEnhanced: "bowl"
+        case .lanternEnhanced: "lantern"
+        case .zodiacEnhanced: "zodiac"
         }
     }
 
@@ -156,13 +152,50 @@ class Symbol: CustomStringConvertible, Hashable {
         case .lock:
             let texture = SKTexture.texture(from: "🔒", fontSize: 40)
             spriteNode = SKSpriteNode(texture: texture)
+        case .five:
+            let texture = SKTexture.texture(from: "🌟", fontSize: 40)
+            spriteNode = SKSpriteNode(texture: texture)
+        case .lightning:
+            let texture = SKTexture.texture(from: "⚡️", fontSize: 40)
+            spriteNode = SKSpriteNode(texture: texture)
         default:
             spriteNode = SKSpriteNode(imageNamed: type.spriteName)
         }
         if type.isEnhanced {
             addMagicEffect(to: spriteNode)
         }
+        if type == .five {
+            addRainbowEffect(to: spriteNode)
+        }
+        if type == .lightning {
+            addLightningGlowEffect(to: spriteNode)
+        }
         return spriteNode
+    }
+
+    private func addRainbowEffect(to sprite: SKSpriteNode) {
+        let effect = createMagicLightEffect()
+        effect.particleColor = UIColor.cyan
+        effect.particleBirthRate = 30
+        sprite.addChild(effect)
+        let pulse = SKAction.sequence([
+            SKAction.scale(to: 1.12, duration: 0.4),
+            SKAction.scale(to: 1.0, duration: 0.4)
+        ])
+        sprite.run(SKAction.repeatForever(pulse))
+    }
+
+    private func addLightningGlowEffect(to sprite: SKSpriteNode) {
+        let effect = createMagicLightEffect()
+        effect.particleColor = UIColor.yellow
+        effect.particleBirthRate = 35
+        effect.particleSpeed = 40
+        sprite.addChild(effect)
+        let flash = SKAction.sequence([
+            SKAction.colorize(with: .yellow, colorBlendFactor: 0.5, duration: 0.25),
+            SKAction.colorize(withColorBlendFactor: 0.0, duration: 0.25)
+        ])
+        sprite.run(SKAction.repeatForever(flash))
     }
 
     private func addMagicEffect(to sprite: SKSpriteNode) {
@@ -207,11 +240,15 @@ class Symbol: CustomStringConvertible, Hashable {
 
     func isMatchable() -> Bool {
         switch type {
-        case .lock, .heavyLock:
+        case .lock, .heavyLock, .five, .lightning:
             false
         default:
             true
         }
+    }
+
+    var isSpecialPowerUp: Bool {
+        type == .five || type == .lightning
     }
 
     func enhance() {
