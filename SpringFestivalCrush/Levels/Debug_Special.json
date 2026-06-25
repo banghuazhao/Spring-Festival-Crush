@@ -12,6 +12,7 @@
     "levelGoal": {
         "firstStarScore": 500,
         "secondStarScore": 1000,
-        "thirdStarScore": 2000
+        "thirdStarScore": 2000,
+        "levelTarget": {}
     }
 }
