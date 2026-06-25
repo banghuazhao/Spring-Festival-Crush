@@ -1,4 +1,5 @@
 import Foundation
+import SpriteKit
 
 class Level {
     let numColumns: Int
@@ -87,6 +88,8 @@ class Level {
                 switch tileType {
                 case .lock:
                     symbolType = SymbolType.lock
+                case .doubleLock:
+                    symbolType = SymbolType.heavyLock
                 default:
                     repeat {
                         symbolType = SymbolType.randomMovableSymbolType(possibleSymbols)
@@ -456,39 +459,60 @@ class Level {
 
     func removeLocks() -> Chain? {
         var lockPositionsToRemove = Set<[Int]>()
+        var heavyLockPositionsToDowngrade = Set<[Int]>()
+
         for column in 0 ..< numColumns {
             for row in 0 ..< numRows {
-                if let symbol = symbols[column, row], symbol.type == .lock {
-                    let adjacentPositions = adjacentPositions(
-                        column: symbol.column,
-                        row: symbol.row
-                    )
-                    for adjacentPosition in adjacentPositions {
-                        let adjacentColumn = adjacentPosition[0]
-                        let adjacentRow = adjacentPosition[1]
-                        if isPositionInside(column: adjacentColumn, row: adjacentRow)
-                            && symbols[adjacentColumn, adjacentRow] == nil {
-                            lockPositionsToRemove.insert([column, row])
-                        }
-                    }
+                guard let symbol = symbols[column, row] else { continue }
+                guard symbol.type == .lock || symbol.type == .heavyLock else { continue }
+
+                let adj = adjacentPositions(column: symbol.column, row: symbol.row)
+                let hasAdjacentCleared = adj.contains {
+                    let c = $0[0]; let r = $0[1]
+                    return isPositionInside(column: c, row: r) && symbols[c, r] == nil
+                }
+                guard hasAdjacentCleared else { continue }
+
+                if symbol.type == .lock {
+                    lockPositionsToRemove.insert([column, row])
+                } else {
+                    heavyLockPositionsToDowngrade.insert([column, row])
                 }
             }
         }
-        if lockPositionsToRemove.isEmpty {
+
+        if lockPositionsToRemove.isEmpty && heavyLockPositionsToDowngrade.isEmpty {
             return nil
-        } else {
-            let chain = Chain(chainType: .locks)
-            for lockPosition in lockPositionsToRemove {
-                let column = lockPosition[0]
-                let row = lockPosition[1]
-                if let symbol = symbols[column, row] {
-                    chain.add(symbol: symbol)
-                    symbols[column, row] = nil
-                    tiles[column, row]?.type = .normal
+        }
+
+        let chain = Chain(chainType: .locks)
+
+        for pos in heavyLockPositionsToDowngrade {
+            let column = pos[0]; let row = pos[1]
+            guard let symbol = symbols[column, row] else { continue }
+            // Downgrade: replace heavyLock symbol with a regular lock symbol
+            let crackedLock = Symbol(column: column, row: row, symbolType: .lock)
+            crackedLock.sprite = symbol.sprite
+            symbols[column, row] = crackedLock
+            tiles[column, row]?.type = .lock
+            // Swap sprite visual to 🔒
+            if let sprite = symbol.sprite {
+                if let lockTexture = SKTexture.texture(from: "🔒", fontSize: 40) {
+                    sprite.run(SKAction.setTexture(lockTexture))
                 }
             }
-            return chain
         }
+
+        for pos in lockPositionsToRemove {
+            let column = pos[0]; let row = pos[1]
+            if let symbol = symbols[column, row] {
+                chain.add(symbol: symbol)
+                symbols[column, row] = nil
+                tiles[column, row]?.type = .normal
+            }
+        }
+
+        return chain.symbols.isEmpty ? nil : chain
     }
 
     func createSpecialSymbols(for chains: Set<Chain>) -> [Symbol] {

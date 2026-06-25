@@ -1,0 +1,21 @@
+{
+  "tiles": [ [1, 1, 1, 3, 1, 1, 1],
+             [1, 1, 1, 3, 1, 1, 1],
+             [1, 1, 1, 3, 1, 1, 1],
+             [1, 1, 1, 3, 1, 1, 1],
+             [1, 1, 1, 3, 1, 1, 1],
+             [1, 1, 1, 3, 1, 1, 1],
+             [1, 1, 1, 3, 1, 1, 1],
+             [1, 1, 1, 1, 1, 1, 1] ],
+  "moves": 27,
+  "levelGoal": {
+    "firstStarScore": 700,
+    "secondStarScore": 1200,
+    "thirdStarScore": 1800,
+    "levelTarget": {
+      "lock": 7,
+      "firecracker": 12
+    }
+  },
+  "bgMusic": "glitter-blast.mp3"
+}

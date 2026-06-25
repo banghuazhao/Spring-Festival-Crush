@@ -11,6 +11,7 @@ enum SymbolType: String {
     case lantern
     case zodiac
     case lock
+    case heavyLock
     case firecrackerEnhanced
     case redPocketEnhanced
     case dumplingEnhanced
@@ -29,6 +30,7 @@ enum SymbolType: String {
         case .lantern: "lantern"
         case .zodiac: "zodiac"
         case .lock: "lock"
+        case .heavyLock: "heavyLock"
         case .firecrackerEnhanced:
             "firecracker"
         case .redPocketEnhanced:
@@ -90,6 +92,8 @@ enum SymbolType: String {
             self = .zodiac
         case "lock":
             self = .lock
+        case "heavyLock":
+            self = .heavyLock
         default:
             return nil
         }
@@ -146,6 +150,9 @@ class Symbol: CustomStringConvertible, Hashable {
         case .zodiac, .zodiacEnhanced:
             let emojiTexture = SKTexture.texture(from: zodiac.emoji, fontSize: 40)
             spriteNode = SKSpriteNode(texture: emojiTexture)
+        case .heavyLock:
+            let texture = SKTexture.texture(from: "⛓️", fontSize: 40)
+            spriteNode = SKSpriteNode(texture: texture)
         case .lock:
             let texture = SKTexture.texture(from: "🔒", fontSize: 40)
             spriteNode = SKSpriteNode(texture: texture)
@@ -191,7 +198,7 @@ class Symbol: CustomStringConvertible, Hashable {
 
     func isMovable() -> Bool {
         switch type {
-        case .lock:
+        case .lock, .heavyLock:
             false
         default:
             true
@@ -200,7 +207,7 @@ class Symbol: CustomStringConvertible, Hashable {
 
     func isMatchable() -> Bool {
         switch type {
-        case .lock:
+        case .lock, .heavyLock:
             false
         default:
             true

@@ -80,6 +80,26 @@
 		99CDEC3723F5216C0066B308 /* Rat_Level_10.json in Resources */ = {isa = PBXBuildFile; fileRef = 99CDEC3223F5216C0066B308 /* Rat_Level_10.json */; };
 		99CDEC3823F5216C0066B308 /* Ox_Level_4.json in Resources */ = {isa = PBXBuildFile; fileRef = 99CDEC3323F5216C0066B308 /* Ox_Level_4.json */; };
 		99CDEC3923F5216C0066B308 /* Ox_Level_2.json in Resources */ = {isa = PBXBuildFile; fileRef = 99CDEC3423F5216C0066B308 /* Ox_Level_2.json */; };
+		F97CC0307BB64A00A1365777 /* Rat_Level_11.json in Resources */ = {isa = PBXBuildFile; fileRef = 1C2FC36FC7DF40CD896FCC2A /* Rat_Level_11.json */; };
+		D702E7B5EE0549E49757006A /* Rat_Level_12.json in Resources */ = {isa = PBXBuildFile; fileRef = E7EB83612C3F4031B8985047 /* Rat_Level_12.json */; };
+		011B1D10260341A792CA0145 /* Rat_Level_13.json in Resources */ = {isa = PBXBuildFile; fileRef = 4A5E0F7A135146B7B884F836 /* Rat_Level_13.json */; };
+		23EABE183DDC487287681CE6 /* Rat_Level_14.json in Resources */ = {isa = PBXBuildFile; fileRef = D837ACA34A5F474C94F966BC /* Rat_Level_14.json */; };
+		AB091D5152984D50A3CFE69B /* Rat_Level_15.json in Resources */ = {isa = PBXBuildFile; fileRef = 3E1FE29B12544ECE9E83002F /* Rat_Level_15.json */; };
+		B94E743ADF4C44A7902F0CBD /* Ox_Level_11.json in Resources */ = {isa = PBXBuildFile; fileRef = 86674B7888044E8F98282E0D /* Ox_Level_11.json */; };
+		4F3049780E7746B681E1BBD6 /* Ox_Level_12.json in Resources */ = {isa = PBXBuildFile; fileRef = 2838E4BBD8424003BDC4B071 /* Ox_Level_12.json */; };
+		43B5068788DC402F993D7581 /* Ox_Level_13.json in Resources */ = {isa = PBXBuildFile; fileRef = E33E144D769B4BD3BDD0F150 /* Ox_Level_13.json */; };
+		0F49B11F1B244C3A8F3A1FE3 /* Ox_Level_14.json in Resources */ = {isa = PBXBuildFile; fileRef = 7576FF93A7F94C30AA06DA3F /* Ox_Level_14.json */; };
+		24940FCC337F48AFBEE8076D /* Ox_Level_15.json in Resources */ = {isa = PBXBuildFile; fileRef = FE3E68F1D89640E39C116AFB /* Ox_Level_15.json */; };
+		8889376271CA4749A481D533 /* Tiger_Level_1.json in Resources */ = {isa = PBXBuildFile; fileRef = C43E7D0C98984814B862908B /* Tiger_Level_1.json */; };
+		E72EA3F1993E4282AAE3F03A /* Tiger_Level_2.json in Resources */ = {isa = PBXBuildFile; fileRef = 9F156F5EE4EE4EE7A193497D /* Tiger_Level_2.json */; };
+		5A6B5103DBE64BA8BF633465 /* Tiger_Level_3.json in Resources */ = {isa = PBXBuildFile; fileRef = 8C968E34A8B64BE1A66FE835 /* Tiger_Level_3.json */; };
+		B6D00AC136374EFCB8862DD6 /* Tiger_Level_4.json in Resources */ = {isa = PBXBuildFile; fileRef = 6BA8E6BF99F1460E9C1F9934 /* Tiger_Level_4.json */; };
+		FCBC7098349F465580BC6E54 /* Tiger_Level_5.json in Resources */ = {isa = PBXBuildFile; fileRef = A2FBCB7907CE4AF4B6CF0931 /* Tiger_Level_5.json */; };
+		8FA75A1109774DAC8997AFEB /* Tiger_Level_6.json in Resources */ = {isa = PBXBuildFile; fileRef = FC31476BABBE41C7A1B92F20 /* Tiger_Level_6.json */; };
+		454C08F969D449CF97156FE3 /* Tiger_Level_7.json in Resources */ = {isa = PBXBuildFile; fileRef = DD8A35F2EEDB4FB3A56D8702 /* Tiger_Level_7.json */; };
+		E69E4BDD2EBF44E897693A58 /* Tiger_Level_8.json in Resources */ = {isa = PBXBuildFile; fileRef = 1CA13BAFBE744A06872039A7 /* Tiger_Level_8.json */; };
+		4E2754F3BE884619B406FABB /* Tiger_Level_9.json in Resources */ = {isa = PBXBuildFile; fileRef = 8076663C2BA74722B5E7A4CA /* Tiger_Level_9.json */; };
+		58965B303EEB42269802C431 /* Tiger_Level_10.json in Resources */ = {isa = PBXBuildFile; fileRef = 84B0B756DDE6450492E75F91 /* Tiger_Level_10.json */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -160,6 +180,26 @@
 		99CDEC3223F5216C0066B308 /* Rat_Level_10.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Rat_Level_10.json; sourceTree = "<group>"; };
 		99CDEC3323F5216C0066B308 /* Ox_Level_4.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Ox_Level_4.json; sourceTree = "<group>"; };
 		99CDEC3423F5216C0066B308 /* Ox_Level_2.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Ox_Level_2.json; sourceTree = "<group>"; };
+		1C2FC36FC7DF40CD896FCC2A /* Rat_Level_11.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Rat_Level_11.json; sourceTree = "<group>"; };
+		E7EB83612C3F4031B8985047 /* Rat_Level_12.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Rat_Level_12.json; sourceTree = "<group>"; };
+		4A5E0F7A135146B7B884F836 /* Rat_Level_13.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Rat_Level_13.json; sourceTree = "<group>"; };
+		D837ACA34A5F474C94F966BC /* Rat_Level_14.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Rat_Level_14.json; sourceTree = "<group>"; };
+		3E1FE29B12544ECE9E83002F /* Rat_Level_15.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Rat_Level_15.json; sourceTree = "<group>"; };
+		86674B7888044E8F98282E0D /* Ox_Level_11.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Ox_Level_11.json; sourceTree = "<group>"; };
+		2838E4BBD8424003BDC4B071 /* Ox_Level_12.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Ox_Level_12.json; sourceTree = "<group>"; };
+		E33E144D769B4BD3BDD0F150 /* Ox_Level_13.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Ox_Level_13.json; sourceTree = "<group>"; };
+		7576FF93A7F94C30AA06DA3F /* Ox_Level_14.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Ox_Level_14.json; sourceTree = "<group>"; };
+		FE3E68F1D89640E39C116AFB /* Ox_Level_15.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Ox_Level_15.json; sourceTree = "<group>"; };
+		C43E7D0C98984814B862908B /* Tiger_Level_1.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Tiger_Level_1.json; sourceTree = "<group>"; };
+		9F156F5EE4EE4EE7A193497D /* Tiger_Level_2.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Tiger_Level_2.json; sourceTree = "<group>"; };
+		8C968E34A8B64BE1A66FE835 /* Tiger_Level_3.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Tiger_Level_3.json; sourceTree = "<group>"; };
+		6BA8E6BF99F1460E9C1F9934 /* Tiger_Level_4.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Tiger_Level_4.json; sourceTree = "<group>"; };
+		A2FBCB7907CE4AF4B6CF0931 /* Tiger_Level_5.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Tiger_Level_5.json; sourceTree = "<group>"; };
+		FC31476BABBE41C7A1B92F20 /* Tiger_Level_6.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Tiger_Level_6.json; sourceTree = "<group>"; };
+		DD8A35F2EEDB4FB3A56D8702 /* Tiger_Level_7.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Tiger_Level_7.json; sourceTree = "<group>"; };
+		1CA13BAFBE744A06872039A7 /* Tiger_Level_8.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Tiger_Level_8.json; sourceTree = "<group>"; };
+		8076663C2BA74722B5E7A4CA /* Tiger_Level_9.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Tiger_Level_9.json; sourceTree = "<group>"; };
+		84B0B756DDE6450492E75F91 /* Tiger_Level_10.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Tiger_Level_10.json; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -231,6 +271,11 @@
 				9955DBD323D7E8D1007786D5 /* Rat_Level_8.json */,
 				99AA8BEE23D95CF4001EBD04 /* Rat_Level_9.json */,
 				99CDEC3223F5216C0066B308 /* Rat_Level_10.json */,
+				1C2FC36FC7DF40CD896FCC2A /* Rat_Level_11.json */,
+				E7EB83612C3F4031B8985047 /* Rat_Level_12.json */,
+				4A5E0F7A135146B7B884F836 /* Rat_Level_13.json */,
+				D837ACA34A5F474C94F966BC /* Rat_Level_14.json */,
+				3E1FE29B12544ECE9E83002F /* Rat_Level_15.json */,
 			);
 			path = Rat;
 			sourceTree = "<group>";
@@ -248,6 +293,11 @@
 				996C6F0B2431E85600C54425 /* Ox_Level_8.json */,
 				996C6F0D2431E85700C54425 /* Ox_Level_9.json */,
 				996C6F0C2431E85700C54425 /* Ox_Level_10.json */,
+				86674B7888044E8F98282E0D /* Ox_Level_11.json */,
+				2838E4BBD8424003BDC4B071 /* Ox_Level_12.json */,
+				E33E144D769B4BD3BDD0F150 /* Ox_Level_13.json */,
+				7576FF93A7F94C30AA06DA3F /* Ox_Level_14.json */,
+				FE3E68F1D89640E39C116AFB /* Ox_Level_15.json */,
 			);
 			path = Ox;
 			sourceTree = "<group>";
@@ -338,11 +388,29 @@
 			path = Sounds;
 			sourceTree = "<group>";
 		};
+		8CB9827601C54448B24277A5 /* Tiger */ = {
+			isa = PBXGroup;
+			children = (
+				C43E7D0C98984814B862908B /* Tiger_Level_1.json */,
+				9F156F5EE4EE4EE7A193497D /* Tiger_Level_2.json */,
+				8C968E34A8B64BE1A66FE835 /* Tiger_Level_3.json */,
+				6BA8E6BF99F1460E9C1F9934 /* Tiger_Level_4.json */,
+				A2FBCB7907CE4AF4B6CF0931 /* Tiger_Level_5.json */,
+				FC31476BABBE41C7A1B92F20 /* Tiger_Level_6.json */,
+				DD8A35F2EEDB4FB3A56D8702 /* Tiger_Level_7.json */,
+				1CA13BAFBE744A06872039A7 /* Tiger_Level_8.json */,
+				8076663C2BA74722B5E7A4CA /* Tiger_Level_9.json */,
+				84B0B756DDE6450492E75F91 /* Tiger_Level_10.json */,
+			);
+			path = Tiger;
+			sourceTree = "<group>";
+		};
 		9955DBD123D7E8D1007786D5 /* Levels */ = {
 			isa = PBXGroup;
 			children = (
 				9949A9292C8093110027C480 /* Rat */,
 				9949A92A2C8095030027C480 /* Ox */,
+				8CB9827601C54448B24277A5 /* Tiger */,
 			);
 			path = Levels;
 			sourceTree = "<group>";
@@ -507,6 +575,26 @@
 				9955DBD823D7E8D1007786D5 /* Rat_Level_8.json in Resources */,
 				9955DBE723D805F8007786D5 /* swap.mp3 in Resources */,
 				9955DBC923D7E852007786D5 /* Scrape.wav in Resources */,
+				F97CC0307BB64A00A1365777 /* Rat_Level_11.json in Resources */,
+				D702E7B5EE0549E49757006A /* Rat_Level_12.json in Resources */,
+				011B1D10260341A792CA0145 /* Rat_Level_13.json in Resources */,
+				23EABE183DDC487287681CE6 /* Rat_Level_14.json in Resources */,
+				AB091D5152984D50A3CFE69B /* Rat_Level_15.json in Resources */,
+				B94E743ADF4C44A7902F0CBD /* Ox_Level_11.json in Resources */,
+				4F3049780E7746B681E1BBD6 /* Ox_Level_12.json in Resources */,
+				43B5068788DC402F993D7581 /* Ox_Level_13.json in Resources */,
+				0F49B11F1B244C3A8F3A1FE3 /* Ox_Level_14.json in Resources */,
+				24940FCC337F48AFBEE8076D /* Ox_Level_15.json in Resources */,
+				8889376271CA4749A481D533 /* Tiger_Level_1.json in Resources */,
+				E72EA3F1993E4282AAE3F03A /* Tiger_Level_2.json in Resources */,
+				5A6B5103DBE64BA8BF633465 /* Tiger_Level_3.json in Resources */,
+				B6D00AC136374EFCB8862DD6 /* Tiger_Level_4.json in Resources */,
+				FCBC7098349F465580BC6E54 /* Tiger_Level_5.json in Resources */,
+				8FA75A1109774DAC8997AFEB /* Tiger_Level_6.json in Resources */,
+				454C08F969D449CF97156FE3 /* Tiger_Level_7.json in Resources */,
+				E69E4BDD2EBF44E897693A58 /* Tiger_Level_8.json in Resources */,
+				4E2754F3BE884619B406FABB /* Tiger_Level_9.json in Resources */,
+				58965B303EEB42269802C431 /* Tiger_Level_10.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
