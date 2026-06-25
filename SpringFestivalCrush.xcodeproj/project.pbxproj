@@ -100,6 +100,7 @@
 		E69E4BDD2EBF44E897693A58 /* Tiger_Level_8.json in Resources */ = {isa = PBXBuildFile; fileRef = 1CA13BAFBE744A06872039A7 /* Tiger_Level_8.json */; };
 		4E2754F3BE884619B406FABB /* Tiger_Level_9.json in Resources */ = {isa = PBXBuildFile; fileRef = 8076663C2BA74722B5E7A4CA /* Tiger_Level_9.json */; };
 		58965B303EEB42269802C431 /* Tiger_Level_10.json in Resources */ = {isa = PBXBuildFile; fileRef = 84B0B756DDE6450492E75F91 /* Tiger_Level_10.json */; };
+		5EB38E89C1F643909A894D3C /* DebugMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56D8646EAFA9422880FC0D2E /* DebugMenuView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -200,6 +201,7 @@
 		1CA13BAFBE744A06872039A7 /* Tiger_Level_8.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Tiger_Level_8.json; sourceTree = "<group>"; };
 		8076663C2BA74722B5E7A4CA /* Tiger_Level_9.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Tiger_Level_9.json; sourceTree = "<group>"; };
 		84B0B756DDE6450492E75F91 /* Tiger_Level_10.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Tiger_Level_10.json; sourceTree = "<group>"; };
+		56D8646EAFA9422880FC0D2E /* DebugMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugMenuView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -415,11 +417,20 @@
 			path = Levels;
 			sourceTree = "<group>";
 		};
+		6099D1A12E044346B0B4139E /* Debug */ = {
+			isa = PBXGroup;
+			children = (
+				56D8646EAFA9422880FC0D2E /* DebugMenuView.swift */,
+			);
+			path = Debug;
+			sourceTree = "<group>";
+		};
 		9971C95725FC6713008CFCF9 /* View */ = {
 			isa = PBXGroup;
 			children = (
 				994625A42C720A6C00FC2C6A /* MainView.swift */,
 				9980C05E2C83CE1D001C7EA5 /* Settings */,
+				6099D1A12E044346B0B4139E /* Debug */,
 				994625A82C720AE900FC2C6A /* GameView.swift */,
 				994625B32C74A06000FC2C6A /* LevelFailedView.swift */,
 				994625B12C7493ED00FC2C6A /* LevelCompleteView.swift */,
@@ -639,7 +650,8 @@
 				994625A92C720AE900FC2C6A /* GameView.swift in Sources */,
 				994625B22C7493ED00FC2C6A /* LevelCompleteView.swift in Sources */,
 				9955DBB023D7E4E4007786D5 /* Array2D.swift in Sources */,
-			);
+							5EB38E89C1F643909A894D3C /* DebugMenuView.swift in Sources */,
+);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */

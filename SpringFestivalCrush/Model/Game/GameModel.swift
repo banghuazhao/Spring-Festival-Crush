@@ -385,4 +385,31 @@ class GameModel: ObservableObject {
             nextZodiac.isUnlocked = true
         }
     }
+
+    #if DEBUG
+    @MainActor
+    func debugUnlockAll() {
+        for zodiacRecord in zodiacRecords {
+            zodiacRecord.isUnlocked = true
+            for levelRecord in zodiacRecord.levelRecords {
+                levelRecord.isUnlocked = true
+                levelRecord.isComplete = true
+                if levelRecord.stars == 0 { levelRecord.stars = 1 }
+            }
+        }
+        try? modelContext?.save()
+    }
+
+    @MainActor
+    func debugResetAll() {
+        for zodiacRecord in zodiacRecords {
+            modelContext?.delete(zodiacRecord)
+        }
+        try? modelContext?.save()
+        firstLaunch = true
+        zodiacRecords = []
+        guard let modelContext else { return }
+        initializeRecords(modelContext: modelContext)
+    }
+    #endif
 }

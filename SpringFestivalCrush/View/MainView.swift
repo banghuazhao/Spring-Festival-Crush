@@ -10,6 +10,10 @@ struct MainView: View {
     @EnvironmentObject var settingModel: SettingModel
     @Environment(\.modelContext) private var modelContext
 
+    #if DEBUG
+    @State private var showDebugMenu = false
+    #endif
+
     var body: some View {
         NavigationStack {
             SelectChineseZodiacView()
@@ -20,7 +24,22 @@ struct MainView: View {
                             Image(systemName: "gearshape")
                         }
                     }
+                    #if DEBUG
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button {
+                            showDebugMenu = true
+                        } label: {
+                            Image(systemName: "ladybug.fill")
+                                .foregroundStyle(.orange)
+                        }
+                    }
+                    #endif
                 }
+                #if DEBUG
+                .sheet(isPresented: $showDebugMenu) {
+                    DebugMenuView()
+                }
+                #endif
                 .onAppear {
                     gameModel.initializeRecords(modelContext: modelContext)
                 }
