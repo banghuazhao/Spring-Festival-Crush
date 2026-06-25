@@ -11,6 +11,18 @@ struct DebugMenuView: View {
     var body: some View {
         NavigationStack {
             List {
+                Section("Effects Demo") {
+                    Button {
+                        gameModel.debugLaunchSpecialDemo()
+                        dismiss()
+                    } label: {
+                        Label("Launch Special Effects Demo", systemImage: "sparkles")
+                    }
+                    Text("Board has pre-placed ⚡️ Lightning, 🌟 Five, and 💥 Enhanced tiles. Swap ⚡️ or 🌟 to trigger effects; any valid swap auto-fires 💥.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
                 Section("Access") {
                     Toggle(isOn: $settingModel.unlockAllLevels) {
                         Label("Unlock All Zodiacs & Levels", systemImage: "lock.open.fill")

@@ -10,6 +10,7 @@ class Level {
     var bgMusic: String?
 
     var levelGoal: LevelGoal
+    var noShuffle: Bool = false
 
     var possibleSwaps: Set<Swap> = []
 
@@ -37,6 +38,7 @@ class Level {
         }
 
         levelGoal = levelData.levelGoal
+        noShuffle = levelData.noShuffle ?? false
 
         // 3
         for (row, rowArray) in tilesArray.enumerated() {
@@ -64,13 +66,17 @@ class Level {
     }
 
     func shuffle() -> Set<Symbol> {
+        if noShuffle {
+            let set = createInitialSymbols()
+            detectPossibleSwaps()
+            return set
+        }
         var set: Set<Symbol>
         repeat {
             set = createInitialSymbols()
             detectPossibleSwaps()
             print("possible swaps: \(possibleSwaps)")
         } while possibleSwaps.count == 0
-
         return set
     }
 
@@ -90,6 +96,14 @@ class Level {
                     symbolType = SymbolType.lock
                 case .doubleLock:
                     symbolType = SymbolType.heavyLock
+                #if DEBUG
+                case .debugFive:
+                    symbolType = .five
+                case .debugLightning:
+                    symbolType = .lightning
+                case .debugEnhanced:
+                    symbolType = .firecrackerEnhanced
+                #endif
                 default:
                     repeat {
                         symbolType = SymbolType.randomMovableSymbolType(possibleSymbols)

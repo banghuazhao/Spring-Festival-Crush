@@ -43,6 +43,9 @@ class GameModel: ObservableObject {
     @Published var gameState: GameState = .notStart
 
     @Published var shouldPresentGame: Bool = false
+    #if DEBUG
+    @Published var shouldPresentDebugDemo: Bool = false
+    #endif
 
     @Published var currentLevel: Int = 0
     @Published var movesLeft: Int = 0
@@ -442,6 +445,16 @@ class GameModel: ObservableObject {
         zodiacRecords = []
         guard let modelContext else { return }
         initializeRecords(modelContext: modelContext)
+    }
+
+    @MainActor
+    func debugLaunchSpecialDemo() {
+        zodiac = Zodiac.all.first(where: { $0.zodiacType == .rat }) ?? Zodiac.all.first!
+        guard let demoLevel = Level(filename: "Debug_Special") else { return }
+        level = demoLevel
+        currentLevel = -1
+        currentLevelRecord = nil
+        shouldPresentDebugDemo = true
     }
     #endif
 }

@@ -39,6 +39,11 @@ struct MainView: View {
                 .sheet(isPresented: $showDebugMenu) {
                     DebugMenuView()
                 }
+                .fullScreenCover(isPresented: $gameModel.shouldPresentDebugDemo) {
+                    GeometryReader { geo in
+                        GameView(screenSize: geo.size)
+                    }
+                }
                 #endif
                 .onAppear {
                     gameModel.initializeRecords(modelContext: modelContext)

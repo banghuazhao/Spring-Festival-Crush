@@ -5,9 +5,12 @@ class Tile {
         case empty = 0
         case normal = 1
         case lock = 2
-        // A heavy lock that requires TWO adjacent matches to clear.
-        // First hit downgrades it to a regular lock; second hit removes it.
         case doubleLock = 3
+        // Debug-only pre-placed special tiles (used by Debug_Special.json).
+        // In release builds, createInitialSymbols falls through to a random movable symbol.
+        case debugFive = 4
+        case debugLightning = 5
+        case debugEnhanced = 6
     }
     
     var type: TileType = .normal

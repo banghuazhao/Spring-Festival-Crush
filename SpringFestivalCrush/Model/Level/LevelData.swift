@@ -6,6 +6,7 @@ class LevelData: Codable {
     let moves: Int
     let levelGoal: LevelGoal
     var bgMusic: String?
+    var noShuffle: Bool?
 
     static func loadFrom(file filename: String) -> LevelData? {
         var data: Data
