@@ -575,6 +575,17 @@ class Level {
         }
     }
 
+    // Booster: instantly clears a single tile without requiring a match, at no move cost.
+    func useHammer(atColumn column: Int, row: Int) -> Chain? {
+        guard isPositionInside(column: column, row: row),
+              let symbol = symbols[column, row] else { return nil }
+        let chain = Chain(chainType: .single)
+        chain.add(symbol: symbol)
+        removeSymbols(in: [chain])
+        calculateScores(for: [chain])
+        return chain
+    }
+
     func removeLocks() -> Chain? {
         var lockPositionsToRemove = Set<[Int]>()
         var heavyLockPositionsToDowngrade = Set<[Int]>()

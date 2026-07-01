@@ -247,6 +247,12 @@ class GameScene: SKScene {
         let (success, column, row) = convertPoint(location)
 
         if success {
+            if gameModel.hammerModeActive {
+                Task { @MainActor in
+                    await gameModel.useHammer(atColumn: column, row: row)
+                }
+                return
+            }
             if let symbol = gameModel.level.symbol(atColumn: column, row: row),
                symbol.isMovable() {
                 swipeFromColumn = column

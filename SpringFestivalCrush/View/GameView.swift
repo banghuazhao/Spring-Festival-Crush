@@ -28,6 +28,10 @@ struct GameView: View {
                 gameStatusView
                     .padding()
                 Spacer() // This pushes the content to the top
+                if gameModel.hammerCharges > 0 {
+                    hammerBoosterButton
+                        .padding(.bottom, 8)
+                }
                 HStack {
                     Button {
                         HapticManager.buttonTap()
@@ -64,6 +68,22 @@ struct GameView: View {
                 .allowsHitTesting(false)
             }
 
+            if gameModel.hammerModeActive {
+                VStack {
+                    Text("Tap a tile to clear it")
+                        .font(.system(size: 15, weight: .bold, design: .rounded))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                        .background(Capsule().fill(Color.orange.opacity(0.85)))
+                        .padding(.top, 112)
+                    Spacer()
+                }
+                .transition(.opacity)
+                .animation(.easeInOut(duration: 0.2), value: gameModel.hammerModeActive)
+                .allowsHitTesting(false)
+            }
+
             ZStack {
                 if gameModel.gameState == .lose || gameModel.gameState == .win {
                     Color.black.opacity(0.2).ignoresSafeArea()
@@ -84,6 +104,20 @@ struct GameView: View {
                 settingModel: settingModel
             )
         }
+    }
+
+    var hammerBoosterButton: some View {
+        Button {
+            HapticManager.buttonTap()
+            gameModel.hammerModeActive.toggle()
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: "hammer.fill")
+                Text("\(gameModel.hammerCharges)")
+                    .fontWeight(.bold)
+            }
+        }
+        .buttonStyle(.gamePrimary(gradient: gameModel.hammerModeActive ? AppTheme.dangerGradient : AppTheme.accentGradient, shape: Capsule()))
     }
 
     var gameStatusView: some View {

@@ -20,6 +20,8 @@ struct SelectLevelView: View {
     let columnsRegular = [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())]
 
     @State private var presentLevelIsLocked = false
+    @State private var showBoosterSheet = false
+    @State private var pendingLevelNumber: Int = 0
 
     var body: some View {
         GeometryReader { geometry in
@@ -36,8 +38,8 @@ struct SelectLevelView: View {
                                 stars: levelRecord.stars,
                                 presentLevelIsLocked: $presentLevelIsLocked
                             ) {
-                                gameModel.selectLevel(levelRecord.number)
-                                gameModel.shouldPresentGame = true
+                                pendingLevelNumber = levelRecord.number
+                                showBoosterSheet = true
                             }
                         }
                     }
@@ -48,6 +50,12 @@ struct SelectLevelView: View {
         .fullScreenCover(isPresented: $gameModel.shouldPresentGame) {
             GeometryReader { geo in
                 GameView(screenSize: geo.size)
+            }
+        }
+        .sheet(isPresented: $showBoosterSheet) {
+            PreLevelBoosterView(levelNumber: pendingLevelNumber) {
+                gameModel.selectLevel(pendingLevelNumber)
+                gameModel.shouldPresentGame = true
             }
         }
         .navigationTitle("Select Level")

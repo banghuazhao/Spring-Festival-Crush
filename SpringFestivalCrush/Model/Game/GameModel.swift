@@ -55,6 +55,16 @@ class GameModel: ObservableObject {
     @Published var movesLeft: Int = 0
     @Published var score: Int = 0
 
+    // MARK: - Boosters & currency
+    @AppStorage("coins") var coins: Int = 100
+    @Published var pendingExtraMoves: Int = 0
+    @Published var hammerCharges: Int = 0
+    @Published var hammerModeActive: Bool = false
+    static let extraMovesBoosterCost = 20
+    static let extraMovesBoosterAmount = 5
+    static let hammerBoosterCost = 30
+    private static let levelWinCoinReward = 15
+
     var level: Level!
     var zodiac: Zodiac!
     var currentZodiacRecord: ZodiacRecord?
@@ -163,11 +173,30 @@ class GameModel: ObservableObject {
         currentLevel = selectedLevel
         level = Level(filename: "\(zodiac.zodiacType.name)_Level_\(selectedLevel)")
         currentLevelRecord = currentZodiacRecord?.levelRecords.first { $0.number == selectedLevel }
+        // Boosters are purchased per attempt; clear any leftovers from a previous level.
+        pendingExtraMoves = 0
+        hammerCharges = 0
+        hammerModeActive = false
+    }
+
+    /// Applies a purchased "+moves" booster to the level about to start. Call after `selectLevel`.
+    func applyExtraMovesBooster() {
+        guard coins >= Self.extraMovesBoosterCost else { return }
+        coins -= Self.extraMovesBoosterCost
+        pendingExtraMoves += Self.extraMovesBoosterAmount
+    }
+
+    /// Applies a purchased hammer charge to the level about to start. Call after `selectLevel`.
+    func applyHammerBooster() {
+        guard coins >= Self.hammerBoosterCost else { return }
+        coins -= Self.hammerBoosterCost
+        hammerCharges += 1
     }
 
     @MainActor
     func setupNewGame() async {
-        movesLeft = level.maximumMoves
+        movesLeft = level.maximumMoves + pendingExtraMoves
+        pendingExtraMoves = 0
         score = 0
         invokeCommand?(.setupLayers)
         invokeCommand?(.setupTiles)
@@ -176,6 +205,20 @@ class GameModel: ObservableObject {
         await invokeCommandAsync?(.onGameBegin)
         gameState = .inProgress
         maybeShowTutorial()
+    }
+
+    /// Instantly clears the tapped tile using a purchased hammer charge, at no move cost.
+    @MainActor
+    func useHammer(atColumn column: Int, row: Int) async {
+        guard hammerModeActive, hammerCharges > 0 else { return }
+        guard let chain = level.useHammer(atColumn: column, row: row) else { return }
+        hammerCharges -= 1
+        hammerModeActive = false
+        HapticManager.bigMatch()
+        invokeCommand?(.setUserInteraction(false))
+        await handleMatches(for: [chain])
+        await handleRemoveAndMatches()
+        invokeCommand?(.setUserInteraction(true))
     }
 
     // Shows a one-time swipe hint on the very first level a new player ever opens.
@@ -213,6 +256,7 @@ class GameModel: ObservableObject {
         await handleRemainingSpecialSymbol()
         await handleExtraStepsBonus()
         updateRecord()
+        coins += Self.levelWinCoinReward
         gameState = .win
         HapticManager.levelWin()
         invokeCommand?(.setUserInteraction(true))
