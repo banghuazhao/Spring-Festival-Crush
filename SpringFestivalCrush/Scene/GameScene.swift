@@ -19,6 +19,7 @@ class GameScene: SKScene {
     private var swipeFromColumn: Int?
     private var swipeFromRow: Int?
     private var selectionSprite = SKSpriteNode()
+    private var tutorialHintNodes: [SKNode] = []
 
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder) is not used in this app")
@@ -85,6 +86,10 @@ class GameScene: SKScene {
             addTiles()
         case let .setUserInteraction(shouldEnable):
             setUserInteraction(enabled: shouldEnable)
+        case let .showTutorialHint(swap):
+            showTutorialHint(for: swap)
+        case .hideTutorialHint:
+            hideTutorialHint()
         }
     }
 
@@ -839,6 +844,53 @@ class GameScene: SKScene {
 
     func setUserInteraction(enabled: Bool) {
         isUserInteractionEnabled = enabled
+    }
+
+    // MARK: - Tutorial hint
+
+    /// Draws pulsing rings around the two hinted tiles plus a hand icon miming the swipe.
+    private func showTutorialHint(for swap: Swap) {
+        hideTutorialHint()
+        guard let spriteA = swap.symbolA.sprite, let spriteB = swap.symbolB.sprite else { return }
+        let posA = spriteA.position
+        let posB = spriteB.position
+
+        for pos in [posA, posB] {
+            let ring = SKShapeNode(circleOfRadius: gameModel.tileSize.width * 0.55)
+            ring.strokeColor = .white
+            ring.lineWidth = 3
+            ring.glowWidth = 4
+            ring.fillColor = .clear
+            ring.position = pos
+            ring.zPosition = 400
+            ring.alpha = 0.4
+            symbolsLayer.addChild(ring)
+            ring.run(SKAction.repeatForever(SKAction.sequence([
+                SKAction.group([SKAction.fadeAlpha(to: 0.9, duration: 0.5), SKAction.scale(to: 1.1, duration: 0.5)]),
+                SKAction.group([SKAction.fadeAlpha(to: 0.4, duration: 0.5), SKAction.scale(to: 0.95, duration: 0.5)]),
+            ])))
+            tutorialHintNodes.append(ring)
+        }
+
+        let hand = SKLabelNode(text: "👆")
+        hand.fontSize = gameModel.tileSize.width * 0.7
+        hand.zPosition = 401
+        hand.position = posA
+        symbolsLayer.addChild(hand)
+        let moveToB = SKAction.move(to: posB, duration: 0.6)
+        moveToB.timingMode = .easeInEaseOut
+        let moveToA = SKAction.move(to: posA, duration: 0.6)
+        moveToA.timingMode = .easeInEaseOut
+        let pause = SKAction.wait(forDuration: 0.3)
+        hand.run(SKAction.repeatForever(SKAction.sequence([pause, moveToB, pause, moveToA])))
+        tutorialHintNodes.append(hand)
+    }
+
+    private func hideTutorialHint() {
+        for node in tutorialHintNodes {
+            node.removeFromParent()
+        }
+        tutorialHintNodes.removeAll()
     }
 
     // MARK: - Juice helpers

@@ -48,6 +48,22 @@ struct GameView: View {
                 }
             }
 
+            if gameModel.isTutorialHintActive {
+                VStack {
+                    Text("Swipe two tiles to match 3 or more!")
+                        .font(.system(size: 15, weight: .bold, design: .rounded))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                        .background(Capsule().fill(Color.black.opacity(0.6)))
+                        .padding(.top, 112)
+                    Spacer()
+                }
+                .transition(.opacity.combined(with: .move(edge: .top)))
+                .animation(.easeInOut(duration: 0.3), value: gameModel.isTutorialHintActive)
+                .allowsHitTesting(false)
+            }
+
             ZStack {
                 if gameModel.gameState == .lose || gameModel.gameState == .win {
                     Color.black.opacity(0.2).ignoresSafeArea()

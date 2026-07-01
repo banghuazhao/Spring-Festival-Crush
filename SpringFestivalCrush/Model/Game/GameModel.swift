@@ -10,12 +10,16 @@ import SwiftUI
 class GameModel: ObservableObject {
     @Published var zodiacRecords: [ZodiacRecord] = []
     @AppStorage("firstLaunch") var firstLaunch = true
+    @AppStorage("hasSeenTutorial") var hasSeenTutorial = false
+    @Published var isTutorialHintActive: Bool = false
     private var modelContext: ModelContext?
 
     enum Command {
         case setupLayers
         case setupTiles
         case setUserInteraction(Bool)
+        case showTutorialHint(Swap)
+        case hideTutorialHint
     }
 
     enum CommandAsync {
@@ -171,6 +175,16 @@ class GameModel: ObservableObject {
         await invokeCommandAsync?(.setupSymbols(newSymbols))
         await invokeCommandAsync?(.onGameBegin)
         gameState = .inProgress
+        maybeShowTutorial()
+    }
+
+    // Shows a one-time swipe hint on the very first level a new player ever opens.
+    private func maybeShowTutorial() {
+        guard !hasSeenTutorial, currentLevel == 1, zodiac.zodiacType == .rat else { return }
+        guard let hintSwap = level.possibleSwaps.first else { return }
+        hasSeenTutorial = true
+        isTutorialHintActive = true
+        invokeCommand?(.showTutorialHint(hintSwap))
     }
 
     func decreaseMove() {
@@ -248,6 +262,10 @@ class GameModel: ObservableObject {
 
     @MainActor
     func handleSwipe(_ swap: Swap) async {
+        if isTutorialHintActive {
+            isTutorialHintActive = false
+            invokeCommand?(.hideTutorialHint)
+        }
         if level.isPossibleSwap(swap) {
             decreaseMove()
             level.performSwap(swap)
