@@ -29,24 +29,22 @@ struct GameView: View {
                     .padding()
                 Spacer() // This pushes the content to the top
                 HStack {
-                    Button(action: gameModel.onTapShuffle) {
-                        Text("Shuffle")
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .padding()
-                            .background(Color.blue)
-                            .cornerRadius(10)
+                    Button {
+                        HapticManager.buttonTap()
+                        gameModel.onTapShuffle()
+                    } label: {
+                        Label("Shuffle", systemImage: "shuffle")
                     }
+                    .buttonStyle(.gamePrimary(gradient: AppTheme.accentGradient))
                     .padding()
 
-                    Button(action: gameModel.onTapBack) {
-                        Text("Back")
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .padding()
-                            .background(Color.blue)
-                            .cornerRadius(10)
+                    Button {
+                        HapticManager.buttonTap()
+                        gameModel.onTapBack()
+                    } label: {
+                        Label("Back", systemImage: "chevron.left")
                     }
+                    .buttonStyle(.gamePrimary(gradient: AppTheme.neutralGradient))
                 }
             }
 
@@ -75,24 +73,29 @@ struct GameView: View {
     var gameStatusView: some View {
         HStack(spacing: 10) {
             // Level Info
-            VStack(alignment: .leading) {
-                HStack {
-                    Text("Level:")
-                        .font(.subheadline)
-                        .foregroundColor(.white)
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 4) {
+                    Text("LEVEL")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(.white.opacity(0.75))
                     Text("\(gameModel.currentLevel)")
-                        .font(.system(size: 18, weight: .bold))
-                        .foregroundColor(.yellow)
+                        .font(.system(size: 16, weight: .heavy, design: .rounded))
+                        .foregroundColor(.white)
                 }
 
-                VStack {
-                    Text("Moves:")
-                        .font(.subheadline)
-                        .foregroundColor(.white)
+                HStack(spacing: 4) {
+                    Image(systemName: "arrow.triangle.2.circlepath")
+                        .font(.system(size: 12))
+                        .foregroundColor(gameModel.movesLeft <= 5 ? .red : .yellow)
                     Text("\(gameModel.movesLeft)")
-                        .font(.system(size: 18, weight: .bold))
-                        .foregroundColor(.yellow)
+                        .font(.system(size: 20, weight: .heavy, design: .rounded))
+                        .foregroundColor(gameModel.movesLeft <= 5 ? .red : .yellow)
+                        .contentTransition(.numericText())
+                        .animation(.default, value: gameModel.movesLeft)
                 }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 3)
+                .background(Capsule().fill(Color.black.opacity(0.2)))
             }
             .frame(minWidth: 80)
 
@@ -117,13 +120,17 @@ struct GameView: View {
             Divider()
                 .background(Color.white)
 
-            Button(action: {
+            Button {
+                HapticManager.buttonTap()
                 showingSettings.toggle() // Show settings when tapped
-            }) {
+            } label: {
                 Image(systemName: "gearshape.fill")
-                    .font(.title)
-                    .foregroundColor(.gray)
+                    .font(.title2)
+                    .foregroundColor(.white)
+                    .frame(width: 40, height: 40)
+                    .background(Circle().fill(Color.white.opacity(0.15)))
             }
+            .buttonStyle(.gameIcon)
             .padding(.leading, 10) // Add some spacing from the progress bar
             .sheet(isPresented: $showingSettings) {
                 SettingsView() // Display the settings view when tapped
@@ -134,13 +141,13 @@ struct GameView: View {
         .frame(height: 100)
         .frame(maxWidth: 600)
         .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(LinearGradient(
-                    gradient: Gradient(colors: [.purple, .pink]),
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                ))
-                .shadow(radius: 5)
+            RoundedRectangle(cornerRadius: AppTheme.panelCornerRadius, style: .continuous)
+                .fill(AppTheme.primaryGradient)
+                .overlay(
+                    RoundedRectangle(cornerRadius: AppTheme.panelCornerRadius, style: .continuous)
+                        .stroke(Color.white.opacity(0.25), lineWidth: 1)
+                )
+                .shadow(color: AppTheme.cardShadowColor, radius: AppTheme.cardShadowRadius, x: 0, y: AppTheme.cardShadowY)
         )
     }
 }
@@ -156,29 +163,35 @@ struct StarProgressView: View {
         ZStack(alignment: .leading) {
             // Background Bar
             RoundedRectangle(cornerRadius: 6)
-                .fill(Color.pink.opacity(0.5))
+                .fill(Color.black.opacity(0.25))
                 .frame(height: 12)
 
             // Foreground Bar (Progress)
             RoundedRectangle(cornerRadius: 6)
-                .fill(Color.blue)
+                .fill(AppTheme.accentGradient)
                 .frame(width: min(1.0, CGFloat(currentScore) / CGFloat(levelGoal.thirdStarScore)) * width, height: 12)
+                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: currentScore)
 
             // Star Indicators
             HStack(spacing: 0) {
                 Spacer()
                     .frame(width: width * starPositions[0])
-                Image(systemName: "star.fill") // Default filled star
-                    .foregroundColor(currentScore >= levelGoal.firstStarScore ? .yellow : .gray)
+                progressStar(earned: currentScore >= levelGoal.firstStarScore)
                 Spacer()
-                Image(systemName: "star.fill") // Default filled star
-                    .foregroundColor(currentScore >= levelGoal.secondStarScore ? .yellow : .gray)
+                progressStar(earned: currentScore >= levelGoal.secondStarScore)
                 Spacer()
-                Image(systemName: "star.fill") // Default filled star
-                    .foregroundColor(currentScore >= levelGoal.thirdStarScore ? .yellow : .gray)
+                progressStar(earned: currentScore >= levelGoal.thirdStarScore)
             }
         }
         .frame(height: 20)
+    }
+
+    private func progressStar(earned: Bool) -> some View {
+        Image(systemName: "star.fill")
+            .foregroundColor(earned ? .yellow : .white.opacity(0.5))
+            .shadow(color: earned ? .yellow.opacity(0.7) : .clear, radius: 4)
+            .scaleEffect(earned ? 1.15 : 1.0)
+            .animation(.spring(response: 0.35, dampingFraction: 0.5), value: earned)
     }
 }
 
@@ -189,12 +202,11 @@ struct LevelTargetView: View {
         ZStack {
             // Background
             RoundedRectangle(cornerRadius: 20)
-                .fill(LinearGradient(
-                    gradient: Gradient(colors: [Color.pink.opacity(0.7), Color.purple.opacity(0.8)]),
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                ))
-                .shadow(color: Color.black.opacity(0.2), radius: 10, x: 5, y: 5)
+                .fill(Color.black.opacity(0.2))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                )
 
             // Content
             HStack {

@@ -200,6 +200,7 @@ class GameModel: ObservableObject {
         await handleExtraStepsBonus()
         updateRecord()
         gameState = .win
+        HapticManager.levelWin()
         invokeCommand?(.setUserInteraction(true))
     }
 
@@ -232,6 +233,7 @@ class GameModel: ObservableObject {
     @MainActor
     private func handleGameLose() async {
         gameState = .lose
+        HapticManager.levelLose()
         await invokeCommandAsync?(.onGameOver)
     }
 

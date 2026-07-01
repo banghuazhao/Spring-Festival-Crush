@@ -8,6 +8,8 @@ import SwiftUI
 struct LevelCompleteView: View {
     @EnvironmentObject var gameModel: GameModel
 
+    @State private var starsVisible = false
+
     var body: some View {
         ZStack {
             RadialGradient(
@@ -20,44 +22,44 @@ struct LevelCompleteView: View {
                 endRadius: 400
             )
             .edgesIgnoringSafeArea(.all)
-            VStack {
-                HStack {
-                    StarView(
-                        fillColor: (gameModel.score >= gameModel.level.levelGoal.firstStarScore)
-                            ? .yellow
-                            : .gray
-                    )
-                    StarView(
-                        fillColor: (gameModel.score >= gameModel.level.levelGoal.secondStarScore)
-                            ? .yellow
-                            : .gray
-                    )
-                    StarView(
-                        fillColor: (gameModel.score >= gameModel.level.levelGoal.thirdStarScore)
-                            ? .yellow
-                            : .gray
-                    )
-                }
-                .padding()
-                Text("Level \(gameModel.currentLevel) completed!")
-                    .padding()
-                Text("Your score: \(gameModel.score)")
-                    .padding()
+            VStack(spacing: 12) {
+                Text("LEVEL COMPLETE!")
+                    .font(.system(size: 22, weight: .heavy, design: .rounded))
+                    .foregroundColor(.white)
+                    .shadow(color: .black.opacity(0.25), radius: 2, x: 0, y: 2)
 
-                Button(action: gameModel.onTapNextLevel) {
-                    Text("Next Level")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .padding()
-                        .background(Color.blue)
-                        .cornerRadius(10)
+                HStack(spacing: 8) {
+                    StarView(fillColor: (gameModel.score >= gameModel.level.levelGoal.firstStarScore) ? .yellow : .white.opacity(0.4))
+                        .scaleEffect(starsVisible ? 1.0 : 0.1)
+                        .animation(.spring(response: 0.4, dampingFraction: 0.5).delay(0.05), value: starsVisible)
+                    StarView(fillColor: (gameModel.score >= gameModel.level.levelGoal.secondStarScore) ? .yellow : .white.opacity(0.4))
+                        .scaleEffect(starsVisible ? 1.0 : 0.1)
+                        .animation(.spring(response: 0.4, dampingFraction: 0.5).delay(0.2), value: starsVisible)
+                    StarView(fillColor: (gameModel.score >= gameModel.level.levelGoal.thirdStarScore) ? .yellow : .white.opacity(0.4))
+                        .scaleEffect(starsVisible ? 1.0 : 0.1)
+                        .animation(.spring(response: 0.4, dampingFraction: 0.5).delay(0.35), value: starsVisible)
                 }
                 .padding()
+                .onAppear { starsVisible = true }
+
+                Text("Your score: \(gameModel.score)")
+                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                    .foregroundColor(.white.opacity(0.9))
+
+                Button {
+                    HapticManager.buttonTap()
+                    gameModel.onTapNextLevel()
+                } label: {
+                    Label("Next Level", systemImage: "arrow.right.circle.fill")
+                }
+                .buttonStyle(.gamePrimary(gradient: AppTheme.successGradient))
+                .padding(.top, 8)
             }
             .padding()
         }
         .frame(width: 300, height: 400)
-        .clipShape(.rect(cornerRadius: 20))
+        .clipShape(.rect(cornerRadius: AppTheme.panelCornerRadius))
+        .shadow(color: AppTheme.cardShadowColor, radius: 16, x: 0, y: 8)
     }
 }
 

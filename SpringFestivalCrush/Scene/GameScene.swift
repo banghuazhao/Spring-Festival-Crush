@@ -247,6 +247,7 @@ class GameScene: SKScene {
                 swipeFromColumn = column
                 swipeFromRow = row
                 showSelectionIndicator(of: symbol)
+                HapticManager.tileSelected()
             }
         }
     }
@@ -323,6 +324,8 @@ class GameScene: SKScene {
         spriteA.zPosition = 100
         spriteB.zPosition = 90
 
+        HapticManager.swap()
+
         let duration: TimeInterval = 0.3
 
         let moveA = SKAction.move(to: spriteB.position, duration: duration)
@@ -336,6 +339,9 @@ class GameScene: SKScene {
 
         await _ = [runMoveA, runMoveB]
 
+        landingSquash(spriteA)
+        landingSquash(spriteB)
+
         if settingModel.playSoundEffect {
             await run(themeModel.swapSound)
         }
@@ -347,6 +353,8 @@ class GameScene: SKScene {
 
         spriteA.zPosition = 100
         spriteB.zPosition = 90
+
+        HapticManager.invalidSwap()
 
         let duration: TimeInterval = 0.2
 
@@ -403,6 +411,7 @@ class GameScene: SKScene {
         await withTaskGroup(of: Void.self) { taskGroup in
             for chain in chains {
                 animateScore(for: chain)
+                triggerHaptic(for: chain)
                 switch chain.chainType {
                 case .fiveEffect:
                     taskGroup.addTask { await self.animateFiveChainEffect(for: chain) }
@@ -424,11 +433,12 @@ class GameScene: SKScene {
                         for symbol in chain.symbols {
                             guard let sprite = symbol.sprite else { continue }
                             guard sprite.action(forKey: "removing") == nil else { continue }
-                            let scaleAction = SKAction.scale(to: 0.1, duration: 0.3)
-                            scaleAction.timingMode = .easeOut
+                            let anticipate = SKAction.scale(to: 1.15, duration: 0.06)
+                            let scaleAction = SKAction.scale(to: 0.1, duration: 0.22)
+                            scaleAction.timingMode = .easeIn
                             taskGroup.addTask {
                                 await sprite.run(
-                                    SKAction.sequence([scaleAction, SKAction.removeFromParent()]),
+                                    SKAction.sequence([anticipate, scaleAction, SKAction.removeFromParent()]),
                                     withKey: "removing"
                                 )
                             }
@@ -440,6 +450,26 @@ class GameScene: SKScene {
                 taskGroup.addTask {
                     await self.run(self.themeModel.matchSound)
                 }
+            }
+        }
+    }
+
+    /// Scales haptic intensity (and adds screen shake for the biggest moments) to the size/kind of match.
+    private func triggerHaptic(for chain: Chain) {
+        switch chain.chainType {
+        case .fiveEffect, .enhanced:
+            HapticManager.explosion()
+            screenShake()
+        case .lightning:
+            HapticManager.bigMatch()
+            screenShake(magnitude: 4, duration: 0.2)
+        case .single, .locks:
+            break
+        default:
+            if chain.length >= 4 {
+                HapticManager.bigMatch()
+            } else {
+                HapticManager.match()
             }
         }
     }
@@ -664,7 +694,7 @@ class GameScene: SKScene {
                     let sprite = symbol.sprite! // sprite always exists at this point
                     let duration = TimeInterval(((sprite.position.y - newPosition.y) / gameModel.tileSize.height) * 0.1)
                     let moveAction = SKAction.move(to: newPosition, duration: duration)
-                    moveAction.timingMode = .easeInEaseOut
+                    moveAction.timingMode = .easeIn
                     taskGroup.addTask {
                         await sprite.run(
                             SKAction.sequence([
@@ -672,6 +702,7 @@ class GameScene: SKScene {
                                 moveAction]
                             )
                         )
+                        self.landingSquash(sprite)
                     }
                 }
             }
@@ -698,7 +729,7 @@ class GameScene: SKScene {
                     // 6
                     let newPosition = pointFor(column: symbol.column, row: symbol.row)
                     let moveAction = SKAction.move(to: newPosition, duration: duration)
-                    moveAction.timingMode = .easeOut
+                    moveAction.timingMode = .easeIn
                     sprite.alpha = 0
                     taskGroup.addTask {
                         await sprite.run(
@@ -709,6 +740,7 @@ class GameScene: SKScene {
                                     moveAction,
                                 ]),
                             ]))
+                        self.landingSquash(sprite)
                         if self.settingModel.playSoundEffect {
                             await sprite.run(self.themeModel.addSymbolSound)
                         }
@@ -751,17 +783,35 @@ class GameScene: SKScene {
             x: (firstSprite.position.x + lastSprite.position.x) / 2,
             y: (firstSprite.position.y + lastSprite.position.y) / 2 - 8)
 
-        // Add a label for the score that slowly floats up.
+        // Bigger chains get a bigger, warmer-colored label so combos read as more rewarding.
+        let isBigChain = chain.length >= 4 || chain.chainType == .enhanced || chain.chainType == .lightning || chain.chainType == .fiveEffect
+
         let scoreLabel = SKLabelNode(fontNamed: "GillSans-BoldItalic")
-        scoreLabel.fontSize = 16
-        scoreLabel.text = String(format: "%ld", chain.score)
+        scoreLabel.fontSize = isBigChain ? 24 : 17
+        scoreLabel.fontColor = isBigChain ? UIColor(hex: 0xFFB238) : .white
+        scoreLabel.text = "+\(chain.score)"
         scoreLabel.position = centerPosition
         scoreLabel.zPosition = 300
+        scoreLabel.setScale(0.3)
+        scoreLabel.alpha = 0
         symbolsLayer.addChild(scoreLabel)
 
-        let moveAction = SKAction.move(by: CGVector(dx: 0, dy: 3), duration: 0.7)
-        moveAction.timingMode = .easeOut
-        scoreLabel.run(SKAction.sequence([moveAction, SKAction.removeFromParent()]))
+        // Pop in with a slight overshoot, hold, then float up and fade — classic combo-counter feel.
+        let popIn = SKAction.group([
+            SKAction.fadeIn(withDuration: 0.1),
+            SKAction.sequence([
+                SKAction.scale(to: isBigChain ? 1.25 : 1.1, duration: 0.14),
+                SKAction.scale(to: 1.0, duration: 0.08),
+            ]),
+        ])
+        let float = SKAction.move(by: CGVector(dx: 0, dy: 30), duration: 0.6)
+        float.timingMode = .easeOut
+        let fadeOut = SKAction.fadeOut(withDuration: 0.35)
+        scoreLabel.run(SKAction.sequence([
+            popIn,
+            SKAction.group([float, SKAction.sequence([SKAction.wait(forDuration: 0.25), fadeOut])]),
+            SKAction.removeFromParent(),
+        ]))
     }
 
     func animateGameOver() async {
@@ -789,5 +839,30 @@ class GameScene: SKScene {
 
     func setUserInteraction(enabled: Bool) {
         isUserInteractionEnabled = enabled
+    }
+
+    // MARK: - Juice helpers
+
+    /// Quick squash-and-stretch settle used when a tile lands (falling, new tiles, swap arrival).
+    private func landingSquash(_ sprite: SKSpriteNode) {
+        let squash = SKAction.scaleX(to: 1.18, y: 0.82, duration: 0.06)
+        let settle = SKAction.scale(to: 1.0, duration: 0.12)
+        settle.timingMode = .easeOut
+        sprite.run(SKAction.sequence([squash, settle]), completion: {})
+    }
+
+    /// Small camera-shake for big explosions/combos — the board itself kicks.
+    private func screenShake(magnitude: CGFloat = 6, duration: TimeInterval = 0.28) {
+        let originalPosition = gameLayer.position
+        var actions: [SKAction] = []
+        let steps = 6
+        for i in 0 ..< steps {
+            let progress = 1.0 - CGFloat(i) / CGFloat(steps)
+            let dx = CGFloat.random(in: -magnitude ... magnitude) * progress
+            let dy = CGFloat.random(in: -magnitude ... magnitude) * progress
+            actions.append(SKAction.move(to: CGPoint(x: originalPosition.x + dx, y: originalPosition.y + dy), duration: duration / TimeInterval(steps)))
+        }
+        actions.append(SKAction.move(to: originalPosition, duration: duration / TimeInterval(steps)))
+        gameLayer.run(SKAction.sequence(actions), withKey: "screenShake")
     }
 }

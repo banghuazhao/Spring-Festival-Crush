@@ -55,6 +55,8 @@
 		9955DBDB23D7E8D1007786D5 /* Rat_Level_2.json in Resources */ = {isa = PBXBuildFile; fileRef = 9955DBD623D7E8D1007786D5 /* Rat_Level_2.json */; };
 		9955DBDF23D7EA14007786D5 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9955DBDE23D7EA14007786D5 /* Constants.swift */; };
 		9955DBE123D7F84D007786D5 /* Color+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9955DBE023D7F84D007786D5 /* Color+Extension.swift */; };
+		B2C3D4E501234567AABBCC10 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2C3D4E501234567AABBCC11 /* AppTheme.swift */; };
+		B2C3D4E501234567AABBCC12 /* HapticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2C3D4E501234567AABBCC13 /* HapticManager.swift */; };
 		9955DBE523D7FE1B007786D5 /* Rat_Level_7.json in Resources */ = {isa = PBXBuildFile; fileRef = 9955DBE423D7FE07007786D5 /* Rat_Level_7.json */; };
 		9955DBE723D805F8007786D5 /* swap.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 9955DBE623D805F8007786D5 /* swap.mp3 */; };
 		9955DBE823D80648007786D5 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 9955DBEA23D80648007786D5 /* Localizable.strings */; };
@@ -154,6 +156,8 @@
 		9955DBD623D7E8D1007786D5 /* Rat_Level_2.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Rat_Level_2.json; sourceTree = "<group>"; };
 		9955DBDE23D7EA14007786D5 /* Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		9955DBE023D7F84D007786D5 /* Color+Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Color+Extension.swift"; sourceTree = "<group>"; };
+		B2C3D4E501234567AABBCC11 /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
+		B2C3D4E501234567AABBCC13 /* HapticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticManager.swift; sourceTree = "<group>"; };
 		9955DBE423D7FE07007786D5 /* Rat_Level_7.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Rat_Level_7.json; sourceTree = "<group>"; };
 		9955DBE623D805F8007786D5 /* swap.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = swap.mp3; sourceTree = "<group>"; };
 		9955DBE923D80648007786D5 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -354,6 +358,8 @@
 				9971C95025FC6705008CFCF9 /* UIButtonLargerArea.swift */,
 				9971C95125FC6705008CFCF9 /* UIFont+Extension.swift */,
 				994625BC2C76092000FC2C6A /* SKSpriteNode+Entension.swift */,
+				B2C3D4E501234567AABBCC11 /* AppTheme.swift */,
+				B2C3D4E501234567AABBCC13 /* HapticManager.swift */,
 			);
 			path = Util;
 			sourceTree = "<group>";
@@ -628,6 +634,8 @@
 				994625A72C720AA600FC2C6A /* SelectLevelView.swift in Sources */,
 				9949A9232C8035E20027C480 /* ZodiacRecord.swift in Sources */,
 				9955DBE123D7F84D007786D5 /* Color+Extension.swift in Sources */,
+				B2C3D4E501234567AABBCC10 /* AppTheme.swift in Sources */,
+				B2C3D4E501234567AABBCC12 /* HapticManager.swift in Sources */,
 				994625A32C720A2800FC2C6A /* Match3GameApp.swift in Sources */,
 				994625BD2C76092000FC2C6A /* SKSpriteNode+Entension.swift in Sources */,
 				994625C12C7860CD00FC2C6A /* SettingModel.swift in Sources */,

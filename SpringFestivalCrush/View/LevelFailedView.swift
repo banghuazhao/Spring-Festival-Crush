@@ -8,55 +8,49 @@ import SwiftUI
 struct LevelFailedView: View {
     @EnvironmentObject var gameModel: GameModel
 
+    @State private var shake = false
+
     var body: some View {
         ZStack {
             RadialGradient(
                 gradient: Gradient(colors: [
-                    Color(red: 1.0, green: 0.8, blue: 0.9), // light pink
-                    Color(red: 1.0, green: 0.4, blue: 0.6), // darker pink
+                    Color(red: 0.5, green: 0.5, blue: 0.55),
+                    Color(red: 0.25, green: 0.25, blue: 0.3),
                 ]),
                 center: .center,
                 startRadius: 0,
                 endRadius: 400
             )
             .edgesIgnoringSafeArea(.all)
-            VStack {
-                HStack {
-                    StarView(
-                        fillColor: (gameModel.score >= gameModel.level.levelGoal.firstStarScore)
-                            ? .yellow
-                            : .gray
-                    )
-                    StarView(
-                        fillColor: (gameModel.score >= gameModel.level.levelGoal.secondStarScore)
-                            ? .yellow
-                            : .gray
-                    )
-                    StarView(
-                        fillColor: (gameModel.score >= gameModel.level.levelGoal.thirdStarScore)
-                            ? .yellow
-                            : .gray
-                    )
-                }
-                .padding()
-                Text("Level \(gameModel.currentLevel) failed")
-                    .padding()
-                Text("Out of moves!")
-                    .padding()
+            VStack(spacing: 12) {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.system(size: 50))
+                    .foregroundColor(.white.opacity(0.9))
+                    .rotationEffect(.degrees(shake ? -8 : 8))
+                    .animation(.easeInOut(duration: 0.12).repeatCount(4, autoreverses: true), value: shake)
+                    .onAppear { shake = true }
 
-                Button(action: gameModel.onTapTryAgainLevel) {
-                    Text("Try again")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .padding()
-                        .background(Color.blue)
-                        .cornerRadius(10)
+                Text("OUT OF MOVES")
+                    .font(.system(size: 20, weight: .heavy, design: .rounded))
+                    .foregroundColor(.white)
+
+                Text("Level \(gameModel.currentLevel) · Score \(gameModel.score)")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.white.opacity(0.75))
+
+                Button {
+                    HapticManager.buttonTap()
+                    gameModel.onTapTryAgainLevel()
+                } label: {
+                    Label("Try Again", systemImage: "arrow.counterclockwise")
                 }
-                .padding()
+                .buttonStyle(.gamePrimary(gradient: AppTheme.dangerGradient))
+                .padding(.top, 8)
             }
             .padding()
         }
         .frame(width: 300, height: 400)
-        .clipShape(.rect(cornerRadius: 20))
+        .clipShape(.rect(cornerRadius: AppTheme.panelCornerRadius))
+        .shadow(color: AppTheme.cardShadowColor, radius: 16, x: 0, y: 8)
     }
 }
