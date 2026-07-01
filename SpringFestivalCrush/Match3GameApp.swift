@@ -46,6 +46,9 @@ struct Match3GameApp: App {
                 .environmentObject(themeModel)
                 .onChange(of: scenePhase) { _, newPhase in
                     print("scenePhase: \(newPhase)")
+                    if newPhase == .active {
+                        gameModel.refreshLives()
+                    }
                     #if !targetEnvironment(macCatalyst)
                         if newPhase == .active {
                             ad.tryToPresentAd()

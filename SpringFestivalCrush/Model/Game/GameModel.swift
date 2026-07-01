@@ -14,6 +14,55 @@ class GameModel: ObservableObject {
     @Published var isTutorialHintActive: Bool = false
     private var modelContext: ModelContext?
 
+    // MARK: - Lives / energy
+    static let maxLives = 5
+    static let lifeRegenInterval: TimeInterval = 30 * 60 // 30 minutes per life
+    @AppStorage("lives") var lives: Int = GameModel.maxLives
+    @AppStorage("lastLifeLostTimestamp") private var lastLifeLostTimestamp: Double = 0
+    @Published var livesRefreshTick: Int = 0 // bumped every second while a lives countdown is on screen
+
+    /// Recomputes how many lives should have regenerated since lives last dropped below max.
+    /// Call on app foreground and whenever the level-select screen appears.
+    func refreshLives() {
+        guard lives < Self.maxLives, lastLifeLostTimestamp > 0 else { return }
+        let now = Date().timeIntervalSince1970
+        let elapsed = now - lastLifeLostTimestamp
+        let regenerated = Int(elapsed / Self.lifeRegenInterval)
+        guard regenerated > 0 else { return }
+        lives = min(Self.maxLives, lives + regenerated)
+        if lives >= Self.maxLives {
+            lastLifeLostTimestamp = 0
+        } else {
+            lastLifeLostTimestamp += Double(regenerated) * Self.lifeRegenInterval
+        }
+    }
+
+    /// Called once per second while a lives countdown is on screen. `timeUntilNextLife` is a
+    /// computed property, so bumping this @Published counter is what makes SwiftUI re-render
+    /// the countdown text every second instead of only when `lives` itself changes.
+    func tickLivesCountdown() {
+        livesRefreshTick += 1
+        refreshLives()
+    }
+
+    /// Spends one life to start a level attempt. Callers must check `lives > 0` first —
+    /// this is a no-op (not a hard block) so it's safe to call unconditionally from selectLevel.
+    private func consumeLife() {
+        guard lives > 0 else { return }
+        lives -= 1
+        if lastLifeLostTimestamp == 0 {
+            lastLifeLostTimestamp = Date().timeIntervalSince1970
+        }
+    }
+
+    /// Seconds until the next life regenerates, or 0 if lives are already full.
+    var timeUntilNextLife: TimeInterval {
+        guard lives < Self.maxLives, lastLifeLostTimestamp > 0 else { return 0 }
+        let elapsed = Date().timeIntervalSince1970 - lastLifeLostTimestamp
+        let remainder = Self.lifeRegenInterval - elapsed.truncatingRemainder(dividingBy: Self.lifeRegenInterval)
+        return max(0, remainder)
+    }
+
     enum Command {
         case setupLayers
         case setupTiles
@@ -173,20 +222,26 @@ class GameModel: ObservableObject {
         currentLevel = selectedLevel
         level = Level(filename: "\(zodiac.zodiacType.name)_Level_\(selectedLevel)")
         currentLevelRecord = currentZodiacRecord?.levelRecords.first { $0.number == selectedLevel }
-        // Boosters are purchased per attempt; clear any leftovers from a previous level.
+        consumeLife()
+    }
+
+    /// Boosters are purchased per attempt; call before offering the booster sheet for a fresh
+    /// level pick, and before any "start a level" flow that bypasses the booster sheet entirely
+    /// (Next Level / Try Again), so leftovers from a previous attempt never carry over.
+    func resetBoostersForNewAttempt() {
         pendingExtraMoves = 0
         hammerCharges = 0
         hammerModeActive = false
     }
 
-    /// Applies a purchased "+moves" booster to the level about to start. Call after `selectLevel`.
+    /// Applies a purchased "+moves" booster to the level about to start. Call before `selectLevel`.
     func applyExtraMovesBooster() {
         guard coins >= Self.extraMovesBoosterCost else { return }
         coins -= Self.extraMovesBoosterCost
         pendingExtraMoves += Self.extraMovesBoosterAmount
     }
 
-    /// Applies a purchased hammer charge to the level about to start. Call after `selectLevel`.
+    /// Applies a purchased hammer charge to the level about to start. Call before `selectLevel`.
     func applyHammerBooster() {
         guard coins >= Self.hammerBoosterCost else { return }
         coins -= Self.hammerBoosterCost
@@ -396,15 +451,26 @@ class GameModel: ObservableObject {
     func onTapNextLevel() {
         if currentLevel >= zodiac.numLevels {
             gameState = .notStart
-        } else {
+        } else if lives > 0 {
+            resetBoostersForNewAttempt()
             Task { @MainActor in
                 selectLevel(currentLevel + 1)
                 await setupNewGame()
             }
+        } else {
+            // Out of lives — bounce to level select, which shows the lives countdown.
+            gameState = .notStart
+            shouldPresentGame = false
         }
     }
 
     func onTapTryAgainLevel() {
+        guard lives > 0 else {
+            gameState = .notStart
+            shouldPresentGame = false
+            return
+        }
+        resetBoostersForNewAttempt()
         Task { @MainActor in
             selectLevel(currentLevel)
             await setupNewGame()

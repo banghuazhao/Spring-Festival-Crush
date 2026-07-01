@@ -22,6 +22,9 @@ struct SelectLevelView: View {
     @State private var presentLevelIsLocked = false
     @State private var showBoosterSheet = false
     @State private var pendingLevelNumber: Int = 0
+    @State private var presentOutOfLives = false
+
+    private let ticker = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     var body: some View {
         GeometryReader { geometry in
@@ -30,6 +33,10 @@ struct SelectLevelView: View {
                     .edgesIgnoringSafeArea(.all)
 
                 ScrollView {
+                    LivesHeaderView()
+                        .padding(.horizontal)
+                        .padding(.top, 8)
+
                     LazyVGrid(columns: geometry.size.width < 600 ? columnsCompact : columnsRegular, spacing: 20) {
                         ForEach(gameModel.currentLevelRecords, id: \.self) { levelRecord in
                             LevelView(
@@ -38,7 +45,12 @@ struct SelectLevelView: View {
                                 stars: levelRecord.stars,
                                 presentLevelIsLocked: $presentLevelIsLocked
                             ) {
+                                guard gameModel.lives > 0 else {
+                                    presentOutOfLives = true
+                                    return
+                                }
                                 pendingLevelNumber = levelRecord.number
+                                gameModel.resetBoostersForNewAttempt()
                                 showBoosterSheet = true
                             }
                         }
@@ -61,6 +73,48 @@ struct SelectLevelView: View {
         .navigationTitle("Select Level")
         .navigationBarTitleDisplayMode(.inline)
         .easyToast(isPresented: $presentLevelIsLocked, message: "Complete previous levels to unlock")
+        .easyToast(isPresented: $presentOutOfLives, message: "Out of lives! Wait for a life to regenerate.")
+        .onAppear {
+            gameModel.refreshLives()
+        }
+        .onReceive(ticker) { _ in
+            gameModel.tickLivesCountdown()
+        }
+    }
+}
+
+struct LivesHeaderView: View {
+    @EnvironmentObject var gameModel: GameModel
+
+    private var countdownText: String {
+        let seconds = Int(gameModel.timeUntilNextLife)
+        return String(format: "%02d:%02d", seconds / 60, seconds % 60)
+    }
+
+    var body: some View {
+        HStack(spacing: 8) {
+            ForEach(0 ..< GameModel.maxLives, id: \.self) { index in
+                Image(systemName: index < gameModel.lives ? "heart.fill" : "heart")
+                    .foregroundColor(index < gameModel.lives ? .red : .secondary.opacity(0.4))
+            }
+            Spacer()
+            if gameModel.lives < GameModel.maxLives {
+                HStack(spacing: 4) {
+                    Image(systemName: "clock.fill")
+                        .font(.caption)
+                    Text(countdownText)
+                        .font(.system(size: 13, weight: .semibold, design: .rounded))
+                        .monospacedDigit()
+                }
+                .foregroundColor(.secondary)
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(Color.white.opacity(0.5))
+        )
     }
 }
 

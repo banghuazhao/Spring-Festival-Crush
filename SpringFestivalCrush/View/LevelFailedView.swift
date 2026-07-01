@@ -38,14 +38,33 @@ struct LevelFailedView: View {
                     .font(.system(size: 14, weight: .medium))
                     .foregroundColor(.white.opacity(0.75))
 
-                Button {
-                    HapticManager.buttonTap()
-                    gameModel.onTapTryAgainLevel()
-                } label: {
-                    Label("Try Again", systemImage: "arrow.counterclockwise")
+                if gameModel.lives > 0 {
+                    Button {
+                        HapticManager.buttonTap()
+                        gameModel.onTapTryAgainLevel()
+                    } label: {
+                        Label("Try Again", systemImage: "arrow.counterclockwise")
+                    }
+                    .buttonStyle(.gamePrimary(gradient: AppTheme.dangerGradient))
+                    .padding(.top, 8)
+                } else {
+                    VStack(spacing: 6) {
+                        Image(systemName: "heart.slash.fill")
+                            .foregroundColor(.red)
+                        Text("Out of lives")
+                            .font(.system(size: 15, weight: .bold, design: .rounded))
+                            .foregroundColor(.white)
+                    }
+                    .padding(.top, 8)
+
+                    Button {
+                        HapticManager.buttonTap()
+                        gameModel.onTapTryAgainLevel()
+                    } label: {
+                        Text("Back to Levels")
+                    }
+                    .buttonStyle(.gamePrimary(gradient: AppTheme.neutralGradient))
                 }
-                .buttonStyle(.gamePrimary(gradient: AppTheme.dangerGradient))
-                .padding(.top, 8)
             }
             .padding()
         }

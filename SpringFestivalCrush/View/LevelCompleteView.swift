@@ -46,11 +46,25 @@ struct LevelCompleteView: View {
                     .font(.system(size: 16, weight: .semibold, design: .rounded))
                     .foregroundColor(.white.opacity(0.9))
 
+                if gameModel.currentLevel < gameModel.zodiac.numLevels && gameModel.lives <= 0 {
+                    VStack(spacing: 6) {
+                        Image(systemName: "heart.slash.fill")
+                            .foregroundColor(.red)
+                        Text("Out of lives")
+                            .font(.system(size: 15, weight: .bold, design: .rounded))
+                            .foregroundColor(.white)
+                    }
+                    .padding(.top, 8)
+                }
+
                 Button {
                     HapticManager.buttonTap()
                     gameModel.onTapNextLevel()
                 } label: {
-                    Label("Next Level", systemImage: "arrow.right.circle.fill")
+                    Label(
+                        gameModel.currentLevel < gameModel.zodiac.numLevels ? "Next Level" : "Done",
+                        systemImage: "arrow.right.circle.fill"
+                    )
                 }
                 .buttonStyle(.gamePrimary(gradient: AppTheme.successGradient))
                 .padding(.top, 8)
