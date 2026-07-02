@@ -811,9 +811,12 @@ class Level {
                 if tiles[column, row] != nil && symbols[column, row] == nil {
                     // 3
                     for lookup in (row + 1) ..< numRows {
-                        guard let symbol = symbols[column, lookup],
-                              symbol.isMovable()
-                        else { continue }
+                        guard let symbol = symbols[column, lookup] else { continue }
+                        // An immovable blocker (lock/vaultLock/chocolate) physically
+                        // occupies its cell — nothing above it can fall past it into this
+                        // hole, so the search for a replacement stops here rather than
+                        // skipping over it to whatever's further up.
+                        guard symbol.isMovable() else { break }
                         // 4
                         symbols[column, lookup] = nil
                         symbols[column, row] = symbol
