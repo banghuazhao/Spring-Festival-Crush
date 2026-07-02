@@ -93,12 +93,13 @@ struct LivesHeaderView: View {
 
     var body: some View {
         VStack(spacing: 8) {
-            HStack(spacing: 8) {
+            HStack(spacing: 4) {
                 ForEach(0 ..< GameModel.maxLives, id: \.self) { index in
                     Image(systemName: index < gameModel.lives ? "heart.fill" : "heart")
+                        .font(.system(size: 15))
                         .foregroundColor(index < gameModel.lives ? .red : .secondary.opacity(0.4))
                 }
-                Spacer()
+                Spacer(minLength: 0)
                 if gameModel.lives < GameModel.maxLives {
                     HStack(spacing: 4) {
                         Image(systemName: "clock.fill")
@@ -106,7 +107,9 @@ struct LivesHeaderView: View {
                         Text(countdownText)
                             .font(.system(size: 13, weight: .semibold, design: .rounded))
                             .monospacedDigit()
+                            .lineLimit(1)
                     }
+                    .fixedSize()
                     .foregroundColor(.secondary)
                 }
             }

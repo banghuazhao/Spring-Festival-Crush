@@ -199,15 +199,19 @@
         }
     }
 
-    /// Loads and presents rewarded video ads for the "watch an ad for +1 life / +coins" flows.
-    /// Keeps exactly one ad preloaded so the reward buttons in the UI can reflect readiness
-    /// (isAdReady) instead of tapping into a cold load.
+    /// Loads and presents an interstitial ad for the "watch an ad for +1 life / +coins" flows.
+    /// InterstitialAdID is configured in AdMob as an Interstitial-format ad unit, so it must be
+    /// loaded with GADInterstitialAd, not GADRewardedAd — loading a Rewarded-format request
+    /// against an Interstitial ad unit doesn't match server-side and never fills, which is why
+    /// ads weren't showing at all. The "reward" is a product decision layered on top: since this
+    /// isn't a true rewarded-video creative, the reward is granted on dismissal regardless of
+    /// how much the user watched.
     @MainActor
     final class RewardedAdManager: NSObject, ObservableObject, GADFullScreenContentDelegate {
         static let shared = RewardedAdManager()
 
         @Published private(set) var isAdReady = false
-        private var rewardedAd: GADRewardedAd?
+        private var interstitialAd: GADInterstitialAd?
         private var onReward: (() -> Void)?
 
         override private init() {
@@ -217,36 +221,34 @@
 
         func loadAd() {
             let request = GADRequest()
-            GADRewardedAd.load(withAdUnitID: AdManager.GoogleAdsID.interstitialAdID, request: request) { [weak self] ad, error in
+            GADInterstitialAd.load(withAdUnitID: AdManager.GoogleAdsID.interstitialAdID, request: request) { [weak self] ad, error in
                 guard let self else { return }
                 if let error {
                     print("[REWARDED AD] Failed to load: \(error.localizedDescription)")
                     isAdReady = false
                     return
                 }
-                rewardedAd = ad
-                rewardedAd?.fullScreenContentDelegate = self
+                interstitialAd = ad
+                interstitialAd?.fullScreenContentDelegate = self
                 isAdReady = true
             }
         }
 
-        /// Presents the preloaded ad. The reward is granted whenever the ad is dismissed
-        /// (adDidDismissFullScreenContent below), not gated on GADRewardedAd's strict
-        /// "watched enough" callback — closing early still counts, by design, since the
-        /// underlying ad unit here is an interstitial, not a true rewarded-video creative.
+        /// Presents the preloaded ad. The reward is granted on dismissal
+        /// (adDidDismissFullScreenContent below) — closing early still counts.
         func show(onReward: @escaping () -> Void) {
-            guard let rewardedAd,
+            guard let interstitialAd,
                   let root = UIApplication.shared.connectedScenes
                       .compactMap({ $0 as? UIWindowScene }).first?.windows.first?.rootViewController
             else { return }
             self.onReward = onReward
             BackgroundMusicManager.shared.stopBackgroundMusic()
-            rewardedAd.present(fromRootViewController: root) {}
+            interstitialAd.present(fromRootViewController: root)
         }
 
         func adDidDismissFullScreenContent(_ ad: GADFullScreenPresentingAd) {
             isAdReady = false
-            rewardedAd = nil
+            interstitialAd = nil
             onReward?()
             onReward = nil
             loadAd()
@@ -256,7 +258,7 @@
         func ad(_ ad: GADFullScreenPresentingAd, didFailToPresentFullScreenContentWithError error: Error) {
             print("[REWARDED AD] Failed to present: \(error.localizedDescription)")
             isAdReady = false
-            rewardedAd = nil
+            interstitialAd = nil
             onReward = nil
             loadAd()
             Task { await BackgroundMusicManager.shared.turnOnBackgroundMusic() }
