@@ -801,39 +801,71 @@ class Level {
         return specialSymbols
     }
 
+    // Fills every hole by straight-down gravity where possible. When a hole's own column is
+    // blocked by a genuine obstacle (not just empty above), it pulls diagonally from whichever
+    // adjacent column has a candy ready to fall — the way physical gravity actually resolves a
+    // blocked chute in most match-3 games, instead of leaving a permanent gap under a blocker.
     func fillHoles() -> [[Symbol]] {
-        var columns: [[Symbol]] = []
-        // 1
-        for column in 0 ..< numColumns {
-            var array = [Symbol]()
+        // Scans upward from `row + 1` in `column` for the first symbol. Returns it if movable;
+        // returns nil if the path is blocked by a non-movable obstacle, or if there's simply
+        // nothing there yet (an ordinary not-yet-topped-up gap).
+        func firstFallable(column: Int, aboveRow row: Int) -> Symbol? {
+            for lookup in (row + 1) ..< numRows {
+                guard let symbol = symbols[column, lookup] else { continue }
+                return symbol.isMovable() ? symbol : nil
+            }
+            return nil
+        }
+
+        // True only when the first non-empty cell above is a genuine obstacle — distinguishes
+        // "blocked, try a diagonal" from "just not filled yet, let topUpSymbols handle it."
+        func isBlockedAbove(column: Int, row: Int) -> Bool {
+            for lookup in (row + 1) ..< numRows {
+                guard let symbol = symbols[column, lookup] else { continue }
+                return !symbol.isMovable()
+            }
+            return false
+        }
+
+        var movedByColumn: [Int: [Symbol]] = [:]
+        func move(_ symbol: Symbol, toColumn column: Int, row: Int) {
+            symbols[symbol.column, symbol.row] = nil
+            symbols[column, row] = symbol
+            symbol.column = column
+            symbol.row = row
+            movedByColumn[column, default: []].append(symbol)
+        }
+
+        // A diagonal move can itself open a new hole in the source column (or reveal that a
+        // neighbor needed for one hole should instead go to another), so repeat until a full
+        // pass makes no changes. Bounded by the board's cell count — always terminates.
+        var madeProgress = true
+        while madeProgress {
+            madeProgress = false
             for row in 0 ..< numRows {
-                // 2
-                if tiles[column, row] != nil && symbols[column, row] == nil {
-                    // 3
-                    for lookup in (row + 1) ..< numRows {
-                        guard let symbol = symbols[column, lookup] else { continue }
-                        // An immovable blocker (lock/vaultLock/chocolate) physically
-                        // occupies its cell — nothing above it can fall past it into this
-                        // hole, so the search for a replacement stops here rather than
-                        // skipping over it to whatever's further up.
-                        guard symbol.isMovable() else { break }
-                        // 4
-                        symbols[column, lookup] = nil
-                        symbols[column, row] = symbol
-                        symbol.row = row
-                        // 5
-                        array.append(symbol)
-                        // 6
-                        break
+                for column in 0 ..< numColumns {
+                    guard tiles[column, row] != nil, symbols[column, row] == nil else { continue }
+
+                    if let source = firstFallable(column: column, aboveRow: row) {
+                        move(source, toColumn: column, row: row)
+                        madeProgress = true
+                        continue
+                    }
+
+                    guard isBlockedAbove(column: column, row: row) else { continue }
+
+                    if column > 0, let source = firstFallable(column: column - 1, aboveRow: row) {
+                        move(source, toColumn: column, row: row)
+                        madeProgress = true
+                    } else if column < numColumns - 1, let source = firstFallable(column: column + 1, aboveRow: row) {
+                        move(source, toColumn: column, row: row)
+                        madeProgress = true
                     }
                 }
             }
-            // 7
-            if !array.isEmpty {
-                columns.append(array)
-            }
         }
-        return columns
+
+        return movedByColumn.values.filter { !$0.isEmpty }
     }
 
     func topUpSymbols() -> [[Symbol]] {
