@@ -58,6 +58,7 @@
 		B2C3D4E501234567AABBCC10 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2C3D4E501234567AABBCC11 /* AppTheme.swift */; };
 		B2C3D4E501234567AABBCC12 /* HapticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2C3D4E501234567AABBCC13 /* HapticManager.swift */; };
 		B2C3D4E501234567AABBCC14 /* PreLevelBoosterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2C3D4E501234567AABBCC15 /* PreLevelBoosterView.swift */; };
+		B2C3D4E501234567AABBCC16 /* RewardedAdButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2C3D4E501234567AABBCC17 /* RewardedAdButton.swift */; };
 		9955DBE523D7FE1B007786D5 /* Rat_Level_7.json in Resources */ = {isa = PBXBuildFile; fileRef = 9955DBE423D7FE07007786D5 /* Rat_Level_7.json */; };
 		9955DBE723D805F8007786D5 /* swap.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 9955DBE623D805F8007786D5 /* swap.mp3 */; };
 		9955DBE823D80648007786D5 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 9955DBEA23D80648007786D5 /* Localizable.strings */; };
@@ -160,6 +161,7 @@
 		B2C3D4E501234567AABBCC11 /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
 		B2C3D4E501234567AABBCC13 /* HapticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticManager.swift; sourceTree = "<group>"; };
 		B2C3D4E501234567AABBCC15 /* PreLevelBoosterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreLevelBoosterView.swift; sourceTree = "<group>"; };
+		B2C3D4E501234567AABBCC17 /* RewardedAdButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardedAdButton.swift; sourceTree = "<group>"; };
 		9955DBE423D7FE07007786D5 /* Rat_Level_7.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Rat_Level_7.json; sourceTree = "<group>"; };
 		9955DBE623D805F8007786D5 /* swap.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = swap.mp3; sourceTree = "<group>"; };
 		9955DBE923D80648007786D5 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -448,6 +450,7 @@
 				994625B82C74A3F700FC2C6A /* SelectZodiacView.swift */,
 				994625A62C720AA600FC2C6A /* SelectLevelView.swift */,
 				B2C3D4E501234567AABBCC15 /* PreLevelBoosterView.swift */,
+				B2C3D4E501234567AABBCC17 /* RewardedAdButton.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -640,6 +643,7 @@
 				B2C3D4E501234567AABBCC10 /* AppTheme.swift in Sources */,
 				B2C3D4E501234567AABBCC12 /* HapticManager.swift in Sources */,
 				B2C3D4E501234567AABBCC14 /* PreLevelBoosterView.swift in Sources */,
+				B2C3D4E501234567AABBCC16 /* RewardedAdButton.swift in Sources */,
 				994625A32C720A2800FC2C6A /* Match3GameApp.swift in Sources */,
 				994625BD2C76092000FC2C6A /* SKSpriteNode+Entension.swift in Sources */,
 				994625C12C7860CD00FC2C6A /* SettingModel.swift in Sources */,

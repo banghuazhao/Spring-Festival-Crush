@@ -37,6 +37,10 @@ struct PreLevelBoosterView: View {
                     .foregroundColor(.secondary)
             }
 
+            RewardedAdButton(title: "Watch Ad for +\(GameModel.rewardedCoinsAmount) Coins", systemImage: "play.rectangle.fill") {
+                gameModel.grantRewardedCoins()
+            }
+
             VStack(spacing: 12) {
                 boosterRow(
                     icon: "plus.circle.fill",
@@ -78,7 +82,7 @@ struct PreLevelBoosterView: View {
             .padding(.bottom, 8)
         }
         .padding()
-        .presentationDetents([.height(360)])
+        .presentationDetents([.height(420)])
     }
 
     private func boosterRow(icon: String, title: String, cost: Int, isSelected: Binding<Bool>) -> some View {

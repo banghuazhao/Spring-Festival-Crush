@@ -20,6 +20,7 @@
             static let bannerAdUnitID = Bundle.main.object(forInfoDictionaryKey: "BannerAdUnitID") as? String ?? ""
             static let interstitialAdID = Bundle.main.object(forInfoDictionaryKey: "InterstitialAdID") as? String ?? ""
             static let appOpenAdID = Bundle.main.object(forInfoDictionaryKey: "AppOpenAdID") as? String ?? ""
+            static let rewardedAdID = Bundle.main.object(forInfoDictionaryKey: "RewardedAdID") as? String ?? ""
         }
 
         static func requestATTPermission(with time: TimeInterval = 0) {
@@ -196,6 +197,65 @@
                 self.delegate?.bannerViewController(
                     self, didUpdate: self.view.frame.inset(by: self.view.safeAreaInsets).size.width)
             }
+        }
+    }
+
+    /// Loads and presents rewarded video ads for the "watch an ad for +1 life / +coins" flows.
+    /// Keeps exactly one ad preloaded so the reward buttons in the UI can reflect readiness
+    /// (isAdReady) instead of tapping into a cold load.
+    @MainActor
+    final class RewardedAdManager: NSObject, ObservableObject, GADFullScreenContentDelegate {
+        static let shared = RewardedAdManager()
+
+        @Published private(set) var isAdReady = false
+        private var rewardedAd: GADRewardedAd?
+        private var onReward: (() -> Void)?
+
+        override private init() {
+            super.init()
+            loadAd()
+        }
+
+        func loadAd() {
+            let request = GADRequest()
+            GADRewardedAd.load(withAdUnitID: AdManager.GoogleAdsID.rewardedAdID, request: request) { [weak self] ad, error in
+                guard let self else { return }
+                if let error {
+                    print("[REWARDED AD] Failed to load: \(error.localizedDescription)")
+                    isAdReady = false
+                    return
+                }
+                rewardedAd = ad
+                rewardedAd?.fullScreenContentDelegate = self
+                isAdReady = true
+            }
+        }
+
+        /// Presents the preloaded rewarded ad. `onReward` fires only if the user watches to
+        /// completion (GADRewardedAd's own semantics) — never on early dismissal.
+        func show(onReward: @escaping () -> Void) {
+            guard let rewardedAd,
+                  let root = UIApplication.shared.connectedScenes
+                      .compactMap({ $0 as? UIWindowScene }).first?.windows.first?.rootViewController
+            else { return }
+            self.onReward = onReward
+            rewardedAd.present(fromRootViewController: root) { [weak self] in
+                self?.onReward?()
+                self?.onReward = nil
+            }
+        }
+
+        func adDidDismissFullScreenContent(_ ad: GADFullScreenPresentingAd) {
+            isAdReady = false
+            rewardedAd = nil
+            loadAd()
+        }
+
+        func ad(_ ad: GADFullScreenPresentingAd, didFailToPresentFullScreenContentWithError error: Error) {
+            print("[REWARDED AD] Failed to present: \(error.localizedDescription)")
+            isAdReady = false
+            rewardedAd = nil
+            loadAd()
         }
     }
 #endif

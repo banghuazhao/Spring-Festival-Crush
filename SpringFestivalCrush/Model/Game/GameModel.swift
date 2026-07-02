@@ -63,6 +63,23 @@ class GameModel: ObservableObject {
         return max(0, remainder)
     }
 
+    // MARK: - Rewarded video grants
+    static let rewardedCoinsAmount = 40
+
+    /// Grants the reward for watching a rewarded video to refill one life.
+    func grantRewardedLife() {
+        guard lives < Self.maxLives else { return }
+        lives += 1
+        if lives >= Self.maxLives {
+            lastLifeLostTimestamp = 0
+        }
+    }
+
+    /// Grants the reward for watching a rewarded video for coins.
+    func grantRewardedCoins() {
+        coins += Self.rewardedCoinsAmount
+    }
+
     enum Command {
         case setupLayers
         case setupTiles

@@ -57,6 +57,11 @@ struct LevelFailedView: View {
                     }
                     .padding(.top, 8)
 
+                    RewardedAdButton(title: "Watch Ad for +1 Life", systemImage: "play.rectangle.fill") {
+                        gameModel.grantRewardedLife()
+                        gameModel.onTapTryAgainLevel()
+                    }
+
                     Button {
                         HapticManager.buttonTap()
                         gameModel.onTapTryAgainLevel()

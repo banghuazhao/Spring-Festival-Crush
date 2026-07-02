@@ -92,21 +92,32 @@ struct LivesHeaderView: View {
     }
 
     var body: some View {
-        HStack(spacing: 8) {
-            ForEach(0 ..< GameModel.maxLives, id: \.self) { index in
-                Image(systemName: index < gameModel.lives ? "heart.fill" : "heart")
-                    .foregroundColor(index < gameModel.lives ? .red : .secondary.opacity(0.4))
-            }
-            Spacer()
-            if gameModel.lives < GameModel.maxLives {
-                HStack(spacing: 4) {
-                    Image(systemName: "clock.fill")
-                        .font(.caption)
-                    Text(countdownText)
-                        .font(.system(size: 13, weight: .semibold, design: .rounded))
-                        .monospacedDigit()
+        VStack(spacing: 8) {
+            HStack(spacing: 8) {
+                ForEach(0 ..< GameModel.maxLives, id: \.self) { index in
+                    Image(systemName: index < gameModel.lives ? "heart.fill" : "heart")
+                        .foregroundColor(index < gameModel.lives ? .red : .secondary.opacity(0.4))
                 }
-                .foregroundColor(.secondary)
+                Spacer()
+                if gameModel.lives < GameModel.maxLives {
+                    HStack(spacing: 4) {
+                        Image(systemName: "clock.fill")
+                            .font(.caption)
+                        Text(countdownText)
+                            .font(.system(size: 13, weight: .semibold, design: .rounded))
+                            .monospacedDigit()
+                    }
+                    .foregroundColor(.secondary)
+                }
+            }
+
+            if gameModel.lives < GameModel.maxLives {
+                HStack {
+                    Spacer()
+                    RewardedAdButton(title: "Watch Ad for +1 Life", systemImage: "play.rectangle.fill") {
+                        gameModel.grantRewardedLife()
+                    }
+                }
             }
         }
         .padding(.horizontal, 14)
