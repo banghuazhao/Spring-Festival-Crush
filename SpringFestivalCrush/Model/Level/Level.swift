@@ -802,19 +802,17 @@ class Level {
     }
 
     // Fills every hole by straight-down gravity where possible. When a hole's own column is
-    // blocked by a genuine obstacle (not just empty above), it pulls diagonally from whichever
-    // adjacent column has a candy ready to fall — the way physical gravity actually resolves a
-    // blocked chute in most match-3 games, instead of leaving a permanent gap under a blocker.
-    // Models gravity like water finding its level: straight down wherever possible, and only
-    // spreading sideways into an *immediately adjacent* cell when a genuine obstacle blocks
-    // the way down — never a diagonal jump over open space. If that neighbor cell is itself
-    // still empty, it has nothing to give this pass; it gets its own chance to settle
-    // vertically (or spread further) on the next pass, so the flow cascades outward one step
-    // at a time exactly the way it would if you traced it by hand.
+    // blocked directly above by a genuine obstacle, a candy from the cell diagonally above
+    // (one row up, one column left or right) slides in — the Candy Crush rule. Crucially the
+    // donor is always strictly ABOVE the hole, never on the same row: every move lowers the
+    // moving candy, which is both the physically-correct look and the termination guarantee.
+    // (The previous same-row sideways pull could oscillate forever when two adjacent cells
+    // were BOTH blocked from above — each stole the same candy back from the other, hanging
+    // the game. A strictly-downward move can never revisit a state.)
     func fillHoles() -> [[Symbol]] {
         // True only when the first non-empty cell directly above is a genuine obstacle —
-        // distinguishes "blocked, spread sideways" from "just not filled yet, topUpSymbols
-        // will backfill it from the top."
+        // distinguishes "blocked, allow a diagonal slide" from "just not filled yet,
+        // topUpSymbols will backfill it from the top."
         func isBlockedAbove(column: Int, row: Int) -> Bool {
             for lookup in (row + 1) ..< numRows {
                 guard let symbol = symbols[column, lookup] else { continue }
@@ -823,7 +821,7 @@ class Level {
             return false
         }
 
-        // Symbols can move more than once across passes (down, then sideways, then down
+        // Symbols can move more than once across passes (down, then diagonally, then down
         // again...), so track each by identity and keep only its final resting position —
         // Symbol's Hashable/Equatable are position-based, which would break a Set/Dictionary
         // keyed on the symbol itself once it moves, so ObjectIdentifier is used instead.
@@ -859,22 +857,21 @@ class Level {
                 }
             }
 
-            // Phase 2 — a hole that's still empty specifically because it's blocked directly
-            // above pulls sideways from whichever adjacent cell (same row) currently holds a
-            // settled candy. That neighbor's own cell becomes a new hole, which phase 1 gets
-            // first crack at resettling vertically on the next loop iteration — this is what
-            // makes "if the neighbor is empty, resolve its own top first" happen naturally,
-            // without needing actual recursion.
+            // Phase 2 — a hole still empty specifically because it's blocked directly above
+            // takes the candy diagonally above it (top-left first, then top-right). The
+            // donor's old cell becomes a new hole that phase 1 resettles vertically on the
+            // next loop iteration, so the flow cascades naturally — and if the diagonal cells
+            // are empty too, this hole simply waits until their own columns refill them.
             for row in 0 ..< numRows {
                 for column in 0 ..< numColumns {
                     guard tiles[column, row] != nil, symbols[column, row] == nil else { continue }
-                    guard isBlockedAbove(column: column, row: row) else { continue }
+                    guard row + 1 < numRows, isBlockedAbove(column: column, row: row) else { continue }
 
-                    if column > 0, let left = symbols[column - 1, row], left.isMovable() {
-                        move(left, toColumn: column, row: row)
+                    if column > 0, let topLeft = symbols[column - 1, row + 1], topLeft.isMovable() {
+                        move(topLeft, toColumn: column, row: row)
                         madeProgress = true
-                    } else if column < numColumns - 1, let right = symbols[column + 1, row], right.isMovable() {
-                        move(right, toColumn: column, row: row)
+                    } else if column < numColumns - 1, let topRight = symbols[column + 1, row + 1], topRight.isMovable() {
+                        move(topRight, toColumn: column, row: row)
                         madeProgress = true
                     }
                 }
