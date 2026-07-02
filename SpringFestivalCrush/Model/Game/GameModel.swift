@@ -367,10 +367,21 @@ class GameModel: ObservableObject {
         await invokeCommandAsync?(.onGameOver)
     }
 
+    /// Dismisses whichever full-screen game presentation is currently active — the normal
+    /// level flow (shouldPresentGame) or, in DEBUG builds, the special-effects demo
+    /// (shouldPresentDebugDemo). Both flags exist because GameView is reused for both.
     @MainActor
-    func onTapBack() {
+    private func exitToMenu() {
         gameState = .notStart
         shouldPresentGame = false
+        #if DEBUG
+        shouldPresentDebugDemo = false
+        #endif
+    }
+
+    @MainActor
+    func onTapBack() {
+        exitToMenu()
         Task {
             await BackgroundMusicManager.shared.playDefaultBackgroundMusic()
         }
@@ -466,25 +477,28 @@ class GameModel: ObservableObject {
 
     @MainActor
     func onTapNextLevel() {
-        if currentLevel >= zodiac.numLevels {
-            gameState = .notStart
-        } else if lives > 0 {
-            resetBoostersForNewAttempt()
-            Task { @MainActor in
-                selectLevel(currentLevel + 1)
-                await setupNewGame()
-            }
-        } else {
+        // currentLevel < 1 means this isn't a real, file-backed level (e.g. the DEBUG
+        // special-effects demo uses -1) — there's no "next level" to load in that case.
+        guard currentLevel >= 1, currentLevel < zodiac.numLevels else {
+            exitToMenu()
+            return
+        }
+        guard lives > 0 else {
             // Out of lives — bounce to level select, which shows the lives countdown.
-            gameState = .notStart
-            shouldPresentGame = false
+            exitToMenu()
+            return
+        }
+        resetBoostersForNewAttempt()
+        Task { @MainActor in
+            selectLevel(currentLevel + 1)
+            await setupNewGame()
         }
     }
 
+    @MainActor
     func onTapTryAgainLevel() {
-        guard lives > 0 else {
-            gameState = .notStart
-            shouldPresentGame = false
+        guard currentLevel >= 1, lives > 0 else {
+            exitToMenu()
             return
         }
         resetBoostersForNewAttempt()

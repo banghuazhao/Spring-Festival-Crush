@@ -10,6 +10,12 @@ struct LevelCompleteView: View {
 
     @State private var starsVisible = false
 
+    // currentLevel < 1 means this isn't a real, file-backed level (e.g. the DEBUG
+    // special-effects demo uses -1) — mirrors the guard in GameModel.onTapNextLevel.
+    private var hasNextLevel: Bool {
+        gameModel.currentLevel >= 1 && gameModel.currentLevel < gameModel.zodiac.numLevels
+    }
+
     var body: some View {
         ZStack {
             RadialGradient(
@@ -46,7 +52,7 @@ struct LevelCompleteView: View {
                     .font(.system(size: 16, weight: .semibold, design: .rounded))
                     .foregroundColor(.white.opacity(0.9))
 
-                if gameModel.currentLevel < gameModel.zodiac.numLevels && gameModel.lives <= 0 {
+                if hasNextLevel && gameModel.lives <= 0 {
                     VStack(spacing: 6) {
                         Image(systemName: "heart.slash.fill")
                             .foregroundColor(.red)
@@ -62,7 +68,7 @@ struct LevelCompleteView: View {
                     gameModel.onTapNextLevel()
                 } label: {
                     Label(
-                        gameModel.currentLevel < gameModel.zodiac.numLevels ? "Next Level" : "Done",
+                        hasNextLevel ? "Next Level" : "Done",
                         systemImage: "arrow.right.circle.fill"
                     )
                 }
