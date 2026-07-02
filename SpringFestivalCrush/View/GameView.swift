@@ -17,6 +17,8 @@ struct GameView: View {
 
     @State var showingSettings: Bool = false
 
+    private let timerTicker = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+
     var body: some View {
         ZStack {
             if let gameScene {
@@ -104,6 +106,9 @@ struct GameView: View {
                 settingModel: settingModel
             )
         }
+        .onReceive(timerTicker) { _ in
+            gameModel.tickTimer()
+        }
     }
 
     var hammerBoosterButton: some View {
@@ -146,6 +151,20 @@ struct GameView: View {
                 .padding(.horizontal, 8)
                 .padding(.vertical, 3)
                 .background(Capsule().fill(Color.black.opacity(0.2)))
+
+                if let secondsLeft = gameModel.secondsLeft {
+                    HStack(spacing: 4) {
+                        Image(systemName: "clock.fill")
+                            .font(.system(size: 12))
+                        Text(String(format: "%02d:%02d", max(0, secondsLeft) / 60, max(0, secondsLeft) % 60))
+                            .font(.system(size: 16, weight: .heavy, design: .rounded))
+                            .monospacedDigit()
+                    }
+                    .foregroundColor(secondsLeft <= 10 ? .red : .white)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(Capsule().fill(Color.black.opacity(0.2)))
+                }
             }
             .frame(minWidth: 80)
 

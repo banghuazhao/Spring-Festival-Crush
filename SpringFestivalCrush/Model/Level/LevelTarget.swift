@@ -13,6 +13,15 @@ struct LevelTarget: Codable {
     var lantern: Int?
     var zodiac: Int?
     var lock: Int?
+    // Positional overlay objective: total jelly layers to clear. Auto-computed from the
+    // level's "jelly" grid at load time — level authors don't set this directly.
+    var jelly: Int?
+    // Escort objective: ingredient symbols that must reach the bottom row.
+    var ingredient: Int?
+    // Combo objectives: number of times each special effect must be triggered.
+    var lightningCombos: Int?
+    var fiveCombos: Int?
+    var enhancedCombos: Int?
 
     func getLevelTargetDatas(gameZodiac: Zodiac) -> [LevelTargetData] {
         var levelTargetDatas = [LevelTargetData]()
@@ -76,6 +85,51 @@ struct LevelTarget: Codable {
                     image: Image.image(from: "🔒", fontSize: 40),
                     imageName: "lock",
                     targetNum: lock
+                )
+            )
+        }
+        if let jelly {
+            levelTargetDatas.append(
+                LevelTargetData(
+                    image: Image.image(from: "🟩", fontSize: 40),
+                    imageName: "jelly",
+                    targetNum: jelly
+                )
+            )
+        }
+        if let ingredient {
+            levelTargetDatas.append(
+                LevelTargetData(
+                    image: Image.image(from: "🎁", fontSize: 40),
+                    imageName: "ingredient",
+                    targetNum: ingredient
+                )
+            )
+        }
+        if let lightningCombos {
+            levelTargetDatas.append(
+                LevelTargetData(
+                    image: Image.image(from: "⚡️", fontSize: 40),
+                    imageName: "lightningCombos",
+                    targetNum: lightningCombos
+                )
+            )
+        }
+        if let fiveCombos {
+            levelTargetDatas.append(
+                LevelTargetData(
+                    image: Image.image(from: "🌟", fontSize: 40),
+                    imageName: "fiveCombos",
+                    targetNum: fiveCombos
+                )
+            )
+        }
+        if let enhancedCombos {
+            levelTargetDatas.append(
+                LevelTargetData(
+                    image: Image.image(from: "💥", fontSize: 40),
+                    imageName: "enhancedCombos",
+                    targetNum: enhancedCombos
                 )
             )
         }

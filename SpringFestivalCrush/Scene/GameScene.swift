@@ -14,6 +14,8 @@ class GameScene: SKScene {
     let maskLayer = SKNode()
     let cropLayer = SKCropNode()
     let symbolsLayer = SKNode()
+    // Jelly backing squares, behind symbolsLayer so they read as "under" the candies.
+    let overlayLayer = SKNode()
 
     // MARK: - State
     private var swipeFromColumn: Int?
@@ -57,6 +59,7 @@ class GameScene: SKScene {
         cropLayer.maskNode = maskLayer
         gameLayer.addChild(tilesLayer)
         gameLayer.addChild(cropLayer)
+        cropLayer.addChild(overlayLayer)
         cropLayer.addChild(symbolsLayer)
 
         _ = SKLabelNode(fontNamed: "GillSans-BoldItalic")
@@ -90,6 +93,10 @@ class GameScene: SKScene {
             showTutorialHint(for: swap)
         case .hideTutorialHint:
             hideTutorialHint()
+        case .refreshOverlays:
+            refreshOverlays()
+        case let .onChocolateSpread(symbol):
+            animateChocolateSpread(symbol)
         }
     }
 
@@ -112,6 +119,8 @@ class GameScene: SKScene {
             await animateNewSymbols(in: symbols)
         case let .onEnhanceSymbols(symbols):
             await animateEnhancedSymbols(for: symbols)
+        case let .onIngredientsCollected(symbols):
+            await animateIngredientsCollected(symbols)
         case .onGameBegin:
             setupBgMusic()
             await animateBeginGame()
@@ -137,6 +146,7 @@ class GameScene: SKScene {
         tilesLayer.position = layerPosition
         maskLayer.position = layerPosition
         symbolsLayer.position = layerPosition
+        overlayLayer.position = layerPosition
     }
 
     func shuffle(by newSymbols: Set<Symbol>) async {
@@ -897,6 +907,79 @@ class GameScene: SKScene {
             node.removeFromParent()
         }
         tutorialHintNodes.removeAll()
+    }
+
+    // MARK: - Level element overlays (jelly, ice, chocolate, ingredients)
+
+    /// Redraws jelly backing squares and ice tint for the whole board. Called after any batch
+    /// of clears since either could have changed anywhere — board sizes here (<=9x9) make a
+    /// full-board pass cheap enough that a more surgical diff isn't worth the complexity.
+    private func refreshOverlays() {
+        for column in 0 ..< gameModel.numColumns {
+            for row in 0 ..< gameModel.numRows {
+                let jellyCount = gameModel.level.tileAt(column: column, row: row)?.jellyCount ?? 0
+                let jellyName = "jelly_\(column)_\(row)"
+                if jellyCount > 0 {
+                    let node = (overlayLayer.childNode(withName: jellyName) as? SKShapeNode)
+                        ?? makeJellyNode(name: jellyName, column: column, row: row)
+                    node.alpha = min(0.85, 0.3 + 0.2 * CGFloat(jellyCount))
+                } else {
+                    overlayLayer.childNode(withName: jellyName)?.removeFromParent()
+                }
+
+                if let symbol = gameModel.level.symbol(atColumn: column, row: row), let sprite = symbol.sprite {
+                    sprite.colorBlendFactor = symbol.isFrozen ? 0.55 : 0
+                    if symbol.isFrozen {
+                        sprite.color = UIColor.cyan
+                    }
+                }
+            }
+        }
+    }
+
+    private func makeJellyNode(name: String, column: Int, row: Int) -> SKShapeNode {
+        let node = SKShapeNode(rectOf: CGSize(width: gameModel.tileSize.width * 0.9, height: gameModel.tileSize.height * 0.9), cornerRadius: 6)
+        node.name = name
+        node.fillColor = UIColor.systemGreen.withAlphaComponent(0.5)
+        node.strokeColor = .clear
+        node.zPosition = 5
+        node.position = pointFor(column: column, row: row)
+        overlayLayer.addChild(node)
+        return node
+    }
+
+    /// A chocolate blocker just consumed an adjacent candy — swap that tile's texture and
+    /// give it a small "grow" pop so the spread reads as an event, not a silent swap.
+    private func animateChocolateSpread(_ symbol: Symbol) {
+        guard let sprite = symbol.sprite,
+              let texture = SKTexture.texture(from: "🍫", fontSize: gameModel.tileSize.width) else { return }
+        sprite.run(SKAction.sequence([
+            SKAction.setTexture(texture),
+            SKAction.scale(to: 1.3, duration: 0.12),
+            SKAction.scale(to: 1.0, duration: 0.12),
+        ]))
+    }
+
+    /// Ingredients that settled at the bottom row are "delivered" — fly them up off the
+    /// board and fade, rather than the usual pop-and-shrink match removal.
+    private func animateIngredientsCollected(_ symbols: [Symbol]) async {
+        await withTaskGroup(of: Void.self) { taskGroup in
+            for symbol in symbols {
+                guard let sprite = symbol.sprite else { continue }
+                taskGroup.addTask {
+                    let riseAndFade = SKAction.group([
+                        SKAction.moveBy(x: 0, y: self.gameModel.tileSize.height * 1.5, duration: 0.35),
+                        SKAction.fadeOut(withDuration: 0.35),
+                        SKAction.scale(to: 0.6, duration: 0.35),
+                    ])
+                    riseAndFade.timingMode = .easeOut
+                    await sprite.run(SKAction.sequence([riseAndFade, SKAction.removeFromParent()]))
+                }
+            }
+        }
+        if settingModel.playSoundEffect {
+            await run(themeModel.matchSound)
+        }
     }
 
     // MARK: - Juice helpers

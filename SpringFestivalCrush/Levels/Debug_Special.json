@@ -13,6 +13,10 @@
         "firstStarScore": 500,
         "secondStarScore": 1000,
         "thirdStarScore": 2000,
-        "levelTarget": {}
+        "levelTarget": {
+            "lightningCombos": 1,
+            "fiveCombos": 1,
+            "enhancedCombos": 1
+        }
     }
 }

@@ -8,6 +8,7 @@ class Level {
     let maximumMoves: Int
     var possibleSymbols: [String]?
     var bgMusic: String?
+    let timeLimit: Int?
 
     var levelGoal: LevelGoal
     var noShuffle: Bool = false
@@ -19,6 +20,9 @@ class Level {
 
     private var tiles: Array2D<Tile>
     private var symbols: Array2D<Symbol>
+    // Ice layers to apply to freshly-spawned symbols, keyed by board position. Consumed in
+    // createInitialSymbols(); only applies once, at level start (ice never re-forms later).
+    private var iceGrid: Array2D<Int>
 
     init?(filename: String) {
         // 1
@@ -31,9 +35,11 @@ class Level {
 
         tiles = Array2D<Tile>(columns: numColumns, rows: numRows)
         symbols = Array2D<Symbol>(columns: numColumns, rows: numRows)
+        iceGrid = Array2D<Int>(columns: numColumns, rows: numRows)
 
         maximumMoves = levelData.moves
         possibleSymbols = levelData.possibleSymbols
+        timeLimit = levelData.timeLimit
         if let bgMusic = levelData.bgMusic {
             self.bgMusic = bgMusic
         } else {
@@ -51,6 +57,32 @@ class Level {
             for (column, value) in rowArray.enumerated() {
                 if value != 0 {
                     tiles[column, tileRow] = Tile(type: value)
+                }
+            }
+        }
+
+        // Jelly is authored as a grid in the same JSON row order as `tiles`; total layers
+        // placed becomes the win-condition count so authors don't have to keep two numbers
+        // in sync.
+        var totalJelly = 0
+        if let jellyArray = levelData.jelly {
+            for (row, rowArray) in jellyArray.enumerated() {
+                let tileRow = numRows - row - 1
+                for (column, value) in rowArray.enumerated() where value > 0 {
+                    tiles[column, tileRow]?.jellyCount = value
+                    totalJelly += value
+                }
+            }
+        }
+        levelGoal.levelTarget.jelly = totalJelly > 0 ? totalJelly : nil
+
+        // Ice grid uses the same row order as `tiles`; applied to freshly-spawned symbols
+        // in createInitialSymbols().
+        if let iceArray = levelData.ice {
+            for (row, rowArray) in iceArray.enumerated() {
+                let tileRow = numRows - row - 1
+                for (column, value) in rowArray.enumerated() where value > 0 {
+                    iceGrid[column, tileRow] = value
                 }
             }
         }
@@ -94,20 +126,26 @@ class Level {
                 else { continue }
 
                 var symbolType: SymbolType
+                var isPlainRandomTile = false
                 switch tileType {
                 case .lock:
                     symbolType = SymbolType.lock
                 case .doubleLock:
                     symbolType = SymbolType.heavyLock
-                #if DEBUG
-                case .debugFive:
+                case .vaultLock:
+                    symbolType = SymbolType.vaultLock
+                case .chocolate:
+                    symbolType = SymbolType.chocolate
+                case .ingredient:
+                    symbolType = SymbolType.ingredient
+                case .five:
                     symbolType = .five
-                case .debugLightning:
+                case .lightning:
                     symbolType = .lightning
-                case .debugEnhanced:
+                case .enhanced:
                     symbolType = .firecrackerEnhanced
-                #endif
                 default:
+                    isPlainRandomTile = true
                     repeat {
                         symbolType = SymbolType.randomMovableSymbolType(possibleSymbols)
                     } while (column >= 2 &&
@@ -119,6 +157,10 @@ class Level {
                 }
 
                 let symbol = Symbol(column: column, row: row, symbolType: symbolType)
+                // Ice only ever wraps a normal randomly-spawned symbol, never a lock/special.
+                if isPlainRandomTile, let iceLayers = iceGrid[column, row], iceLayers > 0 {
+                    symbol.iceLayer = iceLayers
+                }
                 symbols[column, row] = symbol
 
                 set.insert(symbol)
@@ -128,7 +170,8 @@ class Level {
     }
 
     private func hasChain(atColumn column: Int, row: Int) -> Bool {
-        guard let symbolType = symbols[column, row]?.type else { return false }
+        guard let anchor = symbols[column, row], anchor.isMatchable() else { return false }
+        let symbolType = anchor.type
 
         // Horizontal chain check
         var horizontalLength = 1
@@ -137,7 +180,7 @@ class Level {
         var i = column - 1
         while i >= 0,
               let symbol = symbols[i, row],
-              symbol.type.isMatchableTo(symbolType) {
+              symbol.isMatchable(), symbol.type.isMatchableTo(symbolType) {
             i -= 1
             horizontalLength += 1
         }
@@ -146,7 +189,7 @@ class Level {
         i = column + 1
         while i < numColumns,
               let symbol = symbols[i, row],
-              symbol.type.isMatchableTo(symbolType) {
+              symbol.isMatchable(), symbol.type.isMatchableTo(symbolType) {
             i += 1
             horizontalLength += 1
         }
@@ -159,7 +202,7 @@ class Level {
         i = row - 1
         while i >= 0,
               let symbol = symbols[column, i],
-              symbol.type.isMatchableTo(symbolType) {
+              symbol.isMatchable(), symbol.type.isMatchableTo(symbolType) {
             i -= 1
             verticalLength += 1
         }
@@ -168,7 +211,7 @@ class Level {
         i = row + 1
         while i < numRows,
               let symbol = symbols[column, i],
-              symbol.type.isMatchableTo(symbolType) {
+              symbol.isMatchable(), symbol.type.isMatchableTo(symbolType) {
             i += 1
             verticalLength += 1
         }
@@ -336,9 +379,9 @@ class Level {
                 let matchType = symbol.type
 
                 guard let symbol1 = symbols[column + 1, row],
-                      symbol1.type.isMatchableTo(matchType),
+                      symbol1.isMatchable(), symbol1.type.isMatchableTo(matchType),
                       let symbol2 = symbols[column + 2, row],
-                      symbol2.type.isMatchableTo(matchType) else {
+                      symbol2.isMatchable(), symbol2.type.isMatchableTo(matchType) else {
                     column += 1
                     continue
                 }
@@ -349,7 +392,7 @@ class Level {
 
                 if column < numColumns,
                    let symbol3 = symbols[column, row],
-                   symbol3.type.isMatchableTo(matchType) {
+                   symbol3.isMatchable(), symbol3.type.isMatchableTo(matchType) {
                     chain.chainType = .horizontal4
                     symbolsToAdd.append(symbol3)
                     column += 1
@@ -357,7 +400,7 @@ class Level {
 
                 if column < numColumns,
                    let symbol4 = symbols[column, row],
-                   symbol4.type.isMatchableTo(matchType) {
+                   symbol4.isMatchable(), symbol4.type.isMatchableTo(matchType) {
                     chain.chainType = .five
                     symbolsToAdd.append(symbol4)
                     column += 1
@@ -383,9 +426,9 @@ class Level {
                 let matchType = symbol.type
 
                 guard let symbol1 = symbols[column, row + 1],
-                      symbol1.type.isMatchableTo(matchType),
+                      symbol1.isMatchable(), symbol1.type.isMatchableTo(matchType),
                       let symbol2 = symbols[column, row + 2],
-                      symbol2.type.isMatchableTo(matchType) else {
+                      symbol2.isMatchable(), symbol2.type.isMatchableTo(matchType) else {
                     row += 1
                     continue
                 }
@@ -396,7 +439,7 @@ class Level {
 
                 if row < numRows,
                    let symbol3 = symbols[column, row],
-                   symbol3.type.isMatchableTo(matchType) {
+                   symbol3.isMatchable(), symbol3.type.isMatchableTo(matchType) {
                     chain.chainType = .vertical4
                     symbolsToAdd.append(symbol3)
                     row += 1
@@ -404,7 +447,7 @@ class Level {
 
                 if row < numRows,
                    let symbol4 = symbols[column, row],
-                   symbol4.type.isMatchableTo(matchType) {
+                   symbol4.isMatchable(), symbol4.type.isMatchableTo(matchType) {
                     chain.chainType = .five
                     symbolsToAdd.append(symbol4)
                     row += 1
@@ -420,14 +463,22 @@ class Level {
     func explodeSpecialSymbols(for chains: Set<Chain>) -> Set<Chain> {
         var newChains = Set<Chain>()
         let symbols = allSymbolsFor(for: chains)
+        var enhancedTriggerCount = 0
         for symbol in symbols {
             if symbol.type.isEnhanced {
                 newChains = newChains.union(detectSpecialElimination(for: symbol))
+                enhancedTriggerCount += 1
             }
         }
         newChains.subtract(chains)
         removeSymbols(in: newChains)
         calculateScores(for: newChains)
+        // This is the one place every enhanced-tile explosion is actually triggered — whether
+        // set off by a normal match consuming it or a chain reaction from a neighboring
+        // enhanced tile — so it's the correct single source of truth for the combo objective.
+        if enhancedTriggerCount > 0, let count = levelGoal.levelTarget.enhancedCombos {
+            levelGoal.levelTarget.enhancedCombos = max(0, count - enhancedTriggerCount)
+        }
         return newChains
     }
 
@@ -586,53 +637,81 @@ class Level {
         return chain
     }
 
-    func removeLocks() -> Chain? {
-        var lockPositionsToRemove = Set<[Int]>()
-        var heavyLockPositionsToDowngrade = Set<[Int]>()
+    // Handles every "adjacent-cleared" blocker: vaultLock -> heavyLock -> lock -> cleared,
+    // and chocolate -> cleared (single hit). Also decrements ice one layer per adjacent clear
+    // on any frozen symbol, blocker or not, in the same pass (same trigger, same timing —
+    // this runs before fillHoles/topUp, so "adjacent cell is nil" genuinely means "just cleared").
+    func resolveBlockers() -> Chain? {
+        struct Downgrade {
+            let column: Int
+            let row: Int
+            let newType: SymbolType
+            let newTileType: Tile.TileType
+            let emoji: String
+        }
+
+        var toDowngrade: [Downgrade] = []
+        var toClear = Set<[Int]>()
 
         for column in 0 ..< numColumns {
             for row in 0 ..< numRows {
                 guard let symbol = symbols[column, row] else { continue }
-                guard symbol.type == .lock || symbol.type == .heavyLock else { continue }
+                let isBlocker = symbol.type == .lock || symbol.type == .heavyLock
+                    || symbol.type == .vaultLock || symbol.type == .chocolate
+                guard isBlocker else { continue }
 
-                let adj = adjacentPositions(column: symbol.column, row: symbol.row)
+                let adj = adjacentPositions(column: column, row: row)
                 let hasAdjacentCleared = adj.contains {
                     let c = $0[0]; let r = $0[1]
                     return isPositionInside(column: c, row: r) && symbols[c, r] == nil
                 }
                 guard hasAdjacentCleared else { continue }
 
-                if symbol.type == .lock {
-                    lockPositionsToRemove.insert([column, row])
-                } else {
-                    heavyLockPositionsToDowngrade.insert([column, row])
+                switch symbol.type {
+                case .vaultLock:
+                    toDowngrade.append(Downgrade(column: column, row: row, newType: .heavyLock, newTileType: .doubleLock, emoji: "⛓️"))
+                case .heavyLock:
+                    toDowngrade.append(Downgrade(column: column, row: row, newType: .lock, newTileType: .lock, emoji: "🔒"))
+                case .lock, .chocolate:
+                    toClear.insert([column, row])
+                default:
+                    break
                 }
             }
         }
 
-        if lockPositionsToRemove.isEmpty && heavyLockPositionsToDowngrade.isEmpty {
-            return nil
+        // Ice: decrement independently of the blocker pass above — any frozen symbol
+        // (locked or a normal candy) loses one layer when a neighboring cell clears.
+        for column in 0 ..< numColumns {
+            for row in 0 ..< numRows {
+                guard let symbol = symbols[column, row], symbol.isFrozen else { continue }
+                let adj = adjacentPositions(column: column, row: row)
+                let hasAdjacentCleared = adj.contains {
+                    let c = $0[0]; let r = $0[1]
+                    return isPositionInside(column: c, row: r) && symbols[c, r] == nil
+                }
+                if hasAdjacentCleared {
+                    symbol.iceLayer -= 1
+                }
+            }
         }
+
+        guard !toDowngrade.isEmpty || !toClear.isEmpty else { return nil }
 
         let chain = Chain(chainType: .locks)
 
-        for pos in heavyLockPositionsToDowngrade {
-            let column = pos[0]; let row = pos[1]
-            guard let symbol = symbols[column, row] else { continue }
-            // Downgrade: replace heavyLock symbol with a regular lock symbol
-            let crackedLock = Symbol(column: column, row: row, symbolType: .lock)
-            crackedLock.sprite = symbol.sprite
-            symbols[column, row] = crackedLock
-            tiles[column, row]?.type = .lock
-            // Swap sprite visual to 🔒
-            if let sprite = symbol.sprite {
-                if let lockTexture = SKTexture.texture(from: "🔒", fontSize: 40) {
-                    sprite.run(SKAction.setTexture(lockTexture))
-                }
+        for downgrade in toDowngrade {
+            guard let symbol = symbols[downgrade.column, downgrade.row] else { continue }
+            let downgraded = Symbol(column: downgrade.column, row: downgrade.row, symbolType: downgrade.newType)
+            downgraded.sprite = symbol.sprite
+            symbols[downgrade.column, downgrade.row] = downgraded
+            tiles[downgrade.column, downgrade.row]?.type = downgrade.newTileType
+            if let sprite = symbol.sprite, let texture = SKTexture.texture(from: downgrade.emoji, fontSize: 40) {
+                sprite.run(SKAction.setTexture(texture))
             }
         }
 
-        for pos in lockPositionsToRemove {
+        for pos in toClear {
             let column = pos[0]; let row = pos[1]
             if let symbol = symbols[column, row] {
                 chain.add(symbol: symbol)
@@ -642,6 +721,43 @@ class Level {
         }
 
         return chain.symbols.isEmpty ? nil : chain
+    }
+
+    // Called once per player move (after the board settles). Chocolate spreads to a random
+    // adjacent matchable candy, converting it in place. Returns the converted symbol (if any)
+    // so the caller can swap its sprite texture.
+    func spreadChocolateIfNeeded() -> Symbol? {
+        let chocolateSymbols = symbols.nonNilElements().filter { $0.type == .chocolate }
+        guard !chocolateSymbols.isEmpty else { return nil }
+        for chocolate in chocolateSymbols.shuffled() {
+            let candidates = adjacentPositions(column: chocolate.column, row: chocolate.row)
+                .filter { isPositionInside(column: $0[0], row: $0[1]) }
+                .compactMap { pos -> Symbol? in
+                    guard let sym = symbols[pos[0], pos[1]], sym.type.isNormalMatchable else { return nil }
+                    return sym
+                }
+            if let target = candidates.randomElement() {
+                target.type = .chocolate
+                return target
+            }
+        }
+        return nil
+    }
+
+    // Called after every fillHoles() pass. Any ingredient symbol that has settled at the
+    // bottom row is considered delivered — removed from the board (the next topUpSymbols
+    // pass refills the hole) and reported so the caller can update the escort target/score.
+    func collectIngredientsAtBottom() -> [Symbol] {
+        var collected: [Symbol] = []
+        for column in 0 ..< numColumns {
+            guard let symbol = symbols[column, 0], symbol.type == .ingredient else { continue }
+            collected.append(symbol)
+            symbols[column, 0] = nil
+        }
+        if let ingredient = levelGoal.levelTarget.ingredient {
+            levelGoal.levelTarget.ingredient = max(0, ingredient - collected.count)
+        }
+        return collected
     }
 
     func createSpecialSymbols(for chains: Set<Chain>) -> [Symbol] {
@@ -795,6 +911,11 @@ class Level {
             && levelGoal.levelTarget.lantern ?? 0 <= 0
             && levelGoal.levelTarget.zodiac ?? 0 <= 0
             && levelGoal.levelTarget.lock ?? 0 <= 0
+            && levelGoal.levelTarget.jelly ?? 0 <= 0
+            && levelGoal.levelTarget.ingredient ?? 0 <= 0
+            && levelGoal.levelTarget.lightningCombos ?? 0 <= 0
+            && levelGoal.levelTarget.fiveCombos ?? 0 <= 0
+            && levelGoal.levelTarget.enhancedCombos ?? 0 <= 0
     }
 
     func updateLevelTarget(by chains: Set<Chain>) {
@@ -830,6 +951,42 @@ class Level {
                     levelGoal.levelTarget.lock = lock - 1
                 }
             default: continue
+            }
+        }
+
+        // Jelly is positional, not symbol-typed: any cell that had jelly and got cleared
+        // this batch loses one layer, regardless of what was cleared there.
+        if levelGoal.levelTarget.jelly != nil {
+            var jellyCleared = 0
+            for symbol in allSymbols {
+                if let tile = tiles[symbol.column, symbol.row], tile.jellyCount > 0 {
+                    tile.jellyCount -= 1
+                    jellyCleared += 1
+                }
+            }
+            if jellyCleared > 0, let jelly = levelGoal.levelTarget.jelly {
+                levelGoal.levelTarget.jelly = max(0, jelly - jellyCleared)
+            }
+        }
+
+        // Combo objectives: each chain of the matching special type counts once,
+        // regardless of how many symbols it cleared.
+        for chain in chains {
+            switch chain.chainType {
+            case .lightning:
+                if let count = levelGoal.levelTarget.lightningCombos {
+                    levelGoal.levelTarget.lightningCombos = max(0, count - 1)
+                }
+            case .fiveEffect:
+                if let count = levelGoal.levelTarget.fiveCombos {
+                    levelGoal.levelTarget.fiveCombos = max(0, count - 1)
+                }
+            // enhancedCombos is tracked in explodeSpecialSymbols() instead — that's the actual
+            // trigger point for every enhanced-tile explosion, whereas a chain with
+            // chainType == .enhanced here would only exist for cascade side effects and
+            // double-count activations already caught there.
+            default:
+                break
             }
         }
     }

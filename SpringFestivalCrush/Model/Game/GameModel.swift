@@ -86,6 +86,10 @@ class GameModel: ObservableObject {
         case setUserInteraction(Bool)
         case showTutorialHint(Swap)
         case hideTutorialHint
+        // Board-wide jelly/ice visual refresh — fired after any batch of clears since either
+        // (or both) may have changed anywhere on the board.
+        case refreshOverlays
+        case onChocolateSpread(Symbol)
     }
 
     enum CommandAsync {
@@ -97,6 +101,7 @@ class GameModel: ObservableObject {
         case onFallingSymbols([[Symbol]])
         case onNewSprites([[Symbol]])
         case onEnhanceSymbols([Symbol])
+        case onIngredientsCollected([Symbol])
         case onGameBegin
         case onGameOver
         case shuffle(Set<Symbol>)
@@ -120,6 +125,8 @@ class GameModel: ObservableObject {
     @Published var currentLevel: Int = 0
     @Published var movesLeft: Int = 0
     @Published var score: Int = 0
+    // Set from level.timeLimit at the start of a timed level; nil for ordinary moves-only levels.
+    @Published var secondsLeft: Int?
 
     // MARK: - Boosters & currency
     @AppStorage("coins") var coins: Int = 100
@@ -269,6 +276,7 @@ class GameModel: ObservableObject {
         movesLeft = level.maximumMoves + pendingExtraMoves
         pendingExtraMoves = 0
         score = 0
+        secondsLeft = level.timeLimit
         invokeCommand?(.setupLayers)
         invokeCommand?(.setupTiles)
         let newSymbols = level.shuffle()
@@ -276,6 +284,20 @@ class GameModel: ObservableObject {
         await invokeCommandAsync?(.onGameBegin)
         gameState = .inProgress
         maybeShowTutorial()
+        invokeCommand?(.refreshOverlays)
+    }
+
+    /// Called once per second by the UI while a timed level is in progress.
+    @MainActor
+    func tickTimer() {
+        guard gameState == .inProgress, var remaining = secondsLeft else { return }
+        remaining -= 1
+        secondsLeft = remaining
+        if remaining <= 0 {
+            Task { @MainActor in
+                await handleGameLose()
+            }
+        }
     }
 
     /// Instantly clears the tapped tile using a purchased hammer charge, at no move cost.
@@ -337,7 +359,7 @@ class GameModel: ObservableObject {
         let matchChains = level.removeMatches()
         let specialChains = level.removeSpecialSymbols()
         var chains = specialChains.union(matchChains)
-        if let lockChain = level.removeLocks() {
+        if let lockChain = level.resolveBlockers() {
             chains.insert(lockChain)
         }
         if chains.count == 0 {
@@ -411,7 +433,7 @@ class GameModel: ObservableObject {
     @MainActor
     func handleRemoveAndMatches() async {
         var chains = level.removeMatches()
-        if let lockChain = level.removeLocks() {
+        if let lockChain = level.resolveBlockers() {
             chains.insert(lockChain)
         }
         if chains.count == 0 {
@@ -450,13 +472,23 @@ class GameModel: ObservableObject {
 
         updateScores(from: allChains)
         level.updateLevelTarget(by: allChains)
+        invokeCommand?(.refreshOverlays)
 
         let columns = level.fillHoles()
         await invokeCommandAsync?(.onFallingSymbols(columns))
+
+        let collectedIngredients = level.collectIngredientsAtBottom()
+        if !collectedIngredients.isEmpty {
+            score += Self.ingredientCollectedScore * collectedIngredients.count
+            await invokeCommandAsync?(.onIngredientsCollected(collectedIngredients))
+        }
+
         let topUpColumns = level.topUpSymbols()
 
         await invokeCommandAsync?(.onNewSprites(topUpColumns))
     }
+
+    private static let ingredientCollectedScore = 50
 
     func updateScores(from chains: Set<Chain>) {
         for chain in chains {
@@ -471,6 +503,9 @@ class GameModel: ObservableObject {
         } else if hasGameLose() {
             await handleGameLose()
         } else {
+            if let spread = level.spreadChocolateIfNeeded() {
+                invokeCommand?(.onChocolateSpread(spread))
+            }
             level.detectPossibleSwaps()
         }
     }
@@ -612,6 +647,16 @@ class GameModel: ObservableObject {
     func debugLaunchSpecialDemo() {
         zodiac = Zodiac.all.first(where: { $0.zodiacType == .rat }) ?? Zodiac.all.first!
         guard let demoLevel = Level(filename: "Debug_Special") else { return }
+        level = demoLevel
+        currentLevel = -1
+        currentLevelRecord = nil
+        shouldPresentDebugDemo = true
+    }
+
+    @MainActor
+    func debugLaunchElementsDemo() {
+        zodiac = Zodiac.all.first(where: { $0.zodiacType == .rat }) ?? Zodiac.all.first!
+        guard let demoLevel = Level(filename: "Debug_Elements") else { return }
         level = demoLevel
         currentLevel = -1
         currentLevelRecord = nil

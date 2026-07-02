@@ -18,7 +18,19 @@ struct DebugMenuView: View {
                     } label: {
                         Label("Launch Special Effects Demo", systemImage: "sparkles")
                     }
-                    Text("Board has pre-placed ⚡️ Lightning, 🌟 Five, and 💥 Enhanced tiles. Swap ⚡️ or 🌟 to trigger effects; any valid swap auto-fires 💥.")
+                    Text("Board has pre-placed ⚡️ Lightning, 🌟 Five, and 💥 Enhanced tiles, plus combo objectives for each. Swap ⚡️ or 🌟 to trigger effects; any valid swap auto-fires 💥.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                Section("Level Elements Demo") {
+                    Button {
+                        gameModel.debugLaunchElementsDemo()
+                        dismiss()
+                    } label: {
+                        Label("Launch Level Elements Demo", systemImage: "square.grid.3x3.fill")
+                    }
+                    Text("🔐 Vault lock (3-hit), 🍫 chocolate (spreads each move), 🎁 ingredients (guide to the bottom row), 🟩 jelly (clear by matching over it), 🧊 ice (breaks via adjacent matches), plus a countdown timer.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }

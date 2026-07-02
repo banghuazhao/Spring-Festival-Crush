@@ -12,6 +12,9 @@ enum SymbolType: String {
     case zodiac
     case lock
     case heavyLock
+    case vaultLock // three-hit lock: vaultLock -> heavyLock -> lock -> cleared
+    case chocolate // blocker: spreads to adjacent matchable symbols each move, clears like a lock
+    case ingredient // escort objective: must reach the bottom row to be collected
     // Special power-up symbols
     case five       // universal: clears all of one type when swapped
     case lightning  // clears full row + column when swapped
@@ -33,6 +36,9 @@ enum SymbolType: String {
         case .zodiac: "zodiac"
         case .lock: "lock"
         case .heavyLock: "heavyLock"
+        case .vaultLock: "vaultLock"
+        case .chocolate: "chocolate"
+        case .ingredient: "ingredient"
         case .five: "five"
         case .lightning: "lightning"
         case .firecrackerEnhanced: "firecracker"
@@ -54,6 +60,9 @@ enum SymbolType: String {
         switch self {
         case .lock: return "🔒"
         case .heavyLock: return "⛓️"
+        case .vaultLock: return "🔐"
+        case .chocolate: return "🍫"
+        case .ingredient: return "🎁"
         case .five: return "🌟"
         case .lightning: return "⚡️"
         default: return nil
@@ -102,6 +111,12 @@ enum SymbolType: String {
             self = .lock
         case "heavyLock":
             self = .heavyLock
+        case "vaultLock":
+            self = .vaultLock
+        case "chocolate":
+            self = .chocolate
+        case "ingredient":
+            self = .ingredient
         default:
             return nil
         }
@@ -145,6 +160,11 @@ class Symbol: CustomStringConvertible, Hashable {
     var row: Int
     var type: SymbolType
     var sprite: SKSpriteNode?
+    // Ice wraps any matchable symbol without changing its type. It moves with the symbol
+    // through swaps/falls (unlike jelly, which stays pinned to a board cell) and is cleared
+    // one layer at a time whenever an adjacent cell is cleared, same trigger as locks.
+    var iceLayer: Int = 0
+    var isFrozen: Bool { iceLayer > 0 }
 
     init(column: Int, row: Int, symbolType: SymbolType) {
         self.column = column
@@ -163,6 +183,15 @@ class Symbol: CustomStringConvertible, Hashable {
             spriteNode = SKSpriteNode(texture: texture)
         case .lock:
             let texture = SKTexture.texture(from: "🔒", fontSize: 40)
+            spriteNode = SKSpriteNode(texture: texture)
+        case .vaultLock:
+            let texture = SKTexture.texture(from: "🔐", fontSize: 40)
+            spriteNode = SKSpriteNode(texture: texture)
+        case .chocolate:
+            let texture = SKTexture.texture(from: "🍫", fontSize: 40)
+            spriteNode = SKSpriteNode(texture: texture)
+        case .ingredient:
+            let texture = SKTexture.texture(from: "🎁", fontSize: 40)
             spriteNode = SKSpriteNode(texture: texture)
         case .five:
             let texture = SKTexture.texture(from: "🌟", fontSize: 40)
@@ -243,7 +272,7 @@ class Symbol: CustomStringConvertible, Hashable {
 
     func isMovable() -> Bool {
         switch type {
-        case .lock, .heavyLock:
+        case .lock, .heavyLock, .vaultLock, .chocolate:
             false
         default:
             true
@@ -251,11 +280,12 @@ class Symbol: CustomStringConvertible, Hashable {
     }
 
     func isMatchable() -> Bool {
+        guard !isFrozen else { return false }
         switch type {
-        case .lock, .heavyLock, .five, .lightning:
-            false
+        case .lock, .heavyLock, .vaultLock, .chocolate, .five, .lightning, .ingredient:
+            return false
         default:
-            true
+            return true
         }
     }
 

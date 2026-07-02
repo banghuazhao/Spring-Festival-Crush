@@ -7,6 +7,13 @@ class LevelData: Codable {
     let levelGoal: LevelGoal
     var bgMusic: String?
     var noShuffle: Bool?
+    // Same shape as `tiles`. Value = jelly layers to place under that cell (0/omitted = none).
+    var jelly: [[Int]]?
+    // Same shape as `tiles`. Value = ice layers wrapping the symbol spawned there (0/omitted = none).
+    var ice: [[Int]]?
+    // Optional countdown timer, in seconds. When set, running out of time loses the level
+    // in addition to running out of moves.
+    var timeLimit: Int?
 
     static func loadFrom(file filename: String) -> LevelData? {
         var data: Data

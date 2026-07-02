@@ -51,6 +51,7 @@
 		9955DBD823D7E8D1007786D5 /* Rat_Level_8.json in Resources */ = {isa = PBXBuildFile; fileRef = 9955DBD323D7E8D1007786D5 /* Rat_Level_8.json */; };
 		9955DBD923D7E8D1007786D5 /* Ox_Level_5.json in Resources */ = {isa = PBXBuildFile; fileRef = 9955DBD423D7E8D1007786D5 /* Ox_Level_5.json */; };
 		A1B2C3D401234567AABBCC02 /* Debug_Special.json in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3D401234567AABBCC01 /* Debug_Special.json */; };
+		B2C3D4E501234567AABBCC20 /* Debug_Elements.json in Resources */ = {isa = PBXBuildFile; fileRef = B2C3D4E501234567AABBCC21 /* Debug_Elements.json */; };
 		9955DBDA23D7E8D1007786D5 /* Rat_Level_1.json in Resources */ = {isa = PBXBuildFile; fileRef = 9955DBD523D7E8D1007786D5 /* Rat_Level_1.json */; };
 		9955DBDB23D7E8D1007786D5 /* Rat_Level_2.json in Resources */ = {isa = PBXBuildFile; fileRef = 9955DBD623D7E8D1007786D5 /* Rat_Level_2.json */; };
 		9955DBDF23D7EA14007786D5 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9955DBDE23D7EA14007786D5 /* Constants.swift */; };
@@ -154,6 +155,7 @@
 		9955DBD323D7E8D1007786D5 /* Rat_Level_8.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Rat_Level_8.json; sourceTree = "<group>"; };
 		9955DBD423D7E8D1007786D5 /* Ox_Level_5.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Ox_Level_5.json; sourceTree = "<group>"; };
 		A1B2C3D401234567AABBCC01 /* Debug_Special.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Debug_Special.json; sourceTree = "<group>"; };
+		B2C3D4E501234567AABBCC21 /* Debug_Elements.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Debug_Elements.json; sourceTree = "<group>"; };
 		9955DBD523D7E8D1007786D5 /* Rat_Level_1.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Rat_Level_1.json; sourceTree = "<group>"; };
 		9955DBD623D7E8D1007786D5 /* Rat_Level_2.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Rat_Level_2.json; sourceTree = "<group>"; };
 		9955DBDE23D7EA14007786D5 /* Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
@@ -423,6 +425,7 @@
 			isa = PBXGroup;
 			children = (
 				A1B2C3D401234567AABBCC01 /* Debug_Special.json */,
+				B2C3D4E501234567AABBCC21 /* Debug_Elements.json */,
 				9949A9292C8093110027C480 /* Rat */,
 				9949A92A2C8095030027C480 /* Ox */,
 				8CB9827601C54448B24277A5 /* Tiger */,
@@ -570,6 +573,7 @@
 				9955DBDB23D7E8D1007786D5 /* Rat_Level_2.json in Resources */,
 				99CDEC3823F5216C0066B308 /* Ox_Level_4.json in Resources */,
 				A1B2C3D401234567AABBCC02 /* Debug_Special.json in Resources */,
+				B2C3D4E501234567AABBCC20 /* Debug_Elements.json in Resources */,
 				9955DBDA23D7E8D1007786D5 /* Rat_Level_1.json in Resources */,
 				9955DBD723D7E8D1007786D5 /* Rat_Level_3.json in Resources */,
 				9955DBCD23D7E852007786D5 /* Drip.wav in Resources */,
