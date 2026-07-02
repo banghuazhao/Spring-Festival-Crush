@@ -230,31 +230,36 @@
             }
         }
 
-        /// Presents the preloaded rewarded ad. `onReward` fires only if the user watches to
-        /// completion (GADRewardedAd's own semantics) — never on early dismissal.
+        /// Presents the preloaded ad. The reward is granted whenever the ad is dismissed
+        /// (adDidDismissFullScreenContent below), not gated on GADRewardedAd's strict
+        /// "watched enough" callback — closing early still counts, by design, since the
+        /// underlying ad unit here is an interstitial, not a true rewarded-video creative.
         func show(onReward: @escaping () -> Void) {
             guard let rewardedAd,
                   let root = UIApplication.shared.connectedScenes
                       .compactMap({ $0 as? UIWindowScene }).first?.windows.first?.rootViewController
             else { return }
             self.onReward = onReward
-            rewardedAd.present(fromRootViewController: root) { [weak self] in
-                self?.onReward?()
-                self?.onReward = nil
-            }
+            BackgroundMusicManager.shared.stopBackgroundMusic()
+            rewardedAd.present(fromRootViewController: root) {}
         }
 
         func adDidDismissFullScreenContent(_ ad: GADFullScreenPresentingAd) {
             isAdReady = false
             rewardedAd = nil
+            onReward?()
+            onReward = nil
             loadAd()
+            Task { await BackgroundMusicManager.shared.turnOnBackgroundMusic() }
         }
 
         func ad(_ ad: GADFullScreenPresentingAd, didFailToPresentFullScreenContentWithError error: Error) {
             print("[REWARDED AD] Failed to present: \(error.localizedDescription)")
             isAdReady = false
             rewardedAd = nil
+            onReward = nil
             loadAd()
+            Task { await BackgroundMusicManager.shared.turnOnBackgroundMusic() }
         }
     }
 #endif

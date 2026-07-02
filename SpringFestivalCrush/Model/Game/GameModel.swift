@@ -15,7 +15,7 @@ class GameModel: ObservableObject {
     private var modelContext: ModelContext?
 
     // MARK: - Lives / energy
-    static let maxLives = 5
+    static let maxLives = 10
     static let lifeRegenInterval: TimeInterval = 30 * 60 // 30 minutes per life
     @AppStorage("lives") var lives: Int = GameModel.maxLives
     @AppStorage("lastLifeLostTimestamp") private var lastLifeLostTimestamp: Double = 0
@@ -45,9 +45,9 @@ class GameModel: ObservableObject {
         refreshLives()
     }
 
-    /// Spends one life to start a level attempt. Callers must check `lives > 0` first —
-    /// this is a no-op (not a hard block) so it's safe to call unconditionally from selectLevel.
-    private func consumeLife() {
+    /// Spends one life when a level attempt is lost (out of moves). Starting or replaying a
+    /// level does NOT cost a life — only failing one does. Safe to call unconditionally.
+    private func loseLifeOnFailure() {
         guard lives > 0 else { return }
         lives -= 1
         if lastLifeLostTimestamp == 0 {
@@ -239,7 +239,6 @@ class GameModel: ObservableObject {
         currentLevel = selectedLevel
         level = Level(filename: "\(zodiac.zodiacType.name)_Level_\(selectedLevel)")
         currentLevelRecord = currentZodiacRecord?.levelRecords.first { $0.number == selectedLevel }
-        consumeLife()
     }
 
     /// Boosters are purchased per attempt; call before offering the booster sheet for a fresh
@@ -363,6 +362,7 @@ class GameModel: ObservableObject {
     @MainActor
     private func handleGameLose() async {
         gameState = .lose
+        loseLifeOnFailure()
         HapticManager.levelLose()
         await invokeCommandAsync?(.onGameOver)
     }
