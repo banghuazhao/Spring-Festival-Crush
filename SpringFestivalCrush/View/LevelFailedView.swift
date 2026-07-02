@@ -11,18 +11,7 @@ struct LevelFailedView: View {
     @State private var shake = false
 
     var body: some View {
-        ZStack {
-            RadialGradient(
-                gradient: Gradient(colors: [
-                    Color(red: 0.5, green: 0.5, blue: 0.55),
-                    Color(red: 0.25, green: 0.25, blue: 0.3),
-                ]),
-                center: .center,
-                startRadius: 0,
-                endRadius: 400
-            )
-            .edgesIgnoringSafeArea(.all)
-            VStack(spacing: 12) {
+        VStack(spacing: 12) {
                 Image(systemName: "xmark.circle.fill")
                     .font(.system(size: 50))
                     .foregroundColor(.white.opacity(0.9))
@@ -70,10 +59,20 @@ struct LevelFailedView: View {
                     }
                     .buttonStyle(.gamePrimary(gradient: AppTheme.neutralGradient))
                 }
-            }
-            .padding()
         }
-        .frame(width: 300, height: 400)
+        .padding()
+        .frame(width: 300)
+        .background(
+            RadialGradient(
+                gradient: Gradient(colors: [
+                    Color(red: 0.5, green: 0.5, blue: 0.55),
+                    Color(red: 0.25, green: 0.25, blue: 0.3),
+                ]),
+                center: .center,
+                startRadius: 0,
+                endRadius: 260
+            )
+        )
         .clipShape(.rect(cornerRadius: AppTheme.panelCornerRadius))
         .shadow(color: AppTheme.cardShadowColor, radius: 16, x: 0, y: 8)
     }

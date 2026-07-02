@@ -17,18 +17,7 @@ struct LevelCompleteView: View {
     }
 
     var body: some View {
-        ZStack {
-            RadialGradient(
-                gradient: Gradient(colors: [
-                    Color(red: 1.0, green: 0.8, blue: 0.9), // light pink
-                    Color(red: 1.0, green: 0.4, blue: 0.6), // darker pink
-                ]),
-                center: .center,
-                startRadius: 0,
-                endRadius: 400
-            )
-            .edgesIgnoringSafeArea(.all)
-            VStack(spacing: 12) {
+        VStack(spacing: 12) {
                 Text("LEVEL COMPLETE!")
                     .font(.system(size: 22, weight: .heavy, design: .rounded))
                     .foregroundColor(.white)
@@ -74,10 +63,20 @@ struct LevelCompleteView: View {
                 }
                 .buttonStyle(.gamePrimary(gradient: AppTheme.successGradient))
                 .padding(.top, 8)
-            }
-            .padding()
         }
-        .frame(width: 300, height: 400)
+        .padding()
+        .frame(width: 300)
+        .background(
+            RadialGradient(
+                gradient: Gradient(colors: [
+                    Color(red: 1.0, green: 0.8, blue: 0.9), // light pink
+                    Color(red: 1.0, green: 0.4, blue: 0.6), // darker pink
+                ]),
+                center: .center,
+                startRadius: 0,
+                endRadius: 260
+            )
+        )
         .clipShape(.rect(cornerRadius: AppTheme.panelCornerRadius))
         .shadow(color: AppTheme.cardShadowColor, radius: 16, x: 0, y: 8)
     }

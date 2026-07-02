@@ -14,10 +14,39 @@ struct GameView: View {
     let screenSize: CGSize
 
     @State private var gameScene: GameScene?
-
     @State var showingSettings: Bool = false
+    // Measured from the actual HUD view (see .measureHeight() below) so the hint banner
+    // sits right under it regardless of how many rows the HUD is currently showing.
+    @State private var hudHeight: CGFloat = 100
 
     private let timerTicker = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+
+    // Only one hint is ever shown — hammer mode (an active state needing the player's
+    // attention) takes priority over the one-time tutorial hint.
+    private var activeBanner: HUDBanner? {
+        if gameModel.hammerModeActive {
+            return HUDBanner(id: "hammer", text: "Tap a tile to clear it", icon: "hammer.fill", tint: .orange)
+        }
+        if gameModel.isTutorialHintActive {
+            return HUDBanner(id: "tutorial", text: "Swipe two tiles to match 3 or more!", icon: nil, tint: .black)
+        }
+        return nil
+    }
+
+    private var boosters: [BoosterItem] {
+        guard gameModel.hammerCharges > 0 else { return [] }
+        return [
+            BoosterItem(
+                id: "hammer",
+                icon: "hammer.fill",
+                count: gameModel.hammerCharges,
+                isActive: gameModel.hammerModeActive,
+                activeGradient: AppTheme.dangerGradient,
+                idleGradient: AppTheme.accentGradient,
+                action: { gameModel.hammerModeActive.toggle() }
+            )
+        ]
+    }
 
     var body: some View {
         ZStack {
@@ -28,10 +57,12 @@ struct GameView: View {
 
             VStack {
                 gameStatusView
+                    .measureHeight()
+                    .onPreferenceChange(HeightPreferenceKey.self) { hudHeight = $0 }
                     .padding()
                 Spacer() // This pushes the content to the top
-                if gameModel.hammerCharges > 0 {
-                    hammerBoosterButton
+                if !boosters.isEmpty {
+                    BoosterTrayView(boosters: boosters)
                         .padding(.bottom, 8)
                 }
                 HStack {
@@ -53,37 +84,10 @@ struct GameView: View {
                     .buttonStyle(.gamePrimary(gradient: AppTheme.neutralGradient))
                 }
             }
+            .animation(.spring(response: 0.35, dampingFraction: 0.75), value: gameModel.hammerCharges)
 
-            if gameModel.isTutorialHintActive {
-                VStack {
-                    Text("Swipe two tiles to match 3 or more!")
-                        .font(.system(size: 15, weight: .bold, design: .rounded))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 10)
-                        .background(Capsule().fill(Color.black.opacity(0.6)))
-                        .padding(.top, 112)
-                    Spacer()
-                }
-                .transition(.opacity.combined(with: .move(edge: .top)))
-                .animation(.easeInOut(duration: 0.3), value: gameModel.isTutorialHintActive)
-                .allowsHitTesting(false)
-            }
-
-            if gameModel.hammerModeActive {
-                VStack {
-                    Text("Tap a tile to clear it")
-                        .font(.system(size: 15, weight: .bold, design: .rounded))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 10)
-                        .background(Capsule().fill(Color.orange.opacity(0.85)))
-                        .padding(.top, 112)
-                    Spacer()
-                }
-                .transition(.opacity)
-                .animation(.easeInOut(duration: 0.2), value: gameModel.hammerModeActive)
-                .allowsHitTesting(false)
+            if let banner = activeBanner {
+                HUDBannerView(banner: banner, topOffset: hudHeight + 24)
             }
 
             ZStack {
@@ -98,6 +102,7 @@ struct GameView: View {
                 }
             }
         }
+        .animation(.easeInOut(duration: 0.25), value: activeBanner)
         .onAppear {
             gameScene = GameScene(
                 size: screenSize,
@@ -111,22 +116,8 @@ struct GameView: View {
         }
     }
 
-    var hammerBoosterButton: some View {
-        Button {
-            HapticManager.buttonTap()
-            gameModel.hammerModeActive.toggle()
-        } label: {
-            HStack(spacing: 6) {
-                Image(systemName: "hammer.fill")
-                Text("\(gameModel.hammerCharges)")
-                    .fontWeight(.bold)
-            }
-        }
-        .buttonStyle(.gamePrimary(gradient: gameModel.hammerModeActive ? AppTheme.dangerGradient : AppTheme.accentGradient, shape: Capsule()))
-    }
-
     var gameStatusView: some View {
-        HStack(spacing: 10) {
+        HStack(alignment: .top, spacing: 10) {
             // Level Info
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 4) {
@@ -171,20 +162,26 @@ struct GameView: View {
             Divider()
                 .background(Color.white)
 
-            // Score Info
-            GeometryReader { geo in
-                VStack {
-                    Spacer()
+            // Score + Target Info
+            VStack(alignment: .leading, spacing: 6) {
+                Text("\(gameModel.score)")
+                    .font(.system(size: 15, weight: .heavy, design: .rounded))
+                    .foregroundColor(.white)
+                    .contentTransition(.numericText())
+                    .animation(.default, value: gameModel.score)
+
+                GeometryReader { geo in
                     StarProgressView(
                         currentScore: gameModel.score,
                         levelGoal: gameModel.level.levelGoal,
                         width: geo.size.width
                     )
-                    LevelTargetView(levelTargetDatas: gameModel.createLevelTargetDatas())
-                    Spacer()
                 }
-                .frame(minWidth: 160)
+                .frame(height: 20)
+
+                LevelTargetView(levelTargetDatas: gameModel.createLevelTargetDatas())
             }
+            .frame(minWidth: 160)
 
             Divider()
                 .background(Color.white)
@@ -205,9 +202,8 @@ struct GameView: View {
                 SettingsView() // Display the settings view when tapped
             }
         }
-        .padding(.vertical, 8) // Reduced vertical padding
-        .padding(.horizontal, 10) // Adjust horizontal padding
-        .frame(height: 100)
+        .padding(.vertical, 10)
+        .padding(.horizontal, 10)
         .frame(maxWidth: 600)
         .background(
             RoundedRectangle(cornerRadius: AppTheme.panelCornerRadius, style: .continuous)
@@ -268,37 +264,37 @@ struct LevelTargetView: View {
     let levelTargetDatas: [LevelTargetData]
 
     var body: some View {
-        ZStack {
-            // Background
-            RoundedRectangle(cornerRadius: 20)
-                .fill(Color.black.opacity(0.2))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(Color.white.opacity(0.2), lineWidth: 1)
-                )
-
-            // Content
+        ScrollView(.horizontal, showsIndicators: false) {
             HStack {
                 ForEach(levelTargetDatas) { levelTargetData in
                     HStack(spacing: 2) {
                         levelTargetData.image
                             .resizable()
                             .scaledToFit()
-                            .frame(width: 30, height: 30)
+                            .frame(width: 26, height: 26)
 
                         if levelTargetData.targetNum > 0 {
                             Text("\(levelTargetData.targetNum)")
-                                .font(.system(size: 18, weight: .semibold))
+                                .font(.system(size: 16, weight: .semibold))
                                 .foregroundColor(.white)
                                 .shadow(color: Color.black.opacity(0.3), radius: 2, x: 2, y: 2)
                         } else {
                             Text("✅")
-                                .font(.system(size: 18))
+                                .font(.system(size: 16))
                         }
                     }
                 }
             }
+            .padding(.horizontal, 4)
         }
-        .frame(height: 40)
+        .frame(height: 34)
+        .background(
+            RoundedRectangle(cornerRadius: 17)
+                .fill(Color.black.opacity(0.2))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 17)
+                        .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                )
+        )
     }
 }
