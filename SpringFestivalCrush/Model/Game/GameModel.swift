@@ -345,6 +345,12 @@ class GameModel: ObservableObject {
 
     @MainActor
     private func handleGameWin() async {
+        // Guards against double-processing: a timed level's countdown (tickTimer) and the
+        // moves-exhausted path (beginNextTurn) both call into handleGameWin/handleGameLose
+        // without checking each other, so if one already ended the level while the other's
+        // async chain was still in flight (e.g. mid match-cascade animation), it would
+        // otherwise run a second time — double-awarding coins or double-deducting a life.
+        guard gameState == .inProgress else { return }
         invokeCommand?(.setUserInteraction(false))
         await handleRemainingSpecialSymbol()
         await handleExtraStepsBonus()
@@ -383,6 +389,7 @@ class GameModel: ObservableObject {
 
     @MainActor
     private func handleGameLose() async {
+        guard gameState == .inProgress else { return }
         gameState = .lose
         loseLifeOnFailure()
         HapticManager.levelLose()

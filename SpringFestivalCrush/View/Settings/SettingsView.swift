@@ -31,7 +31,7 @@ struct SettingsView: View {
                 }
             }
             .padding()
-            .onChange(of: settingModel.isPlayBackgroundMusic) { newValue in
+            .onChange(of: settingModel.isPlayBackgroundMusic) { _, newValue in
                 Task {
                     if newValue {
                         // Start playing background music

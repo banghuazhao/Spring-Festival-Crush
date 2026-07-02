@@ -237,7 +237,11 @@
         /// Presents the preloaded ad. The reward is granted on dismissal
         /// (adDidDismissFullScreenContent below) — closing early still counts.
         func show(onReward: @escaping () -> Void) {
-            guard let interstitialAd, let presenter = Self.topViewController() else { return }
+            guard isAdReady, let interstitialAd, let presenter = Self.topViewController() else { return }
+            // Flip this immediately (not just in the dismiss/fail callbacks below) so a rapid
+            // second tap — before the system presentation transition even completes — can't
+            // call present() again on the same ad instance or silently overwrite onReward.
+            isAdReady = false
             self.onReward = onReward
             BackgroundMusicManager.shared.stopBackgroundMusic()
             interstitialAd.present(fromRootViewController: presenter)

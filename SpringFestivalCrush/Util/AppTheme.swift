@@ -95,7 +95,7 @@ struct GamePrimaryButtonStyle: ButtonStyle {
 
 // Type-erased shape wrapper so GamePrimaryButtonStyle can accept capsules, circles, or rounded rects.
 struct AnyShape: Shape {
-    private let pathBuilder: (CGRect) -> Path
+    private let pathBuilder: @Sendable (CGRect) -> Path
 
     init(_ shape: some Shape) {
         pathBuilder = { rect in shape.path(in: rect) }
