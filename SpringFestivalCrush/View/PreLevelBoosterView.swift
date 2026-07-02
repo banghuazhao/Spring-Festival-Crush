@@ -14,11 +14,6 @@ struct PreLevelBoosterView: View {
     @State private var buyExtraMoves = false
     @State private var buyHammer = false
 
-    private var totalCost: Int {
-        (buyExtraMoves ? GameModel.extraMovesBoosterCost : 0)
-            + (buyHammer ? GameModel.hammerBoosterCost : 0)
-    }
-
     var body: some View {
         VStack(spacing: 16) {
             Capsule()
@@ -64,25 +59,18 @@ struct PreLevelBoosterView: View {
                 onStart()
                 dismiss()
             } label: {
+                // Boosters can only ever be toggled on if affordable (see boosterRow), so this
+                // one button always works whether or not anything is selected — no separate
+                // "Skip" path needed.
                 Label("Start Level", systemImage: "play.fill")
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.gamePrimary(gradient: AppTheme.successGradient))
-            .disabled(totalCost > gameModel.coins)
-            .opacity(totalCost > gameModel.coins ? 0.5 : 1.0)
             .padding(.horizontal)
-
-            Button("Skip") {
-                HapticManager.buttonTap()
-                onStart()
-                dismiss()
-            }
-            .font(.system(size: 15, weight: .medium))
-            .foregroundColor(.secondary)
             .padding(.bottom, 8)
         }
         .padding()
-        .presentationDetents([.height(420)])
+        .presentationDetents([.height(380)])
     }
 
     private func boosterRow(icon: String, title: String, cost: Int, isSelected: Binding<Bool>) -> some View {
