@@ -111,8 +111,18 @@ class Level {
             set = createInitialSymbols()
             detectPossibleSwaps()
             print("possible swaps: \(possibleSwaps)")
-        } while possibleSwaps.count == 0
+        } while possibleSwaps.count == 0 || hasAnyExistingMatch()
         return set
+    }
+
+    // A freshly dealt board should never already contain a match — real match-3 games always
+    // reshuffle until the initial deal is match-free, so tiles never evaporate with no player
+    // action. This also closes a real risk for fixed Enhanced tiles specifically: Enhanced is
+    // matchable (isMatchableTo treats it as equivalent to its base candy type), so a coincidental
+    // pair of same-type random neighbors lining up with it would otherwise auto-explode it
+    // before the player ever gets to see or trigger it deliberately.
+    private func hasAnyExistingMatch() -> Bool {
+        !detectHorizontalMatches().isEmpty || !detectVerticalMatches().isEmpty
     }
 
     private func createInitialSymbols() -> Set<Symbol> {
