@@ -237,13 +237,26 @@
         /// Presents the preloaded ad. The reward is granted on dismissal
         /// (adDidDismissFullScreenContent below) — closing early still counts.
         func show(onReward: @escaping () -> Void) {
-            guard let interstitialAd,
-                  let root = UIApplication.shared.connectedScenes
-                      .compactMap({ $0 as? UIWindowScene }).first?.windows.first?.rootViewController
-            else { return }
+            guard let interstitialAd, let presenter = Self.topViewController() else { return }
             self.onReward = onReward
             BackgroundMusicManager.shared.stopBackgroundMusic()
-            interstitialAd.present(fromRootViewController: root)
+            interstitialAd.present(fromRootViewController: presenter)
+        }
+
+        /// The reward buttons are used from inside SwiftUI .sheet presentations (e.g.
+        /// PreLevelBoosterView), so the window's root view controller is often already busy
+        /// presenting something else — GADInterstitialAd.present(fromRootViewController:)
+        /// fails with "already presenting another view controller" if handed that root
+        /// instead of the actual topmost presented controller.
+        private static func topViewController() -> UIViewController? {
+            guard var top = UIApplication.shared.connectedScenes
+                .compactMap({ $0 as? UIWindowScene })
+                .first?.windows.first?.rootViewController
+            else { return nil }
+            while let presented = top.presentedViewController {
+                top = presented
+            }
+            return top
         }
 
         func adDidDismissFullScreenContent(_ ad: GADFullScreenPresentingAd) {
