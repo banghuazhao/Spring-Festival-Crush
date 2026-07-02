@@ -24,6 +24,9 @@
 * 🌟 **Multiple Zodiac Themes**: Play through different Chinese zodiac animal themes with unique challenges.
 * 📊 **Progress Tracking**: Save your progress and track your achievements across all levels.
 * 💥 **Special Power-Up Tiles**: Earn powerful tiles through skillful matches for explosive chain reactions.
+* ❤️ **Lives System**: Ten hearts pace your play session, regenerating over time — or refill instantly with a rewarded video.
+* 🧰 **Pre-Level Boosters**: Spend coins earned from levels on extra moves or a tile-clearing hammer before a tough level.
+* 🧩 **Rich Level Mechanics**: Multi-hit vault locks, spreading chocolate blockers, jelly overlays, ice-frozen tiles, ingredient-escort goals, and optional countdown timers.
 
 ## 📱 Screenshots
 
@@ -81,7 +84,24 @@ The game is available for download on the App Store. Click the link below to dow
 | 🔒 Lock | Lock | Requires an adjacent match to break free |
 | ⛓️ Heavy Lock | Heavy Lock | Takes two adjacent matches to remove |
 
-Special tiles can be swapped directly to trigger their effect at any time.
+Special tiles can be swapped directly to trigger their effect at any time. Some levels start with one already on the board — a preview of what's to come, or a helping hand on a tougher level.
+
+### 🧩 Level Elements
+
+| Element | Behavior |
+|---------|----------|
+| 🔐 Vault Lock | Three-hit lock: vault → heavy lock → lock → cleared |
+| 🍫 Chocolate | Clears like a lock, but spreads to an adjacent tile each move if left alone |
+| 🟩 Jelly | A layer under the tile — keep matching over it to clear it, regardless of what's on top |
+| 🧊 Ice | Freezes a tile in place; breaks one layer at a time when a neighboring match clears |
+| 🎁 Ingredient | Guide it down to the bottom row to collect it |
+| ⏱️ Timer | Some levels race the clock in addition to (or instead of) move count |
+
+### ❤️ Lives & Boosters
+
+- Start with 10 lives; one is spent each time you fail a level, regenerating over time.
+- Out of lives? Watch a rewarded video for +1 life, or wait for the countdown.
+- Before a tough level, spend coins (earned by completing levels) on a **+5 Moves** boost or a **Hammer** that clears one tile of your choice mid-level.
 
 ## 🏗️ Project Structure
 
@@ -129,8 +149,27 @@ SpringFestivalCrush/
 - 🎨 Distinct activation effects for each power-up (shockwave ring, beam chain-link pull, yellow flash bar)
 - 🐾 **Tiger** zodiac: 10 new levels added
 - 📈 **Rat** and **Ox** zodiacs extended to 15 levels each
-- 🐛 Fixed selection indicator showing a broken-image cross on emoji-rendered tiles
 - 🔧 Enhanced tile now spawns at the exact position of the swapped tile
+- ❤️ **Lives system**: 10 hearts, regenerating over time, with a rewarded-video refill option
+- 🧰 **Pre-level boosters**: spend coins on +5 moves or a tile-clearing hammer before a level starts
+- 🎬 **Rewarded video ads** for bonus lives and coins
+- 🎓 **First-time tutorial hint** highlighting a real swappable pair on your very first level
+- 🧩 **New level elements**: three-hit vault locks, spreading chocolate blockers, jelly overlays,
+  ice-frozen tiles, ingredient-escort goals, and optional countdown timers — all authorable in any
+  level's data, not just debug content
+- 🌟 Special power-up tiles can now be **pre-placed in level data**, giving 17 levels across all
+  three zodiacs a tutorial preview or a difficulty-easing assist
+- 🖥️ Rebuilt in-game HUD as a proper component system (measured layout instead of hardcoded
+  offsets, a single-banner hint system, a data-driven booster tray) — fixes a real layout bug
+  where the HUD could balloon to fill the screen
+- 🐛 Fixed candies falling straight through locks/blockers instead of stopping at them, then
+  reworked hole-filling into a proper water-flow model (diagonal cascade around blockers) after
+  the first fix left permanent gaps — and fixed a same-row variant of that fix that could freeze
+  the game by oscillating forever between two blocked cells
+- 🐛 Fixed selection indicator showing a broken-image cross on emoji-rendered tiles
+- 🐛 Fixed rewarded ads failing to load (wrong ad format) and failing to present from inside a sheet
+- 🐛 Fixed two levels with lock targets that mathematically exceeded the lock tiles available,
+  making them unwinnable regardless of skill
 
 ### Version 2.0
 - ✨ Enhanced graphics and animations
