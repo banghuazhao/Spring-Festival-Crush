@@ -170,14 +170,10 @@ struct GameView: View {
                     .contentTransition(.numericText())
                     .animation(.default, value: gameModel.score)
 
-                GeometryReader { geo in
-                    StarProgressView(
-                        currentScore: gameModel.score,
-                        levelGoal: gameModel.level.levelGoal,
-                        width: geo.size.width
-                    )
-                }
-                .frame(height: 20)
+                StarProgressView(
+                    currentScore: gameModel.score,
+                    levelGoal: gameModel.level.levelGoal
+                )
 
                 LevelTargetView(levelTargetDatas: gameModel.createLevelTargetDatas())
             }
@@ -205,6 +201,13 @@ struct GameView: View {
         .padding(.vertical, 10)
         .padding(.horizontal, 10)
         .frame(maxWidth: 600)
+        // Without an explicit height, this card should hug its content's ideal size — but
+        // a GeometryReader anywhere in the subtree (StarProgressView uses one internally)
+        // reports an unbounded ideal size to its ancestors for layout purposes even when its
+        // own rendered size is later clamped. fixedSize is the actual fix: it pins this view
+        // to its computed ideal size instead of accepting whatever height its parent VStack's
+        // Spacer leaves available, which is what let the card balloon to fill the screen.
+        .fixedSize(horizontal: false, vertical: true)
         .background(
             RoundedRectangle(cornerRadius: AppTheme.panelCornerRadius, style: .continuous)
                 .fill(AppTheme.primaryGradient)
@@ -221,31 +224,38 @@ struct StarProgressView: View {
     let currentScore: Int
     let levelGoal: LevelGoal
 
-    let width: CGFloat
     let starPositions: [CGFloat] = [0.33, 0.66, 1.0] // Relative positions of stars on the bar
 
     var body: some View {
-        ZStack(alignment: .leading) {
-            // Background Bar
-            RoundedRectangle(cornerRadius: 6)
-                .fill(Color.black.opacity(0.25))
-                .frame(height: 12)
+        // GeometryReader is kept fully self-contained here, bounded by the .frame(height:)
+        // below at the same level — a GeometryReader used further up the tree (e.g. by the
+        // caller, to compute this view's width) reports an unbounded ideal size to its own
+        // ancestors during layout, which previously caused the whole HUD card to expand to
+        // fill the screen once its ancestor lost its fixed height.
+        GeometryReader { geo in
+            let width = geo.size.width
+            ZStack(alignment: .leading) {
+                // Background Bar
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(Color.black.opacity(0.25))
+                    .frame(height: 12)
 
-            // Foreground Bar (Progress)
-            RoundedRectangle(cornerRadius: 6)
-                .fill(AppTheme.accentGradient)
-                .frame(width: min(1.0, CGFloat(currentScore) / CGFloat(levelGoal.thirdStarScore)) * width, height: 12)
-                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: currentScore)
+                // Foreground Bar (Progress)
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(AppTheme.accentGradient)
+                    .frame(width: min(1.0, CGFloat(currentScore) / CGFloat(levelGoal.thirdStarScore)) * width, height: 12)
+                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: currentScore)
 
-            // Star Indicators
-            HStack(spacing: 0) {
-                Spacer()
-                    .frame(width: width * starPositions[0])
-                progressStar(earned: currentScore >= levelGoal.firstStarScore)
-                Spacer()
-                progressStar(earned: currentScore >= levelGoal.secondStarScore)
-                Spacer()
-                progressStar(earned: currentScore >= levelGoal.thirdStarScore)
+                // Star Indicators
+                HStack(spacing: 0) {
+                    Spacer()
+                        .frame(width: width * starPositions[0])
+                    progressStar(earned: currentScore >= levelGoal.firstStarScore)
+                    Spacer()
+                    progressStar(earned: currentScore >= levelGoal.secondStarScore)
+                    Spacer()
+                    progressStar(earned: currentScore >= levelGoal.thirdStarScore)
+                }
             }
         }
         .frame(height: 20)
