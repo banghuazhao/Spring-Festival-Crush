@@ -8,8 +8,6 @@
 	<string>$(BannerAdUnitID)</string>
 	<key>AppOpenAdID</key>
 	<string>$(AppOpenAdID)</string>
-	<key>RewardedAdID</key>
-	<string>$(RewardedAdID)</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleExecutable</key>

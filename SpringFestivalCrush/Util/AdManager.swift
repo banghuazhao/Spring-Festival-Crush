@@ -20,7 +20,6 @@
             static let bannerAdUnitID = Bundle.main.object(forInfoDictionaryKey: "BannerAdUnitID") as? String ?? ""
             static let interstitialAdID = Bundle.main.object(forInfoDictionaryKey: "InterstitialAdID") as? String ?? ""
             static let appOpenAdID = Bundle.main.object(forInfoDictionaryKey: "AppOpenAdID") as? String ?? ""
-            static let rewardedAdID = Bundle.main.object(forInfoDictionaryKey: "RewardedAdID") as? String ?? ""
         }
 
         static func requestATTPermission(with time: TimeInterval = 0) {
@@ -218,7 +217,7 @@
 
         func loadAd() {
             let request = GADRequest()
-            GADRewardedAd.load(withAdUnitID: AdManager.GoogleAdsID.rewardedAdID, request: request) { [weak self] ad, error in
+            GADRewardedAd.load(withAdUnitID: AdManager.GoogleAdsID.interstitialAdID, request: request) { [weak self] ad, error in
                 guard let self else { return }
                 if let error {
                     print("[REWARDED AD] Failed to load: \(error.localizedDescription)")
