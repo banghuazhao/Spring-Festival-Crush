@@ -1,33 +1,10 @@
 //
 // Reusable game-HUD building blocks: a single-banner hint system (so two hints can never
 // stack on top of each other) and a data-driven booster tray (so adding a new booster is
-// a list entry, not a new one-off view). Positioning is derived from measured frame sizes
-// via HeightPreferenceKey instead of hardcoded padding constants.
+// a list entry, not a new one-off view).
 //
 
 import SwiftUI
-
-// MARK: - Height measurement
-
-/// Reports a view's measured height up the view tree so a sibling can position itself
-/// relative to it without a hardcoded offset.
-struct HeightPreferenceKey: PreferenceKey {
-    static var defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = nextValue()
-    }
-}
-
-extension View {
-    /// Measures this view's height and reports it via HeightPreferenceKey.
-    func measureHeight() -> some View {
-        background(
-            GeometryReader { proxy in
-                Color.clear.preference(key: HeightPreferenceKey.self, value: proxy.size.height)
-            }
-        )
-    }
-}
 
 // MARK: - Banner
 
@@ -42,28 +19,27 @@ struct HUDBanner: Identifiable, Equatable {
     static func == (lhs: HUDBanner, rhs: HUDBanner) -> Bool { lhs.id == rhs.id }
 }
 
+/// Drawn as an ordinary element directly beneath the HUD card rather than positioned with a
+/// measured offset — a measured offset silently collapsed to ~0 whenever the preference was
+/// reduced against a non-contributing sibling, dropping the banner on top of the HUD.
 struct HUDBannerView: View {
     let banner: HUDBanner
-    /// Vertical offset from the top of the screen, typically the measured HUD height + a gap.
-    let topOffset: CGFloat
 
     var body: some View {
-        VStack {
-            HStack(spacing: 6) {
-                if let icon = banner.icon {
-                    Image(systemName: icon)
-                }
-                Text(banner.text)
+        HStack(spacing: 6) {
+            if let icon = banner.icon {
+                Image(systemName: icon)
             }
-            .font(.system(size: 15, weight: .bold, design: .rounded))
-            .foregroundColor(.white)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 10)
-            .background(Capsule().fill(banner.tint.opacity(0.85)))
-            .shadow(color: .black.opacity(0.2), radius: 6, y: 3)
-            .padding(.top, topOffset)
-            Spacer()
+            Text(banner.text)
+                .multilineTextAlignment(.center)
         }
+        .font(.system(size: 15, weight: .bold, design: .rounded))
+        .foregroundColor(.white)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .background(Capsule().fill(banner.tint.opacity(0.85)))
+        .shadow(color: .black.opacity(0.2), radius: 6, y: 3)
+        .padding(.horizontal, 16)
         .transition(.opacity.combined(with: .move(edge: .top)))
         .allowsHitTesting(false)
     }

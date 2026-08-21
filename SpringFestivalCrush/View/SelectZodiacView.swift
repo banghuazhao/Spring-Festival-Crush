@@ -29,12 +29,8 @@ struct SelectChineseZodiacView: View {
             let mapHeight = mapWidth * 1.5
 
             ZStack {
-                LinearGradient(
-                    colors: [Color(UIColor(hex: 0xF8C96B)), Color(UIColor(hex: 0xB3262E))],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .ignoresSafeArea()
+                AppTheme.festivalBackground
+                    .ignoresSafeArea()
 
                 ScrollViewReader { proxy in
                     ScrollView(.vertical, showsIndicators: false) {
@@ -188,6 +184,16 @@ private struct ZodiacMapNode: View {
 
     @State private var breathing = false
 
+    private func updateBreathing() {
+        guard isCurrent, !reduceMotion else {
+            breathing = false
+            return
+        }
+        withAnimation(.easeInOut(duration: 1.15).repeatForever(autoreverses: false)) {
+            breathing = true
+        }
+    }
+
     var body: some View {
         Button(action: action) {
             VStack(spacing: -3) {
@@ -248,24 +254,12 @@ private struct ZodiacMapNode: View {
                     .shadow(color: .black.opacity(0.25), radius: 3, y: 2)
             }
         }
-        .buttonStyle(ZodiacNodeButtonStyle())
+        .buttonStyle(.gameNode)
         .accessibilityLabel("\(zodiac.name) zodiac landmark")
         .accessibilityValue(!isUnlocked ? "Locked" : (isAvailable ? "Unlocked" : "Coming soon"))
-        .onAppear {
-            guard isCurrent, !reduceMotion else { return }
-            withAnimation(.easeInOut(duration: 1.15).repeatForever(autoreverses: false)) {
-                breathing = true
-            }
-        }
-    }
-}
-
-private struct ZodiacNodeButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed ? 0.88 : 1)
-            .rotationEffect(.degrees(configuration.isPressed ? -2 : 0))
-            .brightness(configuration.isPressed ? 0.08 : 0)
-            .animation(.spring(response: 0.22, dampingFraction: 0.58), value: configuration.isPressed)
+        .onAppear { updateBreathing() }
+        // The current landmark moves as zodiacs are unlocked, and a node already on screen
+        // never gets a second onAppear — without this the pulse stays on the old landmark.
+        .onChange(of: isCurrent) { _, _ in updateBreathing() }
     }
 }

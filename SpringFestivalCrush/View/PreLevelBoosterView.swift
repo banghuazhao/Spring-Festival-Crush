@@ -14,6 +14,19 @@ struct PreLevelBoosterView: View {
     @State private var buyExtraMoves = false
     @State private var buyHammer = false
 
+    /// Coins already committed by the current selection. Affordability has to be judged
+    /// against this, not against the raw balance: with 30 coins both boosters look
+    /// individually affordable, so selecting both used to charge for the first and then
+    /// silently drop the second at Start — the player paid and got nothing.
+    private var selectedCost: Int {
+        (buyExtraMoves ? GameModel.extraMovesBoosterCost : 0)
+            + (buyHammer ? GameModel.hammerBoosterCost : 0)
+    }
+
+    private var coinsRemaining: Int {
+        gameModel.coins - selectedCost
+    }
+
     var body: some View {
         ZStack {
             LinearGradient(
@@ -33,9 +46,10 @@ struct PreLevelBoosterView: View {
                         HStack(spacing: 6) {
                             Image(systemName: "circle.fill")
                                 .foregroundStyle(AppTheme.festivalGold)
-                            Text("\(gameModel.coins)")
+                            Text("\(coinsRemaining)")
                                 .font(.system(size: 22, weight: .black, design: .rounded))
                                 .contentTransition(.numericText())
+                                .animation(.spring(response: 0.3, dampingFraction: 0.7), value: coinsRemaining)
                             Text("COINS")
                                 .font(.system(size: 10, weight: .black, design: .rounded))
                                 .foregroundStyle(AppTheme.ink.opacity(0.62))
@@ -84,7 +98,7 @@ struct PreLevelBoosterView: View {
                 .padding(.top, 18)
             }
         }
-        .presentationDetents([.height(560), .large])
+        .presentationDetents([.height(470), .large])
         .presentationDragIndicator(.visible)
         .presentationCornerRadius(30)
     }
@@ -96,7 +110,8 @@ struct PreLevelBoosterView: View {
         cost: Int,
         isSelected: Binding<Bool>
     ) -> some View {
-        let affordable = gameModel.coins >= cost
+        // Already-selected rows stay tappable so a selection can always be undone.
+        let affordable = isSelected.wrappedValue || coinsRemaining >= cost
         return Button {
             guard affordable else {
                 HapticManager.locked()

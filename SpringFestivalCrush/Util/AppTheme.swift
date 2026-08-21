@@ -46,6 +46,14 @@ enum AppTheme {
         endPoint: .bottomTrailing
     )
 
+    /// The shared festival backdrop used by every out-of-level screen (zodiac map, level
+    /// grid), so the journey reads as one continuous place rather than separate screens.
+    static let festivalBackground = LinearGradient(
+        colors: [Color(UIColor(hex: 0xF8C96B)), Color(UIColor(hex: 0xB3262E))],
+        startPoint: .top,
+        endPoint: .bottom
+    )
+
     static func shineOverlay(cornerShape: some Shape) -> some View {
         LinearGradient(
             colors: [Color.white.opacity(0.45), Color.white.opacity(0)],
@@ -137,6 +145,22 @@ struct GameIconButtonStyle: ButtonStyle {
 
 extension ButtonStyle where Self == GameIconButtonStyle {
     static var gameIcon: GameIconButtonStyle { GameIconButtonStyle() }
+}
+
+// The press feel for map/grid nodes (zodiac landmarks, level medallions) — a deeper squash
+// than the chrome buttons get, shared so both journey screens react identically.
+struct GameNodeButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.88 : 1)
+            .rotationEffect(.degrees(configuration.isPressed ? -2 : 0))
+            .brightness(configuration.isPressed ? 0.08 : 0)
+            .animation(.spring(response: 0.22, dampingFraction: 0.58), value: configuration.isPressed)
+    }
+}
+
+extension ButtonStyle where Self == GameNodeButtonStyle {
+    static var gameNode: GameNodeButtonStyle { GameNodeButtonStyle() }
 }
 
 // MARK: - Game panels and transient notices
@@ -251,6 +275,10 @@ private struct GameNoticeModifier: ViewModifier {
     let icon: String
     let tint: Color
 
+    // Identifies the current showing so an older auto-dismiss can't cut a newer banner
+    // short — tapping two locked levels in quick succession used to do exactly that.
+    @State private var showID = 0
+
     func body(content: Content) -> some View {
         content
             .overlay(alignment: .top) {
@@ -264,8 +292,11 @@ private struct GameNoticeModifier: ViewModifier {
             .animation(.spring(response: 0.38, dampingFraction: 0.72), value: isPresented)
             .onChange(of: isPresented) { _, shown in
                 guard shown else { return }
+                showID += 1
+                let id = showID
                 Task { @MainActor in
                     try? await Task.sleep(nanoseconds: 2_200_000_000)
+                    guard id == showID else { return }
                     isPresented = false
                 }
             }

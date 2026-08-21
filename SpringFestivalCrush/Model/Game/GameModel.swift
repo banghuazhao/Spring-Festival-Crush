@@ -115,7 +115,29 @@ class GameModel: ObservableObject {
         case win
     }
 
+    /// Why the current attempt ended, so the failure screen can name the actual cause
+    /// instead of always claiming the player ran out of moves.
+    enum LoseReason {
+        case outOfMoves
+        case outOfTime
+
+        var title: String {
+            switch self {
+            case .outOfMoves: "OUT OF MOVES"
+            case .outOfTime: "TIME'S UP"
+            }
+        }
+
+        var icon: String {
+            switch self {
+            case .outOfMoves: "flag.checkered"
+            case .outOfTime: "clock.badge.exclamationmark.fill"
+            }
+        }
+    }
+
     @Published var gameState: GameState = .notStart
+    @Published private(set) var loseReason: LoseReason = .outOfMoves
 
     @Published var shouldPresentGame: Bool = false
     #if DEBUG
@@ -273,6 +295,7 @@ class GameModel: ObservableObject {
 
     @MainActor
     func setupNewGame() async {
+        loseReason = .outOfMoves
         movesLeft = level.maximumMoves + pendingExtraMoves
         pendingExtraMoves = 0
         score = 0
@@ -295,7 +318,7 @@ class GameModel: ObservableObject {
         secondsLeft = remaining
         if remaining <= 0 {
             Task { @MainActor in
-                await handleGameLose()
+                await handleGameLose(reason: .outOfTime)
             }
         }
     }
@@ -388,8 +411,9 @@ class GameModel: ObservableObject {
     }
 
     @MainActor
-    private func handleGameLose() async {
+    private func handleGameLose(reason: LoseReason = .outOfMoves) async {
         guard gameState == .inProgress else { return }
+        loseReason = reason
         gameState = .lose
         loseLifeOnFailure()
         HapticManager.levelLose()
@@ -402,18 +426,25 @@ class GameModel: ObservableObject {
     @MainActor
     private func exitToMenu() {
         gameState = .notStart
+        // Boosters are per-attempt. Clearing them here (not only when the next attempt is set
+        // up) keeps an unused hammer — and worse, an armed hammer mode — from riding along
+        // into whatever level is opened next.
+        resetBoostersForNewAttempt()
         shouldPresentGame = false
         #if DEBUG
         shouldPresentDebugDemo = false
         #endif
+        // Every route out of a level lands here (Exit, out-of-lives, finishing a zodiac), and
+        // each one needs the menu track back — a level with its own bgMusic would otherwise
+        // keep playing over the level map.
+        Task {
+            await BackgroundMusicManager.shared.playDefaultBackgroundMusic()
+        }
     }
 
     @MainActor
     func onTapBack() {
         exitToMenu()
-        Task {
-            await BackgroundMusicManager.shared.playDefaultBackgroundMusic()
-        }
     }
 
     @MainActor

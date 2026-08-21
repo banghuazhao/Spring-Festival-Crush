@@ -7,8 +7,6 @@ import SwiftUI
 
 struct SelectLevelView: View {
     @EnvironmentObject var gameModel: GameModel
-    @EnvironmentObject var themeModel: ThemeModel
-
     @EnvironmentObject var settingModel: SettingModel
 
     var unlockAll: Bool {
@@ -22,40 +20,55 @@ struct SelectLevelView: View {
     @State private var showBoosterSheet = false
     @State private var pendingLevelNumber: Int = 0
     @State private var presentOutOfLives = false
+    // Set by the booster sheet's Start button and acted on in onDismiss: raising
+    // shouldPresentGame while the sheet is still on screen makes UIKit try to present the
+    // full-screen game from a controller that is mid-dismissal, and the game never appears.
+    @State private var startAfterBoosterSheet = false
 
     private let ticker = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+
+    /// The lowest level the player hasn't cleared yet — highlighted so the grid always says
+    /// "you are here", the same way the zodiac map marks the current landmark.
+    private var currentLevelNumber: Int? {
+        gameModel.currentLevelRecords
+            .first { !$0.isComplete && ($0.isUnlocked || unlockAll) }?
+            .number
+    }
 
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                themeModel.pageBackgroundColor
-                    .edgesIgnoringSafeArea(.all)
+                AppTheme.festivalBackground
+                    .ignoresSafeArea()
 
                 ScrollView {
-                    LivesHeaderView()
-                        .padding(.horizontal)
-                        .padding(.top, 8)
+                    VStack(spacing: 18) {
+                        LivesHeaderView()
 
-                    LazyVGrid(columns: geometry.size.width < 600 ? columnsCompact : columnsRegular, spacing: 20) {
-                        ForEach(gameModel.currentLevelRecords, id: \.self) { levelRecord in
-                            LevelView(
-                                level: levelRecord.number,
-                                isUnlocked: levelRecord.isUnlocked || unlockAll,
-                                stars: levelRecord.stars,
-                                presentLevelIsLocked: $presentLevelIsLocked
-                            ) {
-                                guard gameModel.lives > 0 else {
-                                    HapticManager.locked()
-                                    presentOutOfLives = true
-                                    return
+                        LazyVGrid(columns: geometry.size.width < 600 ? columnsCompact : columnsRegular, spacing: 18) {
+                            ForEach(gameModel.currentLevelRecords, id: \.self) { levelRecord in
+                                LevelView(
+                                    level: levelRecord.number,
+                                    isUnlocked: levelRecord.isUnlocked || unlockAll,
+                                    isCurrent: levelRecord.number == currentLevelNumber,
+                                    stars: levelRecord.stars,
+                                    presentLevelIsLocked: $presentLevelIsLocked
+                                ) {
+                                    guard gameModel.lives > 0 else {
+                                        HapticManager.locked()
+                                        presentOutOfLives = true
+                                        return
+                                    }
+                                    pendingLevelNumber = levelRecord.number
+                                    gameModel.resetBoostersForNewAttempt()
+                                    showBoosterSheet = true
                                 }
-                                pendingLevelNumber = levelRecord.number
-                                gameModel.resetBoostersForNewAttempt()
-                                showBoosterSheet = true
                             }
                         }
                     }
-                    .padding()
+                    .padding(.horizontal, 16)
+                    .padding(.top, 10)
+                    .padding(.bottom, 24)
                 }
             }
         }
@@ -64,13 +77,17 @@ struct SelectLevelView: View {
                 GameView(screenSize: geo.size)
             }
         }
-        .sheet(isPresented: $showBoosterSheet) {
+        .sheet(isPresented: $showBoosterSheet, onDismiss: {
+            guard startAfterBoosterSheet else { return }
+            startAfterBoosterSheet = false
+            gameModel.selectLevel(pendingLevelNumber)
+            gameModel.shouldPresentGame = true
+        }) {
             PreLevelBoosterView(levelNumber: pendingLevelNumber) {
-                gameModel.selectLevel(pendingLevelNumber)
-                gameModel.shouldPresentGame = true
+                startAfterBoosterSheet = true
             }
         }
-        .navigationTitle("Select Level")
+        .navigationTitle(gameModel.zodiac?.zodiacType.title ?? "Select Level")
         .navigationBarTitleDisplayMode(.inline)
         .gameNotice(
             isPresented: $presentLevelIsLocked,
@@ -102,27 +119,33 @@ struct LivesHeaderView: View {
     }
 
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 9) {
             HStack(spacing: 4) {
                 ForEach(0 ..< GameModel.maxLives, id: \.self) { index in
                     Image(systemName: index < gameModel.lives ? "heart.fill" : "heart")
                         .font(.system(size: 15))
-                        .foregroundColor(index < gameModel.lives ? .red : .secondary.opacity(0.4))
+                        .foregroundStyle(index < gameModel.lives ? Color.red : AppTheme.ink.opacity(0.28))
                 }
-                Spacer(minLength: 0)
+                Spacer(minLength: 4)
                 if gameModel.lives < GameModel.maxLives {
                     HStack(spacing: 4) {
                         Image(systemName: "clock.fill")
                             .font(.caption)
                         Text(countdownText)
-                            .font(.system(size: 13, weight: .semibold, design: .rounded))
+                            .font(.system(size: 13, weight: .bold, design: .rounded))
                             .monospacedDigit()
                             .lineLimit(1)
                     }
                     .fixedSize()
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(AppTheme.ink.opacity(0.7))
+                } else {
+                    Text("FULL")
+                        .font(.system(size: 11, weight: .black, design: .rounded))
+                        .foregroundStyle(AppTheme.ink.opacity(0.5))
                 }
             }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("\(gameModel.lives) of \(GameModel.maxLives) lives")
 
             if gameModel.lives < GameModel.maxLives {
                 HStack {
@@ -133,24 +156,37 @@ struct LivesHeaderView: View {
                 }
             }
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 11)
         .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.white.opacity(0.5))
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(AppTheme.cream.opacity(0.94))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .stroke(AppTheme.festivalGold, lineWidth: 3)
+                )
         )
+        .shadow(color: .black.opacity(0.22), radius: 7, y: 4)
     }
 }
 
 struct LevelView: View {
     let level: Int
     let isUnlocked: Bool
+    var isCurrent: Bool = false
     let stars: Int
     @Binding var presentLevelIsLocked: Bool
     let action: () -> Void
 
+    private let nodeSize: CGFloat = 74
+
+    private var innerRingColor: Color {
+        guard isUnlocked else { return .white.opacity(0.25) }
+        return isCurrent ? AppTheme.festivalRed : AppTheme.festivalGoldDark
+    }
+
     var body: some View {
-        VStack {
+        VStack(spacing: 6) {
             Button {
                 if isUnlocked {
                     HapticManager.buttonTap()
@@ -160,78 +196,58 @@ struct LevelView: View {
                     presentLevelIsLocked = true
                 }
             } label: {
-                VStack {
-                    ZStack {
-                        Circle()
-                            .fill(LinearGradient(
-                                gradient: Gradient(colors: [Color.pink.opacity(0.8), Color.purple]),
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing))
-                            .frame(width: 80, height: 80)
-                            .shadow(color: Color.purple.opacity(0.6), radius: 10, x: 5, y: 5) // Purple shadow for depth
-                            .overlay(
-                                Circle()
-                                    .stroke(
-                                        LinearGradient(
-                                            gradient: Gradient(colors: [Color.white.opacity(0.8), Color.clear]),
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        ),
-                                        lineWidth: 2
-                                    )
-                                    .blur(radius: 1)
-                                    .offset(x: -2, y: -2)
-                            )
-                            .overlay(
-                                Circle()
-                                    .stroke(Color.purple.opacity(0.2), lineWidth: 1)
-                                    .blur(radius: 1)
-                                    .offset(x: 2, y: 2)
-                            )
-                            .overlay(
-                                Circle()
-                                    .fill(
-                                        RadialGradient(gradient: Gradient(colors: [Color.white.opacity(0.5), Color.clear]), center: .topLeading, startRadius: 0, endRadius: 40)
-                                    )
-                                    .frame(width: 80, height: 80)
-                                    .clipShape(Circle())
-                                    .blur(radius: 1)
-                            )
+                ZStack {
+                    Circle()
+                        .fill(
+                            isUnlocked
+                                ? LinearGradient(
+                                    colors: [AppTheme.creamHighlight, AppTheme.festivalGold],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                                : LinearGradient(
+                                    colors: [Color.gray.opacity(0.8), Color.black.opacity(0.62)],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                        )
+                        .frame(width: nodeSize, height: nodeSize)
+                        .overlay(Circle().stroke(.white.opacity(0.85), lineWidth: 3))
+                        .overlay(
+                            Circle()
+                                .stroke(innerRingColor, lineWidth: isCurrent ? 3 : 2)
+                                .padding(5)
+                        )
+                        .shadow(color: .black.opacity(0.35), radius: 7, y: 5)
 
-                        Text("\(level)")
-                            .font(.system(size: 24, weight: .bold, design: .rounded))
-                            .foregroundColor(.white)
-                            .shadow(color: Color.black.opacity(0.2), radius: 2, x: 2, y: 2)
+                    Text("\(level)")
+                        .font(.system(size: 27, weight: .black, design: .rounded))
+                        .foregroundStyle(isUnlocked ? AppTheme.ink : .white.opacity(0.75))
+                        .shadow(color: .black.opacity(isUnlocked ? 0.12 : 0.4), radius: 2, y: 1)
+
+                    if !isUnlocked {
+                        Image(systemName: "lock.fill")
+                            .font(.system(size: 17, weight: .black))
+                            .foregroundStyle(.white)
+                            .padding(7)
+                            .background(Circle().fill(Color.black.opacity(0.72)))
+                            .offset(x: nodeSize * 0.33, y: nodeSize * 0.31)
                     }
                 }
             }
-            .buttonStyle(PlainButtonStyle())
-            .overlay {
-                if !isUnlocked {
-                    HStack {
-                        Spacer()
-                        VStack {
-                            Spacer()
-                            Image(systemName: "lock.fill")
-                                .resizable()
-                                .frame(width: 24, height: 24)
-                                .foregroundColor(.white)
-                                .padding(8)
-                                .background(Color.black.opacity(0.7))
-                                .cornerRadius(12)
-                        }
-                    }
-                }
-            }
+            .buttonStyle(.gameNode)
+            .accessibilityLabel("Level \(level)")
+            .accessibilityValue(isUnlocked ? "\(stars) of 3 stars" : "Locked")
 
-            HStack(spacing: 4) {
+            HStack(spacing: 3) {
                 ForEach(0 ..< 3) { star in
                     Image(systemName: "star.fill")
-                        .resizable()
-                        .frame(width: 20, height: 20)
-                        .foregroundColor(star < stars ? Color.orange : Color.gray)
+                        .font(.system(size: 15))
+                        .foregroundStyle(star < stars ? AppTheme.festivalGold : Color.black.opacity(0.22))
+                        .shadow(color: star < stars ? AppTheme.festivalGold.opacity(0.7) : .clear, radius: 4)
                 }
             }
+            .accessibilityHidden(true)
         }
     }
 }

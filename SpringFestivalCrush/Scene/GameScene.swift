@@ -836,12 +836,14 @@ class GameScene: SKScene {
     }
 
     func animateGameOver() async {
+        gameLayer.removeAction(forKey: "screenShake")
         let action = SKAction.move(by: CGVector(dx: 0, dy: -size.height), duration: 0.3)
         action.timingMode = .easeIn
         await gameLayer.run(action)
     }
 
     func animateBeginGame() async {
+        gameLayer.removeAction(forKey: "screenShake")
         gameLayer.isHidden = false
         gameLayer.position = CGPoint(x: 0, y: size.height)
         let action = SKAction.move(by: CGVector(dx: 0, dy: -size.height), duration: 0.3)
@@ -994,6 +996,9 @@ class GameScene: SKScene {
 
     /// Small camera-shake for big explosions/combos — the board itself kicks.
     private func screenShake(magnitude: CGFloat = 6, duration: TimeInterval = 0.28) {
+        // Never restart mid-shake: the restart would read an already-offset position as the
+        // rest position, so a cascade of big matches walks the board permanently off centre.
+        guard gameLayer.action(forKey: "screenShake") == nil else { return }
         let originalPosition = gameLayer.position
         var actions: [SKAction] = []
         let steps = 6

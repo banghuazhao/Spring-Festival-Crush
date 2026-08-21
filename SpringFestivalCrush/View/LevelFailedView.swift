@@ -12,7 +12,7 @@ struct LevelFailedView: View {
     @State private var shake = false
 
     var body: some View {
-        GamePopupPanel(title: "OUT OF MOVES", tone: .red) {
+        GamePopupPanel(title: gameModel.loseReason.title, tone: .red) {
             VStack(spacing: 16) {
                 ZStack {
                     Circle()
@@ -27,7 +27,7 @@ struct LevelFailedView: View {
                         .frame(width: 76, height: 76)
                         .overlay(Circle().stroke(Color.gray.opacity(0.55), lineWidth: 4))
 
-                    Image(systemName: "flag.checkered")
+                    Image(systemName: gameModel.loseReason.icon)
                         .font(.system(size: 35, weight: .black))
                         .foregroundStyle(AppTheme.festivalRed)
                 }
@@ -44,7 +44,8 @@ struct LevelFailedView: View {
                     .multilineTextAlignment(.center)
 
                 HStack(spacing: 18) {
-                    resultStat(title: "LEVEL", value: "\(gameModel.currentLevel)")
+                    // Levels below 1 aren't real levels (the DEBUG demos use -1).
+                    resultStat(title: "LEVEL", value: gameModel.currentLevel >= 1 ? "\(gameModel.currentLevel)" : "DEMO")
                     Rectangle()
                         .fill(AppTheme.festivalGold.opacity(0.5))
                         .frame(width: 1, height: 42)
@@ -82,7 +83,7 @@ struct LevelFailedView: View {
 
                     Button {
                         HapticManager.buttonTap()
-                        gameModel.onTapTryAgainLevel()
+                        gameModel.onTapBack()
                     } label: {
                         Label("Back to Levels", systemImage: "map.fill")
                     }
