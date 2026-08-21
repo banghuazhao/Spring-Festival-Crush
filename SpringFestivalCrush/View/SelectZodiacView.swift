@@ -23,82 +23,56 @@ struct SelectChineseZodiacView: View {
             .zodiacType ?? .rat
     }
 
+    /// The landmarks in journey order, paired into the two-column rows the map is laid out
+    /// in, top row first — the artwork reads bottom-to-top, so the first pair (rat, ox) is
+    /// drawn last.
+    private var rows: [[ZodiacRecord]] {
+        let ordered = gameModel.zodiacRecords.sorted { $0.zodiacType.rawValue < $1.zodiacType.rawValue }
+        let pairs = stride(from: 0, to: ordered.count, by: 2).map {
+            Array(ordered[$0 ..< min($0 + 2, ordered.count)])
+        }
+        return pairs.reversed()
+    }
+
     var body: some View {
-        GeometryReader { geometry in
-            let mapWidth = min(geometry.size.width - 20, 680)
-            let mapHeight = mapWidth * 1.5
+        ZStack {
+            AppTheme.festivalBackground
+                .ignoresSafeArea()
 
-            ZStack {
-                AppTheme.festivalBackground
-                    .ignoresSafeArea()
+            // The artwork is the screen: full-bleed behind the nav bar and home indicator,
+            // cropped rather than letterboxed. It carries the "journey" idea on its own, so
+            // there is no title card or legend competing with it.
+            Color.clear
+                .overlay {
+                    Image("ZodiacFestivalMap")
+                        .resizable()
+                        .scaledToFill()
+                }
+                .clipped()
+                .ignoresSafeArea()
 
-                ScrollViewReader { proxy in
-                    ScrollView(.vertical, showsIndicators: false) {
-                        VStack(spacing: 10) {
-                            mapHeader
+            GeometryReader { geometry in
+                // Landmarks are laid out rather than pinned to fractions of the image: the
+                // image is cropped by an amount that depends on the device's aspect ratio,
+                // so anything positioned in image space drifts off screen on some devices.
+                let rowHeight = geometry.size.height / CGFloat(max(rows.count, 1))
+                let nodeSize = min(max(geometry.size.width * 0.19, 48), min(84, rowHeight - 28))
 
-                            ZStack {
-                                Image("ZodiacFestivalMap")
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: mapWidth, height: mapHeight)
-                                    .clipped()
-
-                                ForEach(gameModel.zodiacRecords) { record in
-                                    let zodiac = Zodiac.all.first { $0.zodiacType == record.zodiacType }
-                                    let unlocked = record.isUnlocked || unlockAll
-
-                                    ZodiacMapNode(
-                                        zodiac: record.zodiacType,
-                                        isUnlocked: unlocked,
-                                        isAvailable: zodiac?.isAvailable ?? false,
-                                        isCurrent: record.zodiacType == focusedZodiac,
-                                        size: min(max(mapWidth * 0.16, 62), 88)
-                                    ) {
-                                        if !unlocked {
-                                            HapticManager.locked()
-                                            presentZodiacIsLocked = true
-                                        } else if let zodiac, zodiac.isAvailable {
-                                            HapticManager.buttonTap()
-                                            gameModel.selectZodiac(record)
-                                            shouldPresentLevel = true
-                                        } else {
-                                            HapticManager.unavailable()
-                                            presentZodiacUnavailable = true
-                                        }
-                                    }
-                                    .position(
-                                        x: mapWidth * record.zodiacType.mapPosition.x,
-                                        y: mapHeight * record.zodiacType.mapPosition.y
-                                    )
-                                    .id(record.zodiacType)
-                                }
+                VStack(spacing: 0) {
+                    ForEach(rows.indices, id: \.self) { index in
+                        HStack(spacing: 0) {
+                            ForEach(rows[index]) { record in
+                                landmark(for: record, size: nodeSize)
+                                    .frame(maxWidth: .infinity)
                             }
-                            .frame(width: mapWidth, height: mapHeight)
-                            .clipShape(.rect(cornerRadius: 26))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 26, style: .continuous)
-                                    .stroke(Color.white.opacity(0.45), lineWidth: 2)
-                            )
-                            .shadow(color: .black.opacity(0.35), radius: 18, y: 10)
-
-                            mapLegend
-                                .padding(.bottom, 22)
                         }
-                        .frame(maxWidth: .infinity)
-                        .padding(.top, 4)
-                    }
-                    .onAppear {
-                        DispatchQueue.main.async {
-                            proxy.scrollTo(focusedZodiac, anchor: .center)
-                        }
-                    }
-                    .onChange(of: focusedZodiac) { _, zodiac in
-                        withAnimation(.spring(response: 0.65, dampingFraction: 0.82)) {
-                            proxy.scrollTo(zodiac, anchor: .center)
+                        if index < rows.count - 1 {
+                            Spacer(minLength: 6)
                         }
                     }
                 }
+                .frame(width: geometry.size.width, height: geometry.size.height)
+                .padding(.horizontal, 8)
             }
         }
         .navigationDestination(isPresented: $shouldPresentLevel) {
@@ -118,56 +92,28 @@ struct SelectChineseZodiacView: View {
         )
     }
 
-    private var mapHeader: some View {
-        VStack(spacing: 5) {
-            Text("THE ZODIAC JOURNEY")
-                .font(.system(size: 22, weight: .black, design: .rounded))
-                .foregroundStyle(AppTheme.ink)
-            Text("Climb the festival path · master all 12 guardians")
-                .font(.system(size: 13, weight: .semibold, design: .rounded))
-                .foregroundStyle(AppTheme.ink.opacity(0.72))
-                .multilineTextAlignment(.center)
-        }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 11)
-        .background(
-            Capsule()
-                .fill(AppTheme.cream.opacity(0.94))
-                .overlay(Capsule().stroke(AppTheme.festivalGold, lineWidth: 3))
-        )
-        .shadow(color: .black.opacity(0.25), radius: 8, y: 4)
-        .padding(.horizontal, 16)
-    }
+    private func landmark(for record: ZodiacRecord, size: CGFloat) -> some View {
+        let zodiac = Zodiac.all.first { $0.zodiacType == record.zodiacType }
+        let unlocked = record.isUnlocked || unlockAll
 
-    private var mapLegend: some View {
-        HStack(spacing: 14) {
-            Label("Current", systemImage: "sparkles")
-            Label("Locked", systemImage: "lock.fill")
-            Label("Coming soon", systemImage: "hammer.fill")
-        }
-        .font(.system(size: 11, weight: .bold, design: .rounded))
-        .foregroundStyle(AppTheme.ink.opacity(0.8))
-        .padding(.horizontal, 14)
-        .padding(.vertical, 9)
-        .background(Capsule().fill(AppTheme.cream.opacity(0.9)))
-    }
-}
-
-private extension ChineseZodiac {
-    var mapPosition: CGPoint {
-        switch self {
-        case .rat: CGPoint(x: 0.30, y: 0.91)
-        case .ox: CGPoint(x: 0.72, y: 0.91)
-        case .tiger: CGPoint(x: 0.31, y: 0.77)
-        case .rabbit: CGPoint(x: 0.70, y: 0.77)
-        case .dragon: CGPoint(x: 0.31, y: 0.625)
-        case .snake: CGPoint(x: 0.70, y: 0.625)
-        case .horse: CGPoint(x: 0.32, y: 0.48)
-        case .goat: CGPoint(x: 0.68, y: 0.48)
-        case .monkey: CGPoint(x: 0.31, y: 0.34)
-        case .rooster: CGPoint(x: 0.70, y: 0.34)
-        case .dog: CGPoint(x: 0.32, y: 0.215)
-        case .pig: CGPoint(x: 0.70, y: 0.215)
+        return ZodiacMapNode(
+            zodiac: record.zodiacType,
+            isUnlocked: unlocked,
+            isAvailable: zodiac?.isAvailable ?? false,
+            isCurrent: record.zodiacType == focusedZodiac,
+            size: size
+        ) {
+            if !unlocked {
+                HapticManager.locked()
+                presentZodiacIsLocked = true
+            } else if let zodiac, zodiac.isAvailable {
+                HapticManager.buttonTap()
+                gameModel.selectZodiac(record)
+                shouldPresentLevel = true
+            } else {
+                HapticManager.unavailable()
+                presentZodiacUnavailable = true
+            }
         }
     }
 }
