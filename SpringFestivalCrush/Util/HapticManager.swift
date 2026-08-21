@@ -59,4 +59,12 @@ enum HapticManager {
     static func buttonTap() {
         lightImpact.impactOccurred()
     }
+
+    static func locked() {
+        notification.notificationOccurred(.warning)
+    }
+
+    static func unavailable() {
+        mediumImpact.impactOccurred(intensity: 0.65)
+    }
 }

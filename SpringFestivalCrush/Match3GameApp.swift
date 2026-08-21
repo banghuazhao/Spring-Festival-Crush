@@ -8,7 +8,7 @@ import SpriteKit
 import SwiftData
 import SwiftUI
 
-#if !targetEnvironment(macCatalyst)
+#if !targetEnvironment(macCatalyst) && !targetEnvironment(simulator)
     import GoogleMobileAds
 #endif
 
@@ -23,7 +23,7 @@ struct Match3GameApp: App {
     @StateObject
     private var themeModel: ThemeModel
 
-    #if !targetEnvironment(macCatalyst)
+    #if !targetEnvironment(macCatalyst) && !targetEnvironment(simulator)
         var ad = OpenAd()
     #endif
 
@@ -32,7 +32,7 @@ struct Match3GameApp: App {
         _settingModel = StateObject(wrappedValue: SettingModel())
         _themeModel = StateObject(wrappedValue: ThemeModel())
 
-        #if !targetEnvironment(macCatalyst)
+        #if !targetEnvironment(macCatalyst) && !targetEnvironment(simulator)
             GADMobileAds.sharedInstance().start()
         #endif
     }
@@ -49,7 +49,7 @@ struct Match3GameApp: App {
                     if newPhase == .active {
                         gameModel.refreshLives()
                     }
-                    #if !targetEnvironment(macCatalyst)
+                    #if !targetEnvironment(macCatalyst) && !targetEnvironment(simulator)
                         if newPhase == .active {
                             ad.tryToPresentAd()
                             ad.appHasEnterBackgroundBefore = false

@@ -4,7 +4,6 @@
 //
 
 import SwiftUI
-import EasyToast
 
 struct SelectLevelView: View {
     @EnvironmentObject var gameModel: GameModel
@@ -46,6 +45,7 @@ struct SelectLevelView: View {
                                 presentLevelIsLocked: $presentLevelIsLocked
                             ) {
                                 guard gameModel.lives > 0 else {
+                                    HapticManager.locked()
                                     presentOutOfLives = true
                                     return
                                 }
@@ -72,8 +72,18 @@ struct SelectLevelView: View {
         }
         .navigationTitle("Select Level")
         .navigationBarTitleDisplayMode(.inline)
-        .easyToast(isPresented: $presentLevelIsLocked, message: "Complete previous levels to unlock")
-        .easyToast(isPresented: $presentOutOfLives, message: "Out of lives! Wait for a life to regenerate.")
+        .gameNotice(
+            isPresented: $presentLevelIsLocked,
+            message: "Complete the previous level to unlock this one.",
+            icon: "lock.fill",
+            tint: AppTheme.festivalRed
+        )
+        .gameNotice(
+            isPresented: $presentOutOfLives,
+            message: "Out of lives. A new heart is on the way!",
+            icon: "heart.slash.fill",
+            tint: AppTheme.festivalRed
+        )
         .onAppear {
             gameModel.refreshLives()
         }
@@ -141,7 +151,15 @@ struct LevelView: View {
 
     var body: some View {
         VStack {
-            Button(action: action) {
+            Button {
+                if isUnlocked {
+                    HapticManager.buttonTap()
+                    action()
+                } else {
+                    HapticManager.locked()
+                    presentLevelIsLocked = true
+                }
+            } label: {
                 VStack {
                     ZStack {
                         Circle()
@@ -188,7 +206,6 @@ struct LevelView: View {
                 }
             }
             .buttonStyle(PlainButtonStyle())
-            .disabled(!isUnlocked)
             .overlay {
                 if !isUnlocked {
                     HStack {
@@ -204,11 +221,6 @@ struct LevelView: View {
                                 .cornerRadius(12)
                         }
                     }
-                }
-            }
-            .onTapGesture {
-                if !isUnlocked {
-                    presentLevelIsLocked = true
                 }
             }
 

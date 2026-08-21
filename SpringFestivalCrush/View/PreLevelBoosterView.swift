@@ -15,102 +15,140 @@ struct PreLevelBoosterView: View {
     @State private var buyHammer = false
 
     var body: some View {
-        VStack(spacing: 16) {
-            Capsule()
-                .fill(Color.secondary.opacity(0.3))
-                .frame(width: 40, height: 5)
-                .padding(.top, 8)
+        ZStack {
+            LinearGradient(
+                colors: [Color(UIColor(hex: 0x5B183A)), Color(UIColor(hex: 0x24102E))],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
 
-            Text("Level \(levelNumber)")
-                .font(.system(size: 22, weight: .heavy, design: .rounded))
+            ScrollView(showsIndicators: false) {
+                GamePopupPanel(title: "LEVEL \(levelNumber)", tone: .blue) {
+                    VStack(spacing: 14) {
+                        Text("CHOOSE YOUR BOOSTERS")
+                            .font(.system(size: 12, weight: .black, design: .rounded))
+                            .foregroundStyle(AppTheme.ink.opacity(0.65))
 
-            HStack(spacing: 6) {
-                Image(systemName: "circle.fill")
-                    .foregroundColor(.yellow)
-                Text("\(gameModel.coins) Coins")
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
-                    .foregroundColor(.secondary)
+                        HStack(spacing: 6) {
+                            Image(systemName: "circle.fill")
+                                .foregroundStyle(AppTheme.festivalGold)
+                            Text("\(gameModel.coins)")
+                                .font(.system(size: 22, weight: .black, design: .rounded))
+                                .contentTransition(.numericText())
+                            Text("COINS")
+                                .font(.system(size: 10, weight: .black, design: .rounded))
+                                .foregroundStyle(AppTheme.ink.opacity(0.62))
+                        }
+                        .foregroundStyle(AppTheme.ink)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(Capsule().fill(AppTheme.creamHighlight))
+                        .overlay(Capsule().stroke(AppTheme.festivalGold, lineWidth: 2))
+
+                        RewardedAdButton(title: "Watch Ad · +\(GameModel.rewardedCoinsAmount)", systemImage: "play.rectangle.fill") {
+                            gameModel.grantRewardedCoins()
+                        }
+
+                        VStack(spacing: 10) {
+                            boosterRow(
+                                icon: "plus.circle.fill",
+                                title: "+\(GameModel.extraMovesBoosterAmount) Moves",
+                                detail: "More room to make a comeback",
+                                cost: GameModel.extraMovesBoosterCost,
+                                isSelected: $buyExtraMoves
+                            )
+                            boosterRow(
+                                icon: "hammer.fill",
+                                title: "Festival Hammer",
+                                detail: "Clear any one tile",
+                                cost: GameModel.hammerBoosterCost,
+                                isSelected: $buyHammer
+                            )
+                        }
+
+                        Button {
+                            HapticManager.buttonTap()
+                            if buyExtraMoves { gameModel.applyExtraMovesBooster() }
+                            if buyHammer { gameModel.applyHammerBooster() }
+                            onStart()
+                            dismiss()
+                        } label: {
+                            Label("Start Level", systemImage: "play.fill")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.gamePrimary(gradient: AppTheme.successGradient))
+                    }
+                }
+                .padding(.horizontal, 18)
+                .padding(.top, 18)
             }
-
-            RewardedAdButton(title: "Watch Ad for +\(GameModel.rewardedCoinsAmount) Coins", systemImage: "play.rectangle.fill") {
-                gameModel.grantRewardedCoins()
-            }
-
-            VStack(spacing: 12) {
-                boosterRow(
-                    icon: "plus.circle.fill",
-                    title: "+\(GameModel.extraMovesBoosterAmount) Moves",
-                    cost: GameModel.extraMovesBoosterCost,
-                    isSelected: $buyExtraMoves
-                )
-                boosterRow(
-                    icon: "hammer.fill",
-                    title: "Hammer (clear 1 tile)",
-                    cost: GameModel.hammerBoosterCost,
-                    isSelected: $buyHammer
-                )
-            }
-            .padding(.horizontal)
-
-            Button {
-                HapticManager.buttonTap()
-                if buyExtraMoves { gameModel.applyExtraMovesBooster() }
-                if buyHammer { gameModel.applyHammerBooster() }
-                onStart()
-                dismiss()
-            } label: {
-                // Boosters can only ever be toggled on if affordable (see boosterRow), so this
-                // one button always works whether or not anything is selected — no separate
-                // "Skip" path needed.
-                Label("Start Level", systemImage: "play.fill")
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.gamePrimary(gradient: AppTheme.successGradient))
-            .padding(.horizontal)
-            .padding(.bottom, 8)
         }
-        .padding()
-        .presentationDetents([.height(380)])
+        .presentationDetents([.height(560), .large])
+        .presentationDragIndicator(.visible)
+        .presentationCornerRadius(30)
     }
 
-    private func boosterRow(icon: String, title: String, cost: Int, isSelected: Binding<Bool>) -> some View {
+    private func boosterRow(
+        icon: String,
+        title: String,
+        detail: String,
+        cost: Int,
+        isSelected: Binding<Bool>
+    ) -> some View {
         let affordable = gameModel.coins >= cost
         return Button {
-            guard affordable else { return }
+            guard affordable else {
+                HapticManager.locked()
+                return
+            }
             HapticManager.buttonTap()
             isSelected.wrappedValue.toggle()
         } label: {
-            HStack {
+            HStack(spacing: 10) {
                 Image(systemName: icon)
-                    .font(.title3)
-                    .foregroundColor(.orange)
-                    .frame(width: 30)
-                Text(title)
-                    .font(.system(size: 16, weight: .medium, design: .rounded))
-                Spacer()
-                HStack(spacing: 4) {
-                    Image(systemName: "circle.fill")
-                        .font(.caption2)
-                        .foregroundColor(.yellow)
-                    Text("\(cost)")
-                        .font(.system(size: 14, weight: .semibold))
+                    .font(.system(size: 20, weight: .black))
+                    .foregroundStyle(.white)
+                    .frame(width: 42, height: 42)
+                    .background(Circle().fill(affordable ? AppTheme.accentGradient : AppTheme.neutralGradient))
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(.system(size: 15, weight: .black, design: .rounded))
+                    Text(detail)
+                        .font(.system(size: 11, weight: .semibold, design: .rounded))
+                        .foregroundStyle(AppTheme.ink.opacity(0.58))
                 }
-                Image(systemName: isSelected.wrappedValue ? "checkmark.circle.fill" : "circle")
-                    .foregroundColor(isSelected.wrappedValue ? .green : .secondary.opacity(0.4))
+                Spacer()
+
+                VStack(spacing: 3) {
+                    HStack(spacing: 3) {
+                        Image(systemName: "circle.fill")
+                            .font(.system(size: 8))
+                            .foregroundStyle(AppTheme.festivalGold)
+                        Text("\(cost)")
+                            .font(.system(size: 13, weight: .black, design: .rounded))
+                    }
+                    Image(systemName: isSelected.wrappedValue ? "checkmark.circle.fill" : "circle")
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundStyle(isSelected.wrappedValue ? Color.green : Color.gray.opacity(0.4))
+                        .scaleEffect(isSelected.wrappedValue ? 1.12 : 1)
+                }
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
+            .foregroundStyle(AppTheme.ink)
+            .padding(10)
             .background(
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(isSelected.wrappedValue ? Color.green.opacity(0.12) : Color.secondary.opacity(0.08))
+                    .fill(isSelected.wrappedValue ? Color.green.opacity(0.14) : AppTheme.creamHighlight)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .stroke(isSelected.wrappedValue ? Color.green.opacity(0.5) : Color.clear, lineWidth: 1.5)
+                    .stroke(isSelected.wrappedValue ? Color.green : AppTheme.festivalGold.opacity(0.5), lineWidth: 2)
             )
+            .shadow(color: .black.opacity(isSelected.wrappedValue ? 0.2 : 0.08), radius: 5, y: 3)
         }
         .buttonStyle(.plain)
-        .disabled(!affordable)
-        .opacity(affordable ? 1.0 : 0.4)
+        .opacity(affordable ? 1.0 : 0.48)
+        .animation(.spring(response: 0.28, dampingFraction: 0.65), value: isSelected.wrappedValue)
     }
 }

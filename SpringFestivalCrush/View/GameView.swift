@@ -21,6 +21,10 @@ struct GameView: View {
 
     private let timerTicker = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
+    private var isShowingResult: Bool {
+        gameModel.gameState == .lose || gameModel.gameState == .win
+    }
+
     // Only one hint is ever shown — hammer mode (an active state needing the player's
     // attention) takes priority over the one-time tutorial hint.
     private var activeBanner: HUDBanner? {
@@ -53,6 +57,9 @@ struct GameView: View {
             if let gameScene {
                 SpriteView(scene: gameScene)
                     .ignoresSafeArea(.all)
+                    .blur(radius: isShowingResult ? 2 : 0)
+                    .scaleEffect(isShowingResult ? 0.99 : 1)
+                    .animation(.easeOut(duration: 0.3), value: isShowingResult)
             }
 
             VStack {
@@ -60,29 +67,8 @@ struct GameView: View {
                     .measureHeight()
                     .onPreferenceChange(HeightPreferenceKey.self) { hudHeight = $0 }
                     .padding()
-                Spacer() // This pushes the content to the top
-                if !boosters.isEmpty {
-                    BoosterTrayView(boosters: boosters)
-                        .padding(.bottom, 8)
-                }
-                HStack {
-                    Button {
-                        HapticManager.buttonTap()
-                        gameModel.onTapShuffle()
-                    } label: {
-                        Label("Shuffle", systemImage: "shuffle")
-                    }
-                    .buttonStyle(.gamePrimary(gradient: AppTheme.accentGradient))
-                    .padding()
-
-                    Button {
-                        HapticManager.buttonTap()
-                        gameModel.onTapBack()
-                    } label: {
-                        Label("Back", systemImage: "chevron.left")
-                    }
-                    .buttonStyle(.gamePrimary(gradient: AppTheme.neutralGradient))
-                }
+                Spacer()
+                bottomDock
             }
             .animation(.spring(response: 0.35, dampingFraction: 0.75), value: gameModel.hammerCharges)
 
@@ -91,18 +77,28 @@ struct GameView: View {
             }
 
             ZStack {
-                if gameModel.gameState == .lose || gameModel.gameState == .win {
-                    Color.black.opacity(0.2).ignoresSafeArea()
+                if isShowingResult {
+                    Rectangle()
+                        .fill(.ultraThinMaterial)
+                        .environment(\.colorScheme, .dark)
+                        .overlay(Color.black.opacity(0.48))
+                        .ignoresSafeArea()
+                        .transition(.opacity)
                 }
 
                 if gameModel.gameState == .lose {
                     LevelFailedView()
+                        .transition(.scale(scale: 0.65).combined(with: .opacity))
                 } else if gameModel.gameState == .win {
+                    CelebrationBurstView()
+                        .allowsHitTesting(false)
                     LevelCompleteView()
+                        .transition(.scale(scale: 0.65).combined(with: .opacity))
                 }
             }
         }
         .animation(.easeInOut(duration: 0.25), value: activeBanner)
+        .animation(.spring(response: 0.48, dampingFraction: 0.72), value: gameModel.gameState)
         .onAppear {
             gameScene = GameScene(
                 size: screenSize,
@@ -117,106 +113,192 @@ struct GameView: View {
     }
 
     var gameStatusView: some View {
-        HStack(alignment: .top, spacing: 10) {
-            // Level Info
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 4) {
-                    Text("LEVEL")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundColor(.white.opacity(0.75))
-                    Text("\(gameModel.currentLevel)")
-                        .font(.system(size: 16, weight: .heavy, design: .rounded))
-                        .foregroundColor(.white)
-                }
+        VStack(spacing: 9) {
+            HStack(spacing: 8) {
+                HUDLevelMedallion(level: gameModel.currentLevel)
 
-                HStack(spacing: 4) {
-                    Image(systemName: "arrow.triangle.2.circlepath")
-                        .font(.system(size: 12))
-                        .foregroundColor(gameModel.movesLeft <= 5 ? .red : .yellow)
-                    Text("\(gameModel.movesLeft)")
-                        .font(.system(size: 20, weight: .heavy, design: .rounded))
-                        .foregroundColor(gameModel.movesLeft <= 5 ? .red : .yellow)
-                        .contentTransition(.numericText())
-                        .animation(.default, value: gameModel.movesLeft)
-                }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 3)
-                .background(Capsule().fill(Color.black.opacity(0.2)))
-
-                if let secondsLeft = gameModel.secondsLeft {
-                    HStack(spacing: 4) {
-                        Image(systemName: "clock.fill")
-                            .font(.system(size: 12))
-                        Text(String(format: "%02d:%02d", max(0, secondsLeft) / 60, max(0, secondsLeft) % 60))
-                            .font(.system(size: 16, weight: .heavy, design: .rounded))
-                            .monospacedDigit()
+                VStack(alignment: .leading, spacing: 3) {
+                    HStack(alignment: .firstTextBaseline, spacing: 5) {
+                        Text("SCORE")
+                            .font(.system(size: 10, weight: .black, design: .rounded))
+                            .foregroundStyle(.white.opacity(0.72))
+                        Text("\(gameModel.score)")
+                            .font(.system(size: 17, weight: .black, design: .rounded))
+                            .foregroundStyle(.white)
+                            .contentTransition(.numericText())
                     }
-                    .foregroundColor(secondsLeft <= 10 ? .red : .white)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 3)
-                    .background(Capsule().fill(Color.black.opacity(0.2)))
+
+                    StarProgressView(currentScore: gameModel.score, levelGoal: gameModel.level.levelGoal)
                 }
-            }
-            .frame(minWidth: 80)
+                .frame(maxWidth: .infinity)
 
-            Divider()
-                .background(Color.white)
-
-            // Score + Target Info
-            VStack(alignment: .leading, spacing: 6) {
-                Text("\(gameModel.score)")
-                    .font(.system(size: 15, weight: .heavy, design: .rounded))
-                    .foregroundColor(.white)
-                    .contentTransition(.numericText())
-                    .animation(.default, value: gameModel.score)
-
-                StarProgressView(
-                    currentScore: gameModel.score,
-                    levelGoal: gameModel.level.levelGoal
+                HUDStatTile(
+                    icon: "arrow.triangle.2.circlepath",
+                    title: "MOVES",
+                    value: "\(gameModel.movesLeft)",
+                    isCritical: gameModel.movesLeft <= 5
                 )
 
-                LevelTargetView(levelTargetDatas: gameModel.createLevelTargetDatas())
+                Button {
+                    HapticManager.buttonTap()
+                    showingSettings.toggle()
+                } label: {
+                    Image(systemName: "pause.fill")
+                        .font(.system(size: 17, weight: .black))
+                        .foregroundStyle(AppTheme.ink)
+                        .frame(width: 44, height: 44)
+                        .background(Circle().fill(AppTheme.creamHighlight))
+                        .overlay(Circle().stroke(AppTheme.festivalGold, lineWidth: 3))
+                        .shadow(color: .black.opacity(0.28), radius: 5, y: 3)
+                }
+                .buttonStyle(.gameIcon)
+                .accessibilityLabel("Pause and settings")
+                .sheet(isPresented: $showingSettings) {
+                    SettingsView()
+                }
             }
-            .frame(minWidth: 160)
 
-            Divider()
-                .background(Color.white)
+            HStack(spacing: 8) {
+                if let secondsLeft = gameModel.secondsLeft {
+                    HUDTimerPill(secondsLeft: secondsLeft)
+                }
 
-            Button {
-                HapticManager.buttonTap()
-                showingSettings.toggle() // Show settings when tapped
-            } label: {
-                Image(systemName: "gearshape.fill")
-                    .font(.title2)
-                    .foregroundColor(.white)
-                    .frame(width: 40, height: 40)
-                    .background(Circle().fill(Color.white.opacity(0.15)))
-            }
-            .buttonStyle(.gameIcon)
-            .padding(.leading, 10) // Add some spacing from the progress bar
-            .sheet(isPresented: $showingSettings) {
-                SettingsView() // Display the settings view when tapped
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("GOALS")
+                        .font(.system(size: 9, weight: .black, design: .rounded))
+                        .foregroundStyle(.white.opacity(0.72))
+                    LevelTargetView(levelTargetDatas: gameModel.createLevelTargetDatas())
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
         .padding(.vertical, 10)
-        .padding(.horizontal, 10)
+        .padding(.horizontal, 11)
         .frame(maxWidth: 600)
-        // Without an explicit height, this card should hug its content's ideal size — but
-        // a GeometryReader anywhere in the subtree (StarProgressView uses one internally)
-        // reports an unbounded ideal size to its ancestors for layout purposes even when its
-        // own rendered size is later clamped. fixedSize is the actual fix: it pins this view
-        // to its computed ideal size instead of accepting whatever height its parent VStack's
-        // Spacer leaves available, which is what let the card balloon to fill the screen.
         .fixedSize(horizontal: false, vertical: true)
         .background(
             RoundedRectangle(cornerRadius: AppTheme.panelCornerRadius, style: .continuous)
-                .fill(AppTheme.primaryGradient)
+                .fill(
+                    LinearGradient(
+                        colors: [AppTheme.festivalRed, AppTheme.festivalRedDark],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
                 .overlay(
                     RoundedRectangle(cornerRadius: AppTheme.panelCornerRadius, style: .continuous)
-                        .stroke(Color.white.opacity(0.25), lineWidth: 1)
+                        .stroke(AppTheme.festivalGold, lineWidth: 3)
                 )
                 .shadow(color: AppTheme.cardShadowColor, radius: AppTheme.cardShadowRadius, x: 0, y: AppTheme.cardShadowY)
         )
+    }
+
+    private var bottomDock: some View {
+        VStack(spacing: 6) {
+            if !boosters.isEmpty {
+                BoosterTrayView(boosters: boosters)
+            }
+
+            HStack(spacing: 12) {
+                Button {
+                    HapticManager.buttonTap()
+                    gameModel.onTapShuffle()
+                } label: {
+                    Label("Shuffle · −1", systemImage: "shuffle")
+                }
+                .buttonStyle(.gamePrimary(gradient: AppTheme.accentGradient))
+
+                Button {
+                    HapticManager.buttonTap()
+                    gameModel.onTapBack()
+                } label: {
+                    Label("Exit", systemImage: "xmark")
+                }
+                .buttonStyle(.gamePrimary(gradient: AppTheme.neutralGradient))
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.top, 10)
+        .padding(.bottom, 4)
+        .background(
+            Capsule()
+                .fill(.ultraThinMaterial)
+                .overlay(Capsule().stroke(.white.opacity(0.22), lineWidth: 1))
+        )
+        .padding(.horizontal, 12)
+        .padding(.bottom, 4)
+    }
+}
+
+private struct HUDLevelMedallion: View {
+    let level: Int
+
+    var body: some View {
+        VStack(spacing: -2) {
+            Text("LEVEL")
+                .font(.system(size: 8, weight: .black, design: .rounded))
+            Text("\(level)")
+                .font(.system(size: 22, weight: .black, design: .rounded))
+                .contentTransition(.numericText())
+        }
+        .foregroundStyle(AppTheme.ink)
+        .frame(width: 54, height: 54)
+        .background(Circle().fill(AppTheme.creamHighlight))
+        .overlay(Circle().stroke(AppTheme.festivalGold, lineWidth: 3))
+        .shadow(color: .black.opacity(0.28), radius: 5, y: 3)
+    }
+}
+
+private struct HUDStatTile: View {
+    let icon: String
+    let title: String
+    let value: String
+    let isCritical: Bool
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 3) {
+                Image(systemName: icon)
+                Text(title)
+            }
+            .font(.system(size: 8, weight: .black, design: .rounded))
+            .opacity(0.78)
+
+            Text(value)
+                .font(.system(size: 20, weight: .black, design: .rounded))
+                .contentTransition(.numericText())
+        }
+        .foregroundStyle(isCritical ? Color.white : AppTheme.ink)
+        .frame(minWidth: 55, minHeight: 48)
+        .background(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(isCritical ? Color.red : AppTheme.creamHighlight)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(isCritical ? Color.white.opacity(0.75) : AppTheme.festivalGold, lineWidth: 2)
+        )
+        .shadow(color: .black.opacity(0.25), radius: 4, y: 3)
+        .animation(.spring(response: 0.3, dampingFraction: 0.62), value: value)
+    }
+}
+
+private struct HUDTimerPill: View {
+    let secondsLeft: Int
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Image(systemName: "clock.fill")
+            Text(String(format: "%02d:%02d", max(0, secondsLeft) / 60, max(0, secondsLeft) % 60))
+                .monospacedDigit()
+                .contentTransition(.numericText())
+        }
+        .font(.system(size: 14, weight: .black, design: .rounded))
+        .foregroundStyle(secondsLeft <= 10 ? Color.white : AppTheme.ink)
+        .padding(.horizontal, 10)
+        .frame(height: 34)
+        .background(Capsule().fill(secondsLeft <= 10 ? Color.red : AppTheme.creamHighlight))
+        .overlay(Capsule().stroke(.white.opacity(0.6), lineWidth: 1.5))
     }
 }
 

@@ -7,25 +7,59 @@ import SwiftUI
 
 struct LevelFailedView: View {
     @EnvironmentObject var gameModel: GameModel
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var shake = false
 
     var body: some View {
-        VStack(spacing: 12) {
-                Image(systemName: "xmark.circle.fill")
-                    .font(.system(size: 50))
-                    .foregroundColor(.white.opacity(0.9))
-                    .rotationEffect(.degrees(shake ? -8 : 8))
-                    .animation(.easeInOut(duration: 0.12).repeatCount(4, autoreverses: true), value: shake)
-                    .onAppear { shake = true }
+        GamePopupPanel(title: "OUT OF MOVES", tone: .red) {
+            VStack(spacing: 16) {
+                ZStack {
+                    Circle()
+                        .fill(
+                            RadialGradient(
+                                colors: [Color.white, Color(UIColor(hex: 0xC8D0DA))],
+                                center: .topLeading,
+                                startRadius: 2,
+                                endRadius: 48
+                            )
+                        )
+                        .frame(width: 76, height: 76)
+                        .overlay(Circle().stroke(Color.gray.opacity(0.55), lineWidth: 4))
 
-                Text("OUT OF MOVES")
-                    .font(.system(size: 20, weight: .heavy, design: .rounded))
-                    .foregroundColor(.white)
+                    Image(systemName: "flag.checkered")
+                        .font(.system(size: 35, weight: .black))
+                        .foregroundStyle(AppTheme.festivalRed)
+                }
+                .offset(x: shake ? -6 : 6)
+                .rotationEffect(.degrees(shake ? -4 : 4))
+                .animation(
+                    reduceMotion ? .none : .easeInOut(duration: 0.1).repeatCount(5, autoreverses: true),
+                    value: shake
+                )
 
-                Text("Level \(gameModel.currentLevel) · Score \(gameModel.score)")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.white.opacity(0.75))
+                Text("So close! Every attempt reveals a better path.")
+                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .foregroundStyle(AppTheme.ink.opacity(0.75))
+                    .multilineTextAlignment(.center)
+
+                HStack(spacing: 18) {
+                    resultStat(title: "LEVEL", value: "\(gameModel.currentLevel)")
+                    Rectangle()
+                        .fill(AppTheme.festivalGold.opacity(0.5))
+                        .frame(width: 1, height: 42)
+                    resultStat(title: "SCORE", value: "\(gameModel.score)")
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10)
+                .background(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(AppTheme.creamHighlight)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .stroke(AppTheme.festivalGold.opacity(0.6), lineWidth: 2)
+                        )
+                )
 
                 if gameModel.lives > 0 {
                     Button {
@@ -33,18 +67,13 @@ struct LevelFailedView: View {
                         gameModel.onTapTryAgainLevel()
                     } label: {
                         Label("Try Again", systemImage: "arrow.counterclockwise")
+                            .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.gamePrimary(gradient: AppTheme.dangerGradient))
-                    .padding(.top, 8)
+                    .buttonStyle(.gamePrimary(gradient: AppTheme.successGradient))
                 } else {
-                    VStack(spacing: 6) {
-                        Image(systemName: "heart.slash.fill")
-                            .foregroundColor(.red)
-                        Text("Out of lives")
-                            .font(.system(size: 15, weight: .bold, design: .rounded))
-                            .foregroundColor(.white)
-                    }
-                    .padding(.top, 8)
+                    Label("Out of lives", systemImage: "heart.slash.fill")
+                        .font(.system(size: 14, weight: .bold, design: .rounded))
+                        .foregroundStyle(AppTheme.festivalRed)
 
                     RewardedAdButton(title: "Watch Ad for +1 Life", systemImage: "play.rectangle.fill") {
                         gameModel.grantRewardedLife()
@@ -55,25 +84,25 @@ struct LevelFailedView: View {
                         HapticManager.buttonTap()
                         gameModel.onTapTryAgainLevel()
                     } label: {
-                        Text("Back to Levels")
+                        Label("Back to Levels", systemImage: "map.fill")
                     }
                     .buttonStyle(.gamePrimary(gradient: AppTheme.neutralGradient))
                 }
+            }
         }
-        .padding()
-        .frame(width: 300)
-        .background(
-            RadialGradient(
-                gradient: Gradient(colors: [
-                    Color(red: 0.5, green: 0.5, blue: 0.55),
-                    Color(red: 0.25, green: 0.25, blue: 0.3),
-                ]),
-                center: .center,
-                startRadius: 0,
-                endRadius: 260
-            )
-        )
-        .clipShape(.rect(cornerRadius: AppTheme.panelCornerRadius))
-        .shadow(color: AppTheme.cardShadowColor, radius: 16, x: 0, y: 8)
+        .padding(.horizontal, 24)
+        .onAppear { shake = true }
+    }
+
+    private func resultStat(title: String, value: String) -> some View {
+        VStack(spacing: 2) {
+            Text(title)
+                .font(.system(size: 10, weight: .black, design: .rounded))
+                .foregroundStyle(AppTheme.ink.opacity(0.55))
+            Text(value)
+                .font(.system(size: 23, weight: .black, design: .rounded))
+                .foregroundStyle(AppTheme.festivalRed)
+        }
+        .frame(maxWidth: .infinity)
     }
 }

@@ -18,6 +18,7 @@ struct MainView: View {
         NavigationStack {
             SelectChineseZodiacView()
                 .navigationTitle("Spring Festival Crush")
+                .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .navigationBarTrailing) {
                         NavigationLink(destination: SettingsView()) {
@@ -48,7 +49,7 @@ struct MainView: View {
                 .onAppear {
                     gameModel.initializeRecords(modelContext: modelContext)
                 }
-            #if !targetEnvironment(macCatalyst)
+            #if !targetEnvironment(macCatalyst) && !targetEnvironment(simulator)
                 .onAppear {
                     AdManager.requestATTPermission(with: 1)
                 }
