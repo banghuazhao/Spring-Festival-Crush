@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C20260913000000000000001 /* GameTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260913000000000000101 /* GameTool.swift */; };
+		C20260913000000000000002 /* ToolRewardAdManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260913000000000000102 /* ToolRewardAdManager.swift */; };
+		C20260913000000000000003 /* ToolRefillView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260913000000000000103 /* ToolRefillView.swift */; };
+		C20260912000000000000001 /* PauseMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260912000000000000002 /* PauseMenuView.swift */; };
 		C20260911000000000000001 /* MapScrollBoundary.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260911000000000000002 /* MapScrollBoundary.swift */; };
 		C20260910000000000000000 /* ZodiacChapterTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260910000000000000100 /* ZodiacChapterTheme.swift */; };
 		C20260910000000000000001 /* ZodiacChapterHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260910000000000000101 /* ZodiacChapterHeader.swift */; };
@@ -120,6 +124,10 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		C20260913000000000000101 /* GameTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameTool.swift; sourceTree = "<group>"; };
+		C20260913000000000000102 /* ToolRewardAdManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolRewardAdManager.swift; sourceTree = "<group>"; };
+		C20260913000000000000103 /* ToolRefillView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolRefillView.swift; sourceTree = "<group>"; };
+		C20260912000000000000002 /* PauseMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PauseMenuView.swift; sourceTree = "<group>"; };
 		C20260911000000000000002 /* MapScrollBoundary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapScrollBoundary.swift; sourceTree = "<group>"; };
 		C20260910000000000000100 /* ZodiacChapterTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZodiacChapterTheme.swift; sourceTree = "<group>"; };
 		C20260910000000000000101 /* ZodiacChapterHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZodiacChapterHeader.swift; sourceTree = "<group>"; };
@@ -381,6 +389,7 @@
 				9955DBDE23D7EA14007786D5 /* Constants.swift */,
 				9955DBE023D7F84D007786D5 /* Color+Extension.swift */,
 				9971C95225FC6705008CFCF9 /* AdManager.swift */,
+				C20260913000000000000102 /* ToolRewardAdManager.swift */,
 				9971C95025FC6705008CFCF9 /* UIButtonLargerArea.swift */,
 				9971C95125FC6705008CFCF9 /* UIFont+Extension.swift */,
 				994625BC2C76092000FC2C6A /* SKSpriteNode+Entension.swift */,
@@ -469,6 +478,8 @@
 				9980C05E2C83CE1D001C7EA5 /* Settings */,
 				6099D1A12E044346B0B4139E /* Debug */,
 				994625A82C720AE900FC2C6A /* GameView.swift */,
+				C20260913000000000000103 /* ToolRefillView.swift */,
+				C20260912000000000000002 /* PauseMenuView.swift */,
 				994625B32C74A06000FC2C6A /* LevelFailedView.swift */,
 				994625B12C7493ED00FC2C6A /* LevelCompleteView.swift */,
 				994625B82C74A3F700FC2C6A /* SelectZodiacView.swift */,
@@ -500,6 +511,7 @@
 			isa = PBXGroup;
 			children = (
 				994625AB2C720E5600FC2C6A /* GameModel.swift */,
+				C20260913000000000000101 /* GameTool.swift */,
 				9955DBAB23D7E4E4007786D5 /* Symbol.swift */,
 				9955DBA623D7E4E3007786D5 /* Chain.swift */,
 				9955DBA723D7E4E3007786D5 /* Array2D.swift */,
@@ -712,6 +724,10 @@
 				9955DBB523D7E4E4007786D5 /* Level.swift in Sources */,
 				994625B62C74A3D700FC2C6A /* SettingsView.swift in Sources */,
 				994625A92C720AE900FC2C6A /* GameView.swift in Sources */,
+				C20260913000000000000001 /* GameTool.swift in Sources */,
+				C20260913000000000000002 /* ToolRewardAdManager.swift in Sources */,
+				C20260913000000000000003 /* ToolRefillView.swift in Sources */,
+				C20260912000000000000001 /* PauseMenuView.swift in Sources */,
 				994625B22C7493ED00FC2C6A /* LevelCompleteView.swift in Sources */,
 				9955DBB023D7E4E4007786D5 /* Array2D.swift in Sources */,
 							5EB38E89C1F643909A894D3C /* DebugMenuView.swift in Sources */,

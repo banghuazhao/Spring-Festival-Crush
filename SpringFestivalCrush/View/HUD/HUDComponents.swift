@@ -59,6 +59,7 @@ struct BoosterItem: Identifiable {
     let activeGradient: LinearGradient
     let idleGradient: LinearGradient
     let action: () -> Void
+    let onRefill: () -> Void
 }
 
 struct BoosterTrayView: View {
@@ -67,30 +68,55 @@ struct BoosterTrayView: View {
     var body: some View {
         HStack(spacing: 10) {
             ForEach(boosters) { booster in
-                Button {
-                    HapticManager.buttonTap()
-                    booster.action()
-                } label: {
-                    HStack(spacing: 6) {
-                        if let imageName = booster.imageName {
-                            Image(imageName)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 28, height: 28)
-                        } else {
-                            Image(systemName: booster.icon)
+                HStack(spacing: 0) {
+                    Button {
+                        HapticManager.buttonTap()
+                        booster.action()
+                    } label: {
+                        HStack(spacing: 6) {
+                            if let imageName = booster.imageName {
+                                Image(imageName)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 36, height: 36)
+                            } else {
+                                Image(systemName: booster.icon)
+                            }
+                            Text("\(booster.count)")
+                                .font(.headline.weight(.heavy))
+                                .monospacedDigit()
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.7)
                         }
-                        Text("\(booster.count)")
-                            .fontWeight(.bold)
+                        .padding(.leading, 10)
+                        .padding(.trailing, 6)
+                        .frame(minWidth: 68, minHeight: 52)
+                        .contentShape(Rectangle())
                     }
+                    .buttonStyle(.gameIcon)
+                    .accessibilityLabel(booster.title)
+                    .accessibilityValue("\(booster.count) remaining")
+                    .accessibilityAddTraits(booster.isActive ? .isSelected : [])
+                    .accessibilityHint(booster.count == 0 ? "Open ad refill" : "Use one charge without spending a move")
+
+                    Button {
+                        HapticManager.buttonTap()
+                        booster.onRefill()
+                    } label: {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.title3.weight(.bold))
+                            .frame(width: 44, height: 52)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.gameIcon)
+                    .accessibilityLabel("Add \(booster.title)")
+                    .accessibilityHint("Watch an optional ad for one charge")
                 }
-                .buttonStyle(.gamePrimary(
-                    gradient: booster.isActive ? booster.activeGradient : booster.idleGradient,
-                    shape: Capsule()
-                ))
-                .accessibilityLabel(booster.title)
-                .accessibilityValue("\(booster.count) remaining")
-                .accessibilityAddTraits(booster.isActive ? .isSelected : [])
+                .foregroundStyle(.white)
+                .background(booster.isActive ? booster.activeGradient : booster.idleGradient,
+                            in: RoundedRectangle(cornerRadius: 18))
+                .overlay(RoundedRectangle(cornerRadius: 18).stroke(
+                    booster.isActive ? AppTheme.festivalGold : .white.opacity(0.4), lineWidth: 2))
             }
         }
         .transition(.move(edge: .bottom).combined(with: .opacity))

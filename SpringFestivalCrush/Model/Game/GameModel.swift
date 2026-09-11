@@ -153,7 +153,13 @@ class GameModel: ObservableObject {
     // MARK: - Boosters & currency
     @AppStorage("coins") var coins: Int = 100
     @Published var pendingExtraMoves: Int = 0
-    @Published var hammerCharges: Int = 0
+    @Published private(set) var hammerCharges = UserDefaults.standard.integer(forKey: "hammerCharges") {
+        didSet { UserDefaults.standard.set(hammerCharges, forKey: "hammerCharges") }
+    }
+    @Published private(set) var shuffleCharges = UserDefaults.standard.object(forKey: "shuffleCharges") as? Int ?? 3 {
+        didSet { UserDefaults.standard.set(shuffleCharges, forKey: "shuffleCharges") }
+    }
+    @Published private(set) var isResolvingBoard = false
     @Published var hammerModeActive: Bool = false
     static let extraMovesBoosterCost = 20
     static let extraMovesBoosterAmount = 5
@@ -270,13 +276,11 @@ class GameModel: ObservableObject {
         currentLevelRecord = currentZodiacRecord?.levelRecords.first { $0.number == selectedLevel }
     }
 
-    /// Boosters are purchased per attempt; call before offering the booster sheet for a fresh
-    /// level pick, and before any "start a level" flow that bypasses the booster sheet entirely
-    /// (Next Level / Try Again), so leftovers from a previous attempt never carry over.
+    /// Extra moves and targeting are per-attempt; earned tool inventory carries over.
     func resetBoostersForNewAttempt() {
         pendingExtraMoves = 0
-        hammerCharges = 0
         hammerModeActive = false
+        isResolvingBoard = false
     }
 
     /// Applies a purchased "+moves" booster to the level about to start. Call before `selectLevel`.
@@ -292,6 +296,9 @@ class GameModel: ObservableObject {
         coins -= Self.hammerBoosterCost
         hammerCharges += 1
     }
+
+    func grantRewardedShuffle() { shuffleCharges += 1 }
+    func grantRewardedHammer() { hammerCharges += 1 }
 
     @MainActor
     func setupNewGame() async {
@@ -326,8 +333,11 @@ class GameModel: ObservableObject {
     /// Instantly clears the tapped tile using a purchased hammer charge, at no move cost.
     @MainActor
     func useHammer(atColumn column: Int, row: Int) async {
-        guard hammerModeActive, hammerCharges > 0 else { return }
+        guard gameState == .inProgress, !isResolvingBoard,
+              hammerModeActive, hammerCharges > 0 else { return }
         guard let chain = level.useHammer(atColumn: column, row: row) else { return }
+        isResolvingBoard = true
+        defer { isResolvingBoard = false }
         hammerCharges -= 1
         hammerModeActive = false
         HapticManager.bigMatch()
@@ -351,14 +361,19 @@ class GameModel: ObservableObject {
     }
 
     func onTapShuffle() {
-        decreaseMove()
+        guard gameState == .inProgress, !isResolvingBoard, shuffleCharges > 0 else { return }
+        // Reserve a charge synchronously so rapid taps cannot launch overlapping shuffles.
+        isResolvingBoard = true
+        shuffleCharges -= 1
+        hammerModeActive = false
+        invokeCommand?(.setUserInteraction(false))
         Task { @MainActor in
-            if hasGameLose() {
-                await handleGameLose()
-            } else {
-                let newSymbols = level.shuffle()
-                await invokeCommandAsync?(.shuffle(newSymbols))
+            defer {
+                isResolvingBoard = false
+                if gameState == .inProgress { invokeCommand?(.setUserInteraction(true)) }
             }
+            let newSymbols = level.shuffle()
+            await invokeCommandAsync?(.shuffle(newSymbols))
         }
     }
 
@@ -426,9 +441,7 @@ class GameModel: ObservableObject {
     @MainActor
     private func exitToMenu() {
         gameState = .notStart
-        // Boosters are per-attempt. Clearing them here (not only when the next attempt is set
-        // up) keeps an unused hammer — and worse, an armed hammer mode — from riding along
-        // into whatever level is opened next.
+        // Clear temporary extra moves and armed targeting, but retain tool inventory.
         resetBoostersForNewAttempt()
         shouldPresentGame = false
         #if DEBUG
@@ -449,6 +462,9 @@ class GameModel: ObservableObject {
 
     @MainActor
     func handleSwipe(_ swap: Swap) async {
+        guard gameState == .inProgress, !isResolvingBoard else { return }
+        isResolvingBoard = true
+        defer { isResolvingBoard = false }
         if isTutorialHintActive {
             isTutorialHintActive = false
             invokeCommand?(.hideTutorialHint)

@@ -14,7 +14,11 @@ struct GameView: View {
     let screenSize: CGSize
 
     @State private var gameScene: GameScene?
-    @State var showingSettings: Bool = false
+    @State private var showingPause = false
+    @State private var exitAfterPause = false
+    @State private var refillTool: GameTool?
+
+    private var isGameplayPaused: Bool { showingPause || exitAfterPause || refillTool != nil }
 
     private let timerTicker = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
@@ -35,8 +39,17 @@ struct GameView: View {
     }
 
     private var boosters: [BoosterItem] {
-        guard gameModel.hammerCharges > 0 else { return [] }
         return [
+            BoosterItem(
+                id: "shuffle", icon: "shuffle", imageName: "ShuffleBoosterIcon",
+                title: "Shuffle", count: gameModel.shuffleCharges, isActive: false,
+                activeGradient: AppTheme.accentGradient, idleGradient: AppTheme.accentGradient,
+                action: {
+                    if gameModel.shuffleCharges > 0 { gameModel.onTapShuffle() }
+                    else { refillTool = .shuffle }
+                },
+                onRefill: { refillTool = .shuffle }
+            ),
             BoosterItem(
                 id: "hammer",
                 icon: "hammer.fill",
@@ -46,7 +59,11 @@ struct GameView: View {
                 isActive: gameModel.hammerModeActive,
                 activeGradient: AppTheme.dangerGradient,
                 idleGradient: AppTheme.accentGradient,
-                action: { gameModel.hammerModeActive.toggle() }
+                action: {
+                    if gameModel.hammerCharges > 0 { gameModel.hammerModeActive.toggle() }
+                    else { refillTool = .hammer }
+                },
+                onRefill: { refillTool = .hammer }
             )
         ]
     }
@@ -54,7 +71,8 @@ struct GameView: View {
     var body: some View {
         ZStack {
             if let gameScene {
-                SpriteView(scene: gameScene)
+                SpriteView(scene: gameScene, isPaused: isGameplayPaused)
+                    .allowsHitTesting(!isGameplayPaused)
                     .ignoresSafeArea(.all)
                     .blur(radius: isShowingResult ? 2 : 0)
                     .scaleEffect(isShowingResult ? 0.99 : 1)
@@ -97,6 +115,26 @@ struct GameView: View {
         }
         .animation(.easeInOut(duration: 0.25), value: activeBanner)
         .animation(.spring(response: 0.48, dampingFraction: 0.72), value: gameModel.gameState)
+        .sheet(isPresented: $showingPause, onDismiss: {
+            // Dismiss the pause sheet before dismissing its presenting game screen.
+            if exitAfterPause { gameModel.onTapBack() }
+        }) {
+            PauseMenuView(
+                onResume: { showingPause = false },
+                onExit: {
+                    exitAfterPause = true
+                    showingPause = false
+                }
+            )
+        }
+        .sheet(item: $refillTool) { tool in
+            ToolRefillView(tool: tool) {
+                switch tool {
+                case .shuffle: gameModel.grantRewardedShuffle()
+                case .hammer: gameModel.grantRewardedHammer()
+                }
+            }
+        }
         .onAppear {
             // Built once per presentation: GameScene's initializer kicks off setupNewGame(),
             // so rebuilding it on a second onAppear (e.g. after the pause sheet closes) would
@@ -110,9 +148,8 @@ struct GameView: View {
             )
         }
         .onReceive(timerTicker) { _ in
-            // The pause button opens the settings sheet — a timed level must not keep
-            // counting down behind it.
-            guard !showingSettings else { return }
+            // Settings is pushed inside Pause, so the entire menu flow suspends time.
+            guard !isGameplayPaused else { return }
             gameModel.tickTimer()
         }
     }
@@ -146,7 +183,7 @@ struct GameView: View {
 
                 Button {
                     HapticManager.buttonTap()
-                    showingSettings.toggle()
+                    showingPause = true
                 } label: {
                     Image(systemName: "pause.fill")
                         .font(.system(size: 17, weight: .black))
@@ -157,22 +194,8 @@ struct GameView: View {
                         .shadow(color: .black.opacity(0.28), radius: 5, y: 3)
                 }
                 .buttonStyle(.gameIcon)
-                .accessibilityLabel("Pause and settings")
-                .sheet(isPresented: $showingSettings) {
-                    // Wrapped in its own stack so the pause sheet actually has a title bar and
-                    // a Resume button — presented bare, SettingsView's navigationTitle is
-                    // dropped and its first tappable row sits directly under the finger that
-                    // opened the sheet.
-                    NavigationStack {
-                        SettingsView()
-                            .toolbar {
-                                ToolbarItem(placement: .confirmationAction) {
-                                    Button("Resume") { showingSettings = false }
-                                        .fontWeight(.semibold)
-                                }
-                            }
-                    }
-                }
+                .accessibilityLabel("Pause")
+                .accessibilityIdentifier("game-pause")
             }
 
             HStack(spacing: 8) {
@@ -210,39 +233,9 @@ struct GameView: View {
     }
 
     private var bottomDock: some View {
-        VStack(spacing: 6) {
-            if !boosters.isEmpty {
-                BoosterTrayView(boosters: boosters)
-            }
-
-            HStack(spacing: 12) {
-                Button {
-                    HapticManager.buttonTap()
-                    gameModel.onTapShuffle()
-                } label: {
-                    Label {
-                        Text("Shuffle · −1")
-                    } icon: {
-                        Image("ShuffleBoosterIcon")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 28, height: 28)
-                    }
-                }
-                .buttonStyle(.gamePrimary(gradient: AppTheme.accentGradient))
-
-                Button {
-                    HapticManager.buttonTap()
-                    gameModel.onTapBack()
-                } label: {
-                    Label("Exit", systemImage: "xmark")
-                }
-                .buttonStyle(.gamePrimary(gradient: AppTheme.neutralGradient))
-            }
-        }
-        .padding(.horizontal, 14)
-        .padding(.top, 10)
-        .padding(.bottom, 4)
+        BoosterTrayView(boosters: boosters)
+        .disabled(gameModel.gameState != .inProgress || gameModel.isResolvingBoard || isGameplayPaused)
+        .padding(10)
         .background(
             Capsule()
                 .fill(.ultraThinMaterial)
