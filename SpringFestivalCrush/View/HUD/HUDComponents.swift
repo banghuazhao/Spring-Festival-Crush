@@ -52,6 +52,8 @@ struct HUDBannerView: View {
 struct BoosterItem: Identifiable {
     let id: String
     let icon: String
+    var imageName: String? = nil
+    var title: String = "Booster"
     let count: Int
     let isActive: Bool
     let activeGradient: LinearGradient
@@ -70,7 +72,14 @@ struct BoosterTrayView: View {
                     booster.action()
                 } label: {
                     HStack(spacing: 6) {
-                        Image(systemName: booster.icon)
+                        if let imageName = booster.imageName {
+                            Image(imageName)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 28, height: 28)
+                        } else {
+                            Image(systemName: booster.icon)
+                        }
                         Text("\(booster.count)")
                             .fontWeight(.bold)
                     }
@@ -79,6 +88,9 @@ struct BoosterTrayView: View {
                     gradient: booster.isActive ? booster.activeGradient : booster.idleGradient,
                     shape: Capsule()
                 ))
+                .accessibilityLabel(booster.title)
+                .accessibilityValue("\(booster.count) remaining")
+                .accessibilityAddTraits(booster.isActive ? .isSelected : [])
             }
         }
         .transition(.move(edge: .bottom).combined(with: .opacity))

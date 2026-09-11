@@ -102,7 +102,7 @@ extension Zodiac {
         let allChineseZodiacs = ChineseZodiac.allCases
 
         let gameBackgrounds = [
-            "rat_bg", "Background", "Background", "Background",
+            "RatBoardBackground", "OxBoardBackground", "TigerBoardBackground", "Background",
             "Background", "Background", "Background", "Background",
             "Background", "Background", "Background", "Background",
         ]

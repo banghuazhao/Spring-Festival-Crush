@@ -17,8 +17,11 @@ struct MainView: View {
     var body: some View {
         NavigationStack {
             SelectChineseZodiacView()
-                .navigationTitle("Spring Festival Crush")
+                // No title: the map is the screen, and a bar title only covers it. The bar
+                // itself stays for the gear (and the DEBUG bug), with its background hidden
+                // so the artwork runs behind it up to the status bar.
                 .navigationBarTitleDisplayMode(.inline)
+                .toolbarBackground(.hidden, for: .navigationBar)
                 .toolbar {
                     ToolbarItem(placement: .navigationBarTrailing) {
                         NavigationLink(destination: SettingsView()) {

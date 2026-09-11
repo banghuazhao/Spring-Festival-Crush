@@ -40,6 +40,8 @@ struct GameView: View {
             BoosterItem(
                 id: "hammer",
                 icon: "hammer.fill",
+                imageName: "HammerBoosterIcon",
+                title: "Festival Hammer",
                 count: gameModel.hammerCharges,
                 isActive: gameModel.hammerModeActive,
                 activeGradient: AppTheme.dangerGradient,
@@ -218,7 +220,14 @@ struct GameView: View {
                     HapticManager.buttonTap()
                     gameModel.onTapShuffle()
                 } label: {
-                    Label("Shuffle · −1", systemImage: "shuffle")
+                    Label {
+                        Text("Shuffle · −1")
+                    } icon: {
+                        Image("ShuffleBoosterIcon")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 28, height: 28)
+                    }
                 }
                 .buttonStyle(.gamePrimary(gradient: AppTheme.accentGradient))
 

@@ -78,12 +78,14 @@ enum AppTheme {
 // A raised, glossy pill/rounded-rect button that scales down and dims on press —
 // the same tactile feedback pattern industry match-3 games use for every CTA.
 struct GamePrimaryButtonStyle: ButtonStyle {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @ScaledMetric(relativeTo: .headline) private var fontSize = 18
     var gradient: LinearGradient = AppTheme.primaryGradient
     var shape: AnyShape = AnyShape(RoundedRectangle(cornerRadius: AppTheme.buttonCornerRadius, style: .continuous))
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.system(size: 18, weight: .bold, design: .rounded))
+            .font(.system(size: fontSize, weight: .bold, design: .rounded))
             .foregroundColor(.white)
             .shadow(color: .black.opacity(0.25), radius: 1, x: 0, y: 1)
             .padding(.horizontal, 22)
@@ -105,10 +107,10 @@ struct GamePrimaryButtonStyle: ButtonStyle {
                 x: 0,
                 y: configuration.isPressed ? 1 : AppTheme.cardShadowY
             )
-            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
+            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.97 : 1.0)
             .brightness(configuration.isPressed ? -0.05 : 0)
             .padding(.bottom, 6)
-            .animation(.spring(response: 0.22, dampingFraction: 0.68), value: configuration.isPressed)
+            .animation(reduceMotion ? nil : .spring(response: 0.22, dampingFraction: 0.68), value: configuration.isPressed)
     }
 }
 
@@ -135,11 +137,13 @@ extension ButtonStyle where Self == GamePrimaryButtonStyle {
 
 // A tap-to-shrink style for icon-only chrome (settings gear, back arrow) — lighter than the full CTA style.
 struct GameIconButtonStyle: ButtonStyle {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .scaleEffect(configuration.isPressed ? 0.85 : 1.0)
+            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.85 : 1.0)
             .opacity(configuration.isPressed ? 0.7 : 1.0)
-            .animation(.spring(response: 0.2, dampingFraction: 0.6), value: configuration.isPressed)
+            .animation(reduceMotion ? nil : .spring(response: 0.2, dampingFraction: 0.6), value: configuration.isPressed)
     }
 }
 
@@ -150,12 +154,14 @@ extension ButtonStyle where Self == GameIconButtonStyle {
 // The press feel for map/grid nodes (zodiac landmarks, level medallions) — a deeper squash
 // than the chrome buttons get, shared so both journey screens react identically.
 struct GameNodeButtonStyle: ButtonStyle {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .scaleEffect(configuration.isPressed ? 0.88 : 1)
-            .rotationEffect(.degrees(configuration.isPressed ? -2 : 0))
+            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.88 : 1)
+            .rotationEffect(.degrees(configuration.isPressed && !reduceMotion ? -2 : 0))
             .brightness(configuration.isPressed ? 0.08 : 0)
-            .animation(.spring(response: 0.22, dampingFraction: 0.58), value: configuration.isPressed)
+            .animation(reduceMotion ? nil : .spring(response: 0.22, dampingFraction: 0.58), value: configuration.isPressed)
     }
 }
 

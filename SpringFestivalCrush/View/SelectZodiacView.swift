@@ -23,9 +23,9 @@ struct SelectChineseZodiacView: View {
             .zodiacType ?? .rat
     }
 
-    /// The landmarks in journey order, paired into the two-column rows the map is laid out
-    /// in, top row first — the artwork reads bottom-to-top, so the first pair (rat, ox) is
-    /// drawn last.
+    /// The landmarks in journey order, paired into the two-column rows the artwork paints,
+    /// top row first — the path climbs bottom-to-top, so the first pair (rat, ox) is drawn
+    /// last.
     private var rows: [[ZodiacRecord]] {
         let ordered = gameModel.zodiacRecords.sorted { $0.zodiacType.rawValue < $1.zodiacType.rawValue }
         let pairs = stride(from: 0, to: ordered.count, by: 2).map {
@@ -34,46 +34,130 @@ struct SelectChineseZodiacView: View {
         return pairs.reversed()
     }
 
+    /// The scroll anchor for the row holding the current landmark. Rows are the scroll
+    /// targets rather than individual landmarks because scrollTo moves both axes at once:
+    /// centring a landmark would also centre its column, pushing the other column off screen.
+    /// A row spans the map's full width, so centring one leaves the map centred horizontally.
+    private var focusedRowAnchor: ChineseZodiac? {
+        rows.first { row in row.contains { $0.zodiacType == focusedZodiac } }?
+            .first?.zodiacType
+    }
+
+    /// Where the painted path puts the landmarks, as fractions of the map: two columns at
+    /// 0.30 and 0.70 across. The expanded artwork leaves sky above the last chapter
+    /// and a substantially deeper foreground below the Rat/Ox starting row.
+    private static let columnInset: CGFloat = 0.10
+    private static let firstRowY: CGFloat = 0.24
+    private static let lastRowY: CGFloat = 0.69
+
+    /// Preserve the expanded artwork's proportions (836x1881).
+    private static let mapAspect: CGFloat = 1881.0 / 836.0
+
+    /// Keep the previous landmark scale. The new margins add scrollable height
+    /// instead of shrinking the entire journey to fit the taller image.
+    private static let landmarkScaleAspect: CGFloat = 1536.0 / 1024.0
+
+    /// How far past a screen-filling scale the map is drawn. Anything above 1 leaves the map
+    /// bigger than the screen on both axes, which is what there is to pan around; higher
+    /// values show less of it at once. This is the dial to turn if the balance feels wrong.
+    private static let mapZoom: CGFloat = 1.35
+
     var body: some View {
-        ZStack {
-            AppTheme.festivalBackground
-                .ignoresSafeArea()
+        GeometryReader { geometry in
+            // The reader itself stays safe-area aware so it can report the insets; adding
+            // them back gives the true screen size the map has to cover before it ignores
+            // the safe area and runs full-bleed. Landmarks are placed on the artwork, so a
+            // row can pass under the status bar as the map pans — the haze below keeps the
+            // clock legible when it does.
+            let insets = geometry.safeAreaInsets
+            let screen = CGSize(
+                width: geometry.size.width + insets.leading + insets.trailing,
+                height: geometry.size.height + insets.top + insets.bottom
+            )
+            // Cover the screen at minimum, then zoom past it, so the map overflows on both
+            // axes and can be panned either way. Deriving the height from the width keeps the
+            // artwork undistorted.
+            let mapWidth = max(screen.width, screen.height / Self.landmarkScaleAspect) * Self.mapZoom
+            let mapHeight = mapWidth * Self.mapAspect
+            let nodeSize = min(max(screen.width * 0.19, 48), 84)
+            let rowHeight = nodeSize + 26 // circle plus its name plate
 
-            // The artwork is the screen: full-bleed behind the nav bar and home indicator,
-            // cropped rather than letterboxed. It carries the "journey" idea on its own, so
-            // there is no title card or legend competing with it.
-            Color.clear
-                .overlay {
-                    Image("ZodiacFestivalMap")
-                        .resizable()
-                        .scaledToFill()
-                }
-                .clipped()
-                .ignoresSafeArea()
+            ZStack {
+                // Keep artwork behind the scroll view as well, including while navigation
+                // and safe-area changes are being laid out.
+                Image("ZodiacFestivalMapExpanded")
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: screen.width, height: screen.height)
+                    .clipped()
+                    .accessibilityHidden(true)
 
-            GeometryReader { geometry in
-                // Landmarks are laid out rather than pinned to fractions of the image: the
-                // image is cropped by an amount that depends on the device's aspect ratio,
-                // so anything positioned in image space drifts off screen on some devices.
-                let rowHeight = geometry.size.height / CGFloat(max(rows.count, 1))
-                let nodeSize = min(max(geometry.size.width * 0.19, 48), min(84, rowHeight - 28))
+                ScrollViewReader { proxy in
+                    ScrollView([.horizontal, .vertical]) {
+                        ZStack {
+                            Image("ZodiacFestivalMapExpanded")
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: mapWidth, height: mapHeight)
+                                .clipped()
+                                .accessibilityHidden(true)
 
-                VStack(spacing: 0) {
-                    ForEach(rows.indices, id: \.self) { index in
-                        HStack(spacing: 0) {
-                            ForEach(rows[index]) { record in
-                                landmark(for: record, size: nodeSize)
-                                    .frame(maxWidth: .infinity)
+                            // Laid out against the map's own size, so each landmark lands on
+                            // the spot the artwork paints for it — beside its own carving.
+                            // Insets rather than .position: .position expands its result to
+                            // fill the map, which would leave scrollTo treating the whole map
+                            // as the target and never reaching an individual landmark.
+                            VStack(spacing: 0) {
+                                ForEach(rows.indices, id: \.self) { index in
+                                    HStack(spacing: 0) {
+                                        ForEach(rows[index]) { record in
+                                            landmark(for: record, size: nodeSize)
+                                                .frame(maxWidth: .infinity)
+                                        }
+                                    }
+                                    .frame(height: rowHeight)
+                                    .id(rows[index].first?.zodiacType)
+
+                                    if index < rows.count - 1 {
+                                        Spacer(minLength: 0)
+                                    }
+                                }
                             }
+                            .padding(.top, mapHeight * Self.firstRowY - rowHeight / 2)
+                            .padding(.bottom, mapHeight * (1 - Self.lastRowY) - rowHeight / 2)
+                            .padding(.horizontal, mapWidth * Self.columnInset)
+                            .frame(width: mapWidth, height: mapHeight)
                         }
-                        if index < rows.count - 1 {
-                            Spacer(minLength: 6)
+                        .frame(width: mapWidth, height: mapHeight)
+                        .background(MapScrollBoundary())
+                    }
+                    .scrollIndicators(.hidden)
+                    .onAppear {
+                        // One runloop later, so the scroll view has its content laid out.
+                        DispatchQueue.main.async {
+                            proxy.scrollTo(focusedRowAnchor, anchor: .center)
+                        }
+                    }
+                    .onChange(of: focusedZodiac) { _, _ in
+                        withAnimation(.spring(response: 0.65, dampingFraction: 0.82)) {
+                            proxy.scrollTo(focusedRowAnchor, anchor: .center)
                         }
                     }
                 }
-                .frame(width: geometry.size.width, height: geometry.size.height)
-                .padding(.horizontal, 8)
             }
+            .overlay(alignment: .top) {
+                // Landmarks pass under the status bar as the map scrolls, and a dark label
+                // sliding behind the clock makes the time unreadable. A short haze over just
+                // the status bar keeps it legible without putting a bar back on the map.
+                LinearGradient(
+                    colors: [Color.white.opacity(0.7), Color.white.opacity(0)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: insets.top)
+                .allowsHitTesting(false)
+            }
+            .ignoresSafeArea()
         }
         .navigationDestination(isPresented: $shouldPresentLevel) {
             SelectLevelView()
