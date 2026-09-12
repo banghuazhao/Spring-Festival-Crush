@@ -627,8 +627,38 @@ final class ReleaseRegressionTests: XCTestCase {
         }
     }
 
+    func testDebugDemosStartPlayableFreshAttempts() async throws {
+        let game = makeGame()
+        for specialDemo in [true, false] {
+            game.gameState = .win
+            game.pendingExtraMoves = 5
+            game.hammerModeActive = true
+            if specialDemo { game.debugLaunchSpecialDemo() }
+            else { game.debugLaunchElementsDemo() }
+            XCTAssertEqual(game.gameState, .loading)
+            XCTAssertFalse(game.hammerModeActive)
+            XCTAssertEqual(game.pendingExtraMoves, 0)
+            await game.setupNewGame()
+            XCTAssertEqual(game.gameState, .inProgress)
+            XCTAssertEqual(game.movesLeft, specialDemo ? 30 : 40)
+            XCTAssertEqual(game.secondsLeft, specialDemo ? nil : 240)
+            XCTAssertNil(game.currentLevelRecord)
+            let symbols = (0..<game.numRows).flatMap { row in
+                (0..<game.numColumns).compactMap { game.level.symbol(atColumn: $0, row: row) }
+            }
+            XCTAssertEqual(symbols.count, game.numRows * game.numColumns)
+            if specialDemo {
+                XCTAssertEqual(symbols.filter { $0.type == .lightning }.count, 2)
+                XCTAssertEqual(symbols.filter { $0.type == .five }.count, 2)
+                XCTAssertEqual(symbols.filter { $0.type.isEnhanced }.count, 1)
+            }
+            game.onTapBack()
+            XCTAssertFalse(game.shouldPresentDebugDemo)
+        }
+    }
+
     func testTileArtworkIsTransparentAndUsesOneCachedTexture() throws {
-        let names = ["firecracker", "redPocket", "dumpling", "bowl", "lantern", "RatTile", "OxTile", "TigerTile", "StarTile", "LockTile"]
+        let names = ["firecracker", "redPocket", "dumpling", "bowl", "lantern", "RatTile", "OxTile", "TigerTile", "StarTile", "LockTile", "LightningTile", "FiveTile"]
         for name in names {
             let image = try XCTUnwrap(UIImage(named: name), name)
             let cg = try XCTUnwrap(image.cgImage)

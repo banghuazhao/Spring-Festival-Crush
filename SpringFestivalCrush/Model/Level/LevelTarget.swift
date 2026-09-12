@@ -109,7 +109,7 @@ struct LevelTarget: Codable {
         if let lightningCombos {
             levelTargetDatas.append(
                 LevelTargetData(
-                    image: Image.image(from: "⚡️", fontSize: 40),
+                    image: Image("LightningTile"),
                     imageName: "lightningCombos",
                     targetNum: lightningCombos
                 )
@@ -118,7 +118,7 @@ struct LevelTarget: Codable {
         if let fiveCombos {
             levelTargetDatas.append(
                 LevelTargetData(
-                    image: Image("StarTile"),
+                    image: Image("FiveTile"),
                     imageName: "fiveCombos",
                     targetNum: fiveCombos
                 )

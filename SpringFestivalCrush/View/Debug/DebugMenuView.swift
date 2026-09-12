@@ -11,14 +11,23 @@ struct DebugMenuView: View {
     var body: some View {
         NavigationStack {
             List {
-                Section("Effects Demo") {
+                Section("Festival Power-up Demo") {
+                    powerUpPreview(
+                        image: "LightningTile", title: "Festival Lightning",
+                        detail: "Swap with a neighboring tile to clear its row and column."
+                    )
+                    powerUpPreview(
+                        image: "FiveTile", title: "Lucky Five",
+                        detail: "Swap with a normal tile to collect every tile of that type."
+                    )
                     Button {
                         gameModel.debugLaunchSpecialDemo()
                         dismiss()
                     } label: {
-                        Label("Launch Special Effects Demo", systemImage: "sparkles")
+                        Label("Play Festival Power-up Demo", systemImage: "play.fill")
                     }
-                    Text("Board has pre-placed ⚡️ Lightning, 🌟 Five, and 💥 Enhanced tiles, plus combo objectives for each. Swap ⚡️ or 🌟 to trigger effects; any valid swap auto-fires 💥.")
+                    .accessibilityIdentifier("debug-festival-demo")
+                    Text("Two Lightning charms, two Lucky Five stars, and an Enhanced tile are ready to try. Any valid swap also fires the Enhanced tile. Pause opens an alert over this board; Resume keeps your tiles, moves, and goals.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -92,6 +101,21 @@ struct DebugMenuView: View {
                 Text("All stars, completions, and unlocks will be wiped. This cannot be undone.")
             }
         }
+    }
+
+    private func powerUpPreview(image: String, title: String, detail: String) -> some View {
+        HStack(spacing: 12) {
+            Image(image)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 56, height: 56)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title).font(.headline)
+                Text(detail).font(.caption).foregroundStyle(.secondary)
+            }
+        }
+        .accessibilityElement(children: .combine)
     }
 }
 

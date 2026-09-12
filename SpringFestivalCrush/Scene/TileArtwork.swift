@@ -11,7 +11,10 @@ enum TileArtwork {
         let emoji: String?
         switch type {
         case .five:
-            asset = "StarTile"
+            asset = "FiveTile"
+            emoji = type.emojiForHighlight
+        case .lightning:
+            asset = "LightningTile"
             emoji = type.emojiForHighlight
         case .lock, .heavyLock, .vaultLock:
             asset = "LockTile"

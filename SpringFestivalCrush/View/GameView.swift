@@ -20,7 +20,7 @@ struct GameView: View {
     @State private var gameScene: GameScene?
     @StateObject private var feedback = GameFeedback()
     @State private var showingPause = false
-    @State private var exitAfterPause = false
+    @State private var isExiting = false
     @State private var refillTool: GameTool?
     @State private var needsResumeAfterInterruption = false
     #if !targetEnvironment(macCatalyst)
@@ -36,7 +36,7 @@ struct GameView: View {
     }
 
     private var isGameplayPaused: Bool {
-        showingPause || exitAfterPause || refillTool != nil || scenePhase != .active || needsResumeAfterInterruption || isWatchingRewardAd
+        showingPause || isExiting || refillTool != nil || scenePhase != .active || needsResumeAfterInterruption || isWatchingRewardAd
     }
 
     private let timerTicker = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
@@ -98,6 +98,7 @@ struct GameView: View {
             if let gameScene {
                 SpriteView(scene: gameScene, isPaused: isGameplayPaused)
                     .allowsHitTesting(!isGameplayPaused)
+                    .accessibilityHidden(showingPause)
                     .ignoresSafeArea(.all)
                     .blur(radius: isShowingResult ? 2 : 0)
                     .scaleEffect(isShowingResult && !reduceMotion ? 0.99 : 1)
@@ -144,7 +145,24 @@ struct GameView: View {
                         .transition(reduceMotion ? .opacity : .scale(scale: 0.92).combined(with: .opacity))
                 }
             }
+
+            if showingPause {
+                PauseMenuView(
+                    onResume: {
+                        needsResumeAfterInterruption = false
+                        showingPause = false
+                    },
+                    onExit: {
+                        isExiting = true
+                        showingPause = false
+                        gameModel.onTapBack()
+                    }
+                )
+                .transition(.opacity)
+                .zIndex(10)
+            }
         }
+        .animation(.easeOut(duration: 0.18), value: showingPause)
         .animation(.easeInOut(duration: 0.25), value: activeBanner)
         .animation(reduceMotion ? .easeOut(duration: 0.18)
                    : (gameModel.gameState == .lose ? .easeOut(duration: 0.24)
@@ -178,22 +196,6 @@ struct GameView: View {
             feedback.clear()
             gameScene?.cancelIdleHint()
         }
-        .sheet(isPresented: $showingPause, onDismiss: {
-            needsResumeAfterInterruption = false
-            // Dismiss the pause sheet before dismissing its presenting game screen.
-            if exitAfterPause { gameModel.onTapBack() }
-        }) {
-            PauseMenuView(
-                onResume: {
-                    needsResumeAfterInterruption = false
-                    showingPause = false
-                },
-                onExit: {
-                    exitAfterPause = true
-                    showingPause = false
-                }
-            )
-        }
         .sheet(item: $refillTool) { tool in
             ToolRefillView(tool: tool) {
                 switch tool {
@@ -204,7 +206,7 @@ struct GameView: View {
         }
         .onAppear {
             // Built once per presentation: GameScene's initializer kicks off setupNewGame(),
-            // so rebuilding it on a second onAppear (e.g. after the pause sheet closes) would
+            // so rebuilding it on a second onAppear (e.g. after Settings closes) would
             // silently restart the level with the score and moves reset.
             guard gameScene == nil else { return }
             gameScene = GameScene(
@@ -217,7 +219,7 @@ struct GameView: View {
             )
         }
         .onReceive(timerTicker) { _ in
-            // Settings is pushed inside Pause, so the entire menu flow suspends time.
+            // Pause stays visible beneath Settings, so the entire menu flow suspends time.
             guard !isGameplayPaused else { return }
             gameModel.tickTimer()
         }

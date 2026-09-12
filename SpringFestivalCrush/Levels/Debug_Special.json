@@ -5,7 +5,7 @@
         [1,6,1,1,4,1,5,1],
         [1,1,1,1,1,1,1,1],
         [1,1,1,1,1,1,1,1],
-        [1,1,1,1,1,1,1,1]
+        [1,1,4,1,1,5,1,1]
     ],
     "moves": 30,
     "noShuffle": true,
@@ -14,8 +14,8 @@
         "secondStarScore": 1000,
         "thirdStarScore": 2000,
         "levelTarget": {
-            "lightningCombos": 1,
-            "fiveCombos": 1,
+            "lightningCombos": 2,
+            "fiveCombos": 2,
             "enhancedCombos": 1
         }
     }

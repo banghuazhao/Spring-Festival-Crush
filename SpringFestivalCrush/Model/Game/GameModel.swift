@@ -829,18 +829,23 @@ class GameModel: ObservableObject {
 
     @MainActor
     func debugLaunchSpecialDemo() {
-        zodiac = Zodiac.all.first(where: { $0.zodiacType == .rat }) ?? Zodiac.all.first!
-        guard let demoLevel = Level(filename: "Debug_Special") else { return }
-        level = demoLevel
-        currentLevel = -1
-        currentLevelRecord = nil
-        shouldPresentDebugDemo = true
+        debugLaunchDemo(filename: "Debug_Special")
     }
 
     @MainActor
     func debugLaunchElementsDemo() {
+        debugLaunchDemo(filename: "Debug_Elements")
+    }
+
+    @MainActor
+    private func debugLaunchDemo(filename: String) {
+        guard let demoLevel = Level(filename: filename) else { return }
+        attemptID = UUID()
+        resetBoostersForNewAttempt()
+        gameState = .loading
+        victorySummary = nil
+        pendingTrailCelebration = nil
         zodiac = Zodiac.all.first(where: { $0.zodiacType == .rat }) ?? Zodiac.all.first!
-        guard let demoLevel = Level(filename: "Debug_Elements") else { return }
         level = demoLevel
         currentLevel = -1
         currentLevelRecord = nil
