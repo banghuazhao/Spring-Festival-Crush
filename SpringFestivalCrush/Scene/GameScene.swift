@@ -20,6 +20,7 @@ class GameScene: SKScene {
     let maskLayer = SKNode()
     let cropLayer = SKCropNode()
     let symbolsLayer = SKNode()
+    let effectsLayer = SKNode()
     // Jelly backing squares, behind symbolsLayer so they read as "under" the candies.
     let overlayLayer = SKNode()
 
@@ -28,7 +29,7 @@ class GameScene: SKScene {
     private var swipeFromRow: Int?
     private var selectionSprite = SKNode()
     private var tutorialHintNodes: [SKNode] = []
-    private var removingSprites = Set<ObjectIdentifier>()
+    var removingSprites = Set<ObjectIdentifier>()
 
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder) is not used in this app")
@@ -72,6 +73,8 @@ class GameScene: SKScene {
         gameLayer.addChild(cropLayer)
         cropLayer.addChild(overlayLayer)
         cropLayer.addChild(symbolsLayer)
+        effectsLayer.zPosition = 200
+        cropLayer.addChild(effectsLayer)
         for sound in GameSound.allCases {
             let voice = SKAudioNode(fileNamed: sound.rawValue)
             voice.autoplayLooped = false
@@ -82,7 +85,6 @@ class GameScene: SKScene {
         idleHintLayer.zPosition = 450
         gameLayer.addChild(idleHintLayer)
 
-        _ = SKLabelNode(fontNamed: "GillSans-BoldItalic")
     }
     
     private func setupBindings() {
@@ -172,6 +174,7 @@ class GameScene: SKScene {
         tilesLayer.position = layerPosition
         maskLayer.position = layerPosition
         symbolsLayer.position = layerPosition
+        effectsLayer.position = layerPosition
         overlayLayer.position = layerPosition
     }
 
@@ -218,8 +221,8 @@ class GameScene: SKScene {
         symbol.sprite = sprite
 
         guard shouldAnimate else { return }
-        if symbol.type.isEnhanced {
-            await animateEnhancedBirth(on: sprite)
+        if symbol.type.isEnhanced || symbol.type == .five || symbol.type == .lightning {
+            await animateSpecialBirth(on: sprite, type: symbol.type)
             return
         }
         if reduceMotion {
@@ -444,288 +447,8 @@ class GameScene: SKScene {
         selectionSprite.run(.sequence([.fadeOut(withDuration: 0.1), .removeFromParent()]))
     }
 
-    func animateMatchedSymbols(for chains: Set<Chain>) async {
-        if reduceMotion {
-            await withTaskGroup(of: Void.self) { group in
-                for chain in chains {
-                    animateScore(for: chain)
-                    triggerHaptic(for: chain)
-                    for symbol in chain.symbols {
-                        guard let sprite = symbol.sprite else { continue }
-                        group.addTask { @MainActor in
-                            await self.animateRemoval(of: sprite, action: .sequence([.fadeOut(withDuration: 0.16), .removeFromParent()]))
-                        }
-                    }
-                }
-            }
-            return
-        }
-        await withTaskGroup(of: Void.self) { taskGroup in
-            for chain in chains {
-                animateScore(for: chain)
-                triggerHaptic(for: chain)
-                switch chain.chainType {
-                case .fiveEffect:
-                    taskGroup.addTask { @MainActor in await self.animateFiveChainEffect(for: chain) }
-                case .lightning:
-                    taskGroup.addTask { @MainActor in await self.animateLightningChainEffect(for: chain) }
-                case .enhanced:
-                    taskGroup.addTask { @MainActor in await self.animateEnhancedChainEffect(for: chain) }
-                case .single:
-                    taskGroup.addTask { @MainActor in await self.animateSingleExplosionEffect(for: chain) }
-                default:
-                    // An enhanced tile swapped into a normal match must still explode.
-                    if let enhancedSymbol = chain.symbols.first(where: { $0.type.isEnhanced }),
-                       let sprite = enhancedSymbol.sprite {
-                        fireShockwave(at: sprite.position)
-                        for symbol in chain.symbols {
-                            taskGroup.addTask { @MainActor in await self.popExplode(symbol: symbol) }
-                        }
-                    } else {
-                        for symbol in chain.symbols {
-                            guard let sprite = symbol.sprite else { continue }
-                            let anticipate = SKAction.scale(to: 1.15, duration: 0.06)
-                            let scaleAction = SKAction.scale(to: 0.1, duration: 0.22)
-                            scaleAction.timingMode = .easeIn
-                            taskGroup.addTask { @MainActor in
-                                await self.animateRemoval(of: sprite,
-                                    action: SKAction.sequence([anticipate, scaleAction, SKAction.removeFromParent()])
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    /// Scales haptic intensity (and adds screen shake for the biggest moments) to the size/kind of match.
-    private func triggerHaptic(for chain: Chain) {
-        switch chain.chainType {
-        case .fiveEffect, .enhanced:
-            HapticManager.explosion()
-            screenShake()
-        case .lightning:
-            HapticManager.bigMatch()
-            screenShake(magnitude: 4, duration: 0.2)
-        case .single, .locks:
-            break
-        default:
-            if chain.length >= 4 {
-                HapticManager.bigMatch()
-            } else {
-                HapticManager.match()
-            }
-        }
-    }
-
-    // Five-universal effect: glowing link lines shoot from each tile to the five, then tiles fly in.
-    private func animateFiveChainEffect(for chain: Chain) async {
-        guard let fiveSymbol = chain.symbols.first,
-              let fiveSprite = fiveSymbol.sprite else { return }
-        let center = fiveSprite.position
-
-        // Phase 1 (fire-and-forget): draw glowing beam lines from every tile to the five center.
-        for symbol in chain.symbols.dropFirst() {
-            guard let sprite = symbol.sprite else { continue }
-            let path = CGMutablePath()
-            path.move(to: sprite.position)
-            path.addLine(to: center)
-            let line = SKShapeNode(path: path)
-            line.strokeColor = UIColor.cyan.withAlphaComponent(0.95)
-            line.lineWidth   = 2.5
-            line.glowWidth   = 5
-            line.zPosition   = 230
-            symbolsLayer.addChild(line)
-            line.run(SKAction.sequence([
-                SKAction.fadeOut(withDuration: 0.42),
-                SKAction.removeFromParent()
-            ]), completion: {})
-        }
-
-        // Phase 2: each tile flashes cyan then flies toward center with staggered delay.
-        await withTaskGroup(of: Void.self) { taskGroup in
-            for (index, symbol) in chain.symbols.enumerated() {
-                guard let sprite = symbol.sprite else { continue }
-
-                if index == 0 {
-                    taskGroup.addTask { @MainActor in
-                        let flash = SKAction.group([
-                            SKAction.colorize(with: .cyan, colorBlendFactor: 0.9, duration: 0.12),
-                            SKAction.scale(to: 1.5, duration: 0.12)
-                        ])
-                        let vanish = SKAction.group([
-                            SKAction.scale(to: 0.0, duration: 0.22),
-                            SKAction.fadeOut(withDuration: 0.22)
-                        ])
-                        await self.animateRemoval(of: sprite,
-                            action: SKAction.sequence([flash, vanish, SKAction.removeFromParent()])
-                        )
-                    }
-                } else {
-                    let delay = min(0.18, 0.012 * TimeInterval(index))
-                    taskGroup.addTask { @MainActor in
-                        let flash  = SKAction.group([
-                            SKAction.colorize(with: .cyan, colorBlendFactor: 0.7, duration: 0.08),
-                            SKAction.scale(to: 1.15, duration: 0.08)
-                        ])
-                        let move   = SKAction.move(to: center, duration: 0.28)
-                        move.timingMode = .easeIn
-                        let shrink = SKAction.scale(to: 0.0, duration: 0.28)
-                        let fade   = SKAction.fadeOut(withDuration: 0.22)
-                        await self.animateRemoval(of: sprite,
-                            action: SKAction.sequence([
-                                SKAction.wait(forDuration: delay),
-                                flash,
-                                SKAction.group([move, shrink, fade]),
-                                SKAction.removeFromParent()
-                            ])
-                        )
-                    }
-                }
-            }
-        }
-
-        // Phase 3: starburst ring at the five center after all tiles arrive.
-        let ring = SKShapeNode(circleOfRadius: gameModel.tileSize.width * 0.6)
-        ring.fillColor   = .clear
-        ring.strokeColor = UIColor.cyan.withAlphaComponent(0.95)
-        ring.lineWidth   = 4
-        ring.glowWidth   = 6
-        ring.position    = center
-        ring.zPosition   = 250
-        symbolsLayer.addChild(ring)
-        ring.run(SKAction.sequence([
-            SKAction.group([SKAction.scale(to: 3.0, duration: 0.4),
-                            SKAction.fadeOut(withDuration: 0.4)]),
-            SKAction.removeFromParent()
-        ]), completion: {})
-    }
-
-    // Lightning effect: flash a yellow bar across the chain's row or column, then tiles vanish.
-    private func animateLightningChainEffect(for chain: Chain) async {
-        let sprites = chain.symbols.compactMap { $0.sprite }
-        guard !sprites.isEmpty else { return }
-
-        let positions = sprites.map { $0.position }
-        let isHorizontal = Set(chain.symbols.map { $0.row }).count == 1
-
-        if isHorizontal {
-            let minX = positions.map { $0.x }.min()!
-            let maxX = positions.map { $0.x }.max()!
-            let midY = positions[0].y
-            let barW = maxX - minX + gameModel.tileSize.width
-            let bar  = SKShapeNode(rectOf: CGSize(width: barW, height: gameModel.tileSize.height * 0.85), cornerRadius: 6)
-            bar.fillColor  = UIColor.yellow.withAlphaComponent(0.82)
-            bar.strokeColor = .white
-            bar.lineWidth   = 2
-            bar.position    = CGPoint(x: (minX + maxX) / 2, y: midY)
-            bar.zPosition   = 220
-            symbolsLayer.addChild(bar)
-            bar.run(SKAction.sequence([
-                SKAction.fadeOut(withDuration: 0.4),
-                SKAction.removeFromParent()
-            ]), completion: {})
-        } else {
-            let minY = positions.map { $0.y }.min()!
-            let maxY = positions.map { $0.y }.max()!
-            let midX = positions[0].x
-            let barH = maxY - minY + gameModel.tileSize.height
-            let bar  = SKShapeNode(rectOf: CGSize(width: gameModel.tileSize.width * 0.85, height: barH), cornerRadius: 6)
-            bar.fillColor  = UIColor.yellow.withAlphaComponent(0.82)
-            bar.strokeColor = .white
-            bar.lineWidth   = 2
-            bar.position    = CGPoint(x: midX, y: (minY + maxY) / 2)
-            bar.zPosition   = 220
-            symbolsLayer.addChild(bar)
-            bar.run(SKAction.sequence([
-                SKAction.fadeOut(withDuration: 0.4),
-                SKAction.removeFromParent()
-            ]), completion: {})
-        }
-
-        await withTaskGroup(of: Void.self) { taskGroup in
-            for symbol in chain.symbols {
-                guard let sprite = symbol.sprite else { continue }
-                taskGroup.addTask { @MainActor in
-                    let scale = SKAction.scale(to: 0.1, duration: 0.25)
-                    scale.timingMode = .easeOut
-                    await self.animateRemoval(of: sprite,
-                        action: SKAction.sequence([SKAction.wait(forDuration: 0.1),
-                                           scale,
-                                           SKAction.removeFromParent()])
-                    )
-                }
-            }
-        }
-    }
-
-    // Enhanced explosion: large shockwave ring from the enhanced tile's center, all tiles pop.
-    private func animateEnhancedChainEffect(for chain: Chain) async {
-        if let sprite = chain.symbols.first?.sprite {
-            fireShockwave(at: sprite.position)
-        }
-        await withTaskGroup(of: Void.self) { taskGroup in
-            for symbol in chain.symbols {
-                taskGroup.addTask { @MainActor in await self.popExplode(symbol: symbol) }
-            }
-        }
-    }
-
-    private func fireShockwave(at position: CGPoint) {
-        let shockwave = SKShapeNode(circleOfRadius: gameModel.tileSize.width * 0.5)
-        shockwave.fillColor   = UIColor.orange.withAlphaComponent(0.35)
-        shockwave.strokeColor = UIColor.orange.withAlphaComponent(0.95)
-        shockwave.lineWidth   = 4
-        shockwave.glowWidth   = 6
-        shockwave.position    = position
-        shockwave.zPosition   = 210
-        symbolsLayer.addChild(shockwave)
-        shockwave.run(SKAction.sequence([
-            SKAction.group([SKAction.scale(to: 5.0, duration: 0.38),
-                            SKAction.fadeOut(withDuration: 0.38)]),
-            SKAction.removeFromParent()
-        ]), completion: {})
-    }
-
-    // Tiles cleared by an enhanced explosion (single chains) also pop.
-    private func animateSingleExplosionEffect(for chain: Chain) async {
-        await withTaskGroup(of: Void.self) { taskGroup in
-            for symbol in chain.symbols {
-                taskGroup.addTask { @MainActor in await self.popExplode(symbol: symbol) }
-            }
-        }
-    }
-
-    // Shared pop-explode: white flash scale-up then collapse to zero.
-    private func popExplode(symbol: Symbol) async {
-        guard let sprite = symbol.sprite else { return }
-        let pop = SKAction.group([
-            SKAction.scale(to: 1.3, duration: 0.1),
-            SKAction.colorize(with: .white, colorBlendFactor: 0.85, duration: 0.1)
-        ])
-        let explode = SKAction.group([
-            SKAction.scale(to: 0.0, duration: 0.2),
-            SKAction.fadeOut(withDuration: 0.2)
-        ])
-        await animateRemoval(of: sprite,
-            action: SKAction.sequence([pop, explode, SKAction.removeFromParent()])
-        )
-    }
-
-    /// The keyed SpriteKit run API is synchronous, even when written with `await`.
-    /// Reserve once on the main actor, then await the real completion before refilling.
-    private func animateRemoval(of sprite: SKSpriteNode, action: SKAction) async {
-        let id = ObjectIdentifier(sprite)
-        guard sprite.parent != nil, removingSprites.insert(id).inserted else { return }
-        defer { removingSprites.remove(id) }
-        // A landing settle must not restore scale while a match is collapsing.
-        sprite.removeAction(forKey: "landing")
-        sprite.removeAction(forKey: "ambientEffect")
-        await sprite.run(action)
-    }
-
     func animateCreatingSpecialSymbols(for specialSymbols: [Symbol]) async {
+        if !specialSymbols.isEmpty { playSound(.landing, volume: 0.6, rate: 1.2) }
         await withTaskGroup(of: Void.self) { taskGroup in
             for specialSymbol in specialSymbols {
                 taskGroup.addTask { @MainActor in
@@ -740,18 +463,19 @@ class GameScene: SKScene {
             for array in columns {
                 for (index, symbol) in array.enumerated() {
                     let newPosition = pointFor(column: symbol.column, row: symbol.row)
-                    let delay = 0.05 + 0.02 * TimeInterval(index)
+                    let delay = reduceMotion ? 0 : 0.015 * TimeInterval(index)
                     let sprite = symbol.sprite! // sprite always exists at this point
-                    let duration = TimeInterval(((sprite.position.y - newPosition.y) / gameModel.tileSize.height) * 0.1)
+                    let cells = abs((sprite.position.y - newPosition.y) / gameModel.tileSize.height)
+                    let duration = min(0.34, 0.10 + Double(cells) * 0.035)
                     let moveAction = SKAction.move(to: newPosition, duration: duration)
                     moveAction.timingMode = .easeIn
+                    let action: SKAction = reduceMotion
+                        ? .sequence([.fadeAlpha(to: 0.25, duration: 0.08), .move(to: newPosition, duration: 0), .fadeIn(withDuration: 0.08)])
+                        : .sequence([.wait(forDuration: delay), moveAction])
                     taskGroup.addTask { @MainActor in
-                        await sprite.run(
-                            SKAction.sequence([
-                                SKAction.wait(forDuration: delay),
-                                moveAction]
-                            )
-                        )
+                        sprite.removeAction(forKey: "landing")
+                        sprite.setScale(1)
+                        await sprite.run(action)
                         self.landingSquash(sprite)
                     }
                 }
@@ -763,7 +487,8 @@ class GameScene: SKScene {
     func animateNewSymbols(in columns: [[Symbol]]) async {
         await withTaskGroup(of: Void.self) { taskGroup in
             for array in columns {
-                let startRow = array[0].row + 1
+                guard let first = array.first else { continue }
+                let startRow = first.row + 1
                 for (index, symbol) in array.enumerated() {
                     let sprite = symbol.createSpriteNode(zodiac: gameModel.zodiac)
                     configureAmbientMotion(sprite)
@@ -771,10 +496,11 @@ class GameScene: SKScene {
                     sprite.position = pointFor(column: symbol.column, row: startRow)
                     symbolsLayer.addChild(sprite)
                     symbol.sprite = sprite
-                    let delay = 0.1 + 0.2 * TimeInterval(array.count - index - 1)
-                    let duration = TimeInterval(startRow - symbol.row) * 0.1
+                    let delay = reduceMotion ? 0 : 0.025 * TimeInterval(array.count - index - 1)
+                    let duration = reduceMotion ? 0.16 : min(0.34, 0.12 + Double(abs(startRow - symbol.row)) * 0.035)
                     // 6
                     let newPosition = pointFor(column: symbol.column, row: symbol.row)
+                    if reduceMotion { sprite.position = newPosition }
                     let moveAction = SKAction.move(to: newPosition, duration: duration)
                     moveAction.timingMode = .easeIn
                     sprite.alpha = 0
@@ -783,7 +509,7 @@ class GameScene: SKScene {
                             SKAction.sequence([
                                 SKAction.wait(forDuration: delay),
                                 SKAction.group([
-                                    SKAction.fadeIn(withDuration: 0.05),
+                                    SKAction.fadeIn(withDuration: self.reduceMotion ? 0.16 : 0.06),
                                     moveAction,
                                 ]),
                             ]))
@@ -796,80 +522,29 @@ class GameScene: SKScene {
     }
 
     func animateEnhancedSymbols(for symbols: [Symbol]) async {
-        for symbol in symbols {
-            symbol.sprite?.removeFromParent()
-            let sprite = symbol.createSpriteNode(zodiac: gameModel.zodiac)
-            configureAmbientMotion(sprite)
-            sprite.size = gameModel.tileSize
-            sprite.position = pointFor(column: symbol.column, row: symbol.row)
-            symbolsLayer.addChild(sprite)
-            symbol.sprite = sprite
-
-            await animateEnhancedBirth(on: sprite)
-            gameModel.decreaseMove()
+        let level = gameModel.level
+        let state = gameModel.gameState
+        // A short wave, not N sequential animations on high-move victories.
+        await withTaskGroup(of: Void.self) { group in
+            for (index, symbol) in symbols.enumerated() {
+                group.addTask { @MainActor in
+                    if !self.reduceMotion { await self.run(.wait(forDuration: min(0.36, Double(index) * 0.025))) }
+                    guard self.gameModel.level === level, self.gameModel.gameState == state, !Task.isCancelled else { return }
+                    symbol.sprite?.removeFromParent()
+                    await self.createSpriteForSymbol(symbol)
+                    guard self.gameModel.level === level, self.gameModel.gameState == state, !Task.isCancelled else { return }
+                    self.gameModel.decreaseMove()
+                }
+            }
         }
-    }
-
-    func animateScore(for chain: Chain) {
-        // Figure out what the midpoint of the chain is.
-        guard chain.chainType != .locks else { return }
-        let firstSprite = chain.firstSymbol().sprite!
-        let lastSprite = chain.lastSymbol().sprite!
-        let centerPosition = CGPoint(
-            x: (firstSprite.position.x + lastSprite.position.x) / 2,
-            y: (firstSprite.position.y + lastSprite.position.y) / 2 - 8)
-
-        // Bigger chains get a bigger, warmer-colored label so combos read as more rewarding.
-        let isBigChain = chain.length >= 4 || chain.chainType == .enhanced || chain.chainType == .lightning || chain.chainType == .fiveEffect
-
-        let scoreLabel = SKLabelNode(fontNamed: "GillSans-BoldItalic")
-        scoreLabel.fontSize = isBigChain ? 24 : 17
-        scoreLabel.fontColor = isBigChain ? UIColor(hex: 0xFFB238) : .white
-        scoreLabel.text = "+\(chain.score)"
-        scoreLabel.position = centerPosition
-        scoreLabel.zPosition = 300
-        scoreLabel.setScale(0.3)
-        scoreLabel.alpha = 0
-        symbolsLayer.addChild(scoreLabel)
-        if reduceMotion {
-            scoreLabel.setScale(1)
-            scoreLabel.run(.sequence([.fadeIn(withDuration: 0.1), .wait(forDuration: 0.3), .fadeOut(withDuration: 0.2), .removeFromParent()]))
-            return
-        }
-
-        // Pop in with a slight overshoot, hold, then float up and fade — classic combo-counter feel.
-        let popIn = SKAction.group([
-            SKAction.fadeIn(withDuration: 0.1),
-            SKAction.sequence([
-                SKAction.scale(to: isBigChain ? 1.25 : 1.1, duration: 0.14),
-                SKAction.scale(to: 1.0, duration: 0.08),
-            ]),
-        ])
-        let float = SKAction.move(by: CGVector(dx: 0, dy: 30), duration: 0.6)
-        float.timingMode = .easeOut
-        let fadeOut = SKAction.fadeOut(withDuration: 0.35)
-        scoreLabel.run(SKAction.sequence([
-            popIn,
-            SKAction.group([float, SKAction.sequence([SKAction.wait(forDuration: 0.25), fadeOut])]),
-            SKAction.removeFromParent(),
-        ]))
-    }
-
-    func animateGameOver() async {
-        gameLayer.removeAction(forKey: "screenShake")
-        if reduceMotion {
-            await gameLayer.run(.fadeOut(withDuration: 0.15))
-            return
-        }
-        let action = SKAction.move(by: CGVector(dx: 0, dy: -size.height), duration: 0.3)
-        action.timingMode = .easeIn
-        await gameLayer.run(action)
     }
 
     func animateBeginGame() async {
         gameLayer.removeAction(forKey: "screenShake")
+        gameLayer.removeAction(forKey: "victorySettle")
         gameLayer.isHidden = false
         gameLayer.alpha = 1
+        gameLayer.setScale(1)
         if reduceMotion {
             gameLayer.position = .zero
             gameLayer.alpha = 0
@@ -889,6 +564,7 @@ class GameScene: SKScene {
 
     func removeAllSymbols() {
         symbolsLayer.removeAllChildren()
+        effectsLayer.removeAllChildren()
     }
 
     func setUserInteraction(enabled: Bool) {
@@ -964,6 +640,7 @@ class GameScene: SKScene {
                 }
 
                 if let symbol = gameModel.level.symbol(atColumn: column, row: row), let sprite = symbol.sprite {
+                    sprite.texture = TileArtwork.texture(for: symbol.type, zodiac: gameModel.zodiac)
                     sprite.colorBlendFactor = symbol.isFrozen ? 0.55 : 0
                     if symbol.isFrozen {
                         sprite.color = UIColor.cyan
@@ -1030,15 +707,12 @@ class GameScene: SKScene {
         // rest position, so a cascade of big matches walks the board permanently off centre.
         guard !reduceMotion, settingModel.screenShakeEnabled, gameLayer.action(forKey: "screenShake") == nil else { return }
         let originalPosition = gameLayer.position
-        var actions: [SKAction] = []
-        let steps = 6
-        for i in 0 ..< steps {
-            let progress = 1.0 - CGFloat(i) / CGFloat(steps)
-            let dx = CGFloat.random(in: -magnitude ... magnitude) * progress
-            let dy = CGFloat.random(in: -magnitude ... magnitude) * progress
-            actions.append(SKAction.move(to: CGPoint(x: originalPosition.x + dx, y: originalPosition.y + dy), duration: duration / TimeInterval(steps)))
+        let kick = SKAction.customAction(withDuration: duration) { node, elapsed in
+            let t = min(1, CGFloat(elapsed) / CGFloat(max(0.01, duration)))
+            let envelope = (1 - t) * (1 - t)
+            node.position = CGPoint(x: originalPosition.x + sin(t * .pi * 4) * magnitude * envelope,
+                                    y: originalPosition.y + sin(t * .pi * 3) * magnitude * 0.45 * envelope)
         }
-        actions.append(SKAction.move(to: originalPosition, duration: duration / TimeInterval(steps)))
-        gameLayer.run(SKAction.sequence(actions), withKey: "screenShake")
+        gameLayer.run(.sequence([kick, .move(to: originalPosition, duration: 0)]), withKey: "screenShake")
     }
 }

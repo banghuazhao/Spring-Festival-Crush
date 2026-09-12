@@ -692,7 +692,6 @@ class Level {
             let row: Int
             let newType: SymbolType
             let newTileType: Tile.TileType
-            let emoji: String
         }
 
         var toDowngrade: [Downgrade] = []
@@ -714,9 +713,9 @@ class Level {
 
                 switch symbol.type {
                 case .vaultLock:
-                    toDowngrade.append(Downgrade(column: column, row: row, newType: .heavyLock, newTileType: .doubleLock, emoji: "⛓️"))
+                    toDowngrade.append(Downgrade(column: column, row: row, newType: .heavyLock, newTileType: .doubleLock))
                 case .heavyLock:
-                    toDowngrade.append(Downgrade(column: column, row: row, newType: .lock, newTileType: .lock, emoji: "🔒"))
+                    toDowngrade.append(Downgrade(column: column, row: row, newType: .lock, newTileType: .lock))
                 case .lock, .chocolate:
                     toClear.insert([column, row])
                 default:
@@ -751,9 +750,7 @@ class Level {
             downgraded.sprite = symbol.sprite
             symbols[downgrade.column, downgrade.row] = downgraded
             tiles[downgrade.column, downgrade.row]?.type = downgrade.newTileType
-            if let sprite = symbol.sprite, let texture = SKTexture.texture(from: downgrade.emoji, fontSize: 40) {
-                sprite.run(SKAction.setTexture(texture))
-            }
+            // Scene refresh applies the cached artwork for the new strength.
         }
 
         for pos in toClear {

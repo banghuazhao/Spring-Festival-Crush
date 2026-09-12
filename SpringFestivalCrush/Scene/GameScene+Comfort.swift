@@ -13,6 +13,14 @@ extension GameScene {
     }
 
     func applyMotionPreferences() {
+        if reduceMotion {
+            if gameLayer.action(forKey: "screenShake") != nil {
+                gameLayer.removeAction(forKey: "screenShake")
+                gameLayer.position = .zero
+            }
+            gameLayer.removeAction(forKey: "victorySettle")
+            gameLayer.setScale(1)
+        }
         for sprite in symbolsLayer.children.compactMap({ $0 as? SKSpriteNode }) { configureAmbientMotion(sprite) }
     }
 

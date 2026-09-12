@@ -12,8 +12,8 @@ King's [Striped Candy explanation](https://candycrush.zendesk.com/hc/en-us/artic
 
 - `EnhancedTileAppearance` composites an octagonal jade-and-gold frame behind the unchanged base artwork, with an eight-point burst seal at the lower right. The shape and seal provide cues beyond color alone.
 - `TileArtwork` lazily caches a separate 256 × 256 texture for each enhanced artwork identity. Festival textures are shared across chapters; zodiac variants remain distinct. This adds runtime texture memory, but no second set of bundled PNGs.
-- Resting enhanced tiles remain single sprite nodes: no continuous particle emitter, pulsing action, or persistent overlay nodes. Other special pieces' existing effects are unchanged.
-- Creation uses a 0.24-second eased scale settle, a fading ring and four brief sparks. The accent is owned by the sprite and removed when the awaited animation finishes. Reduced-motion mode uses a 0.16-second fade without scaling or sparks.
+- Resting enhanced tiles remain single sprite nodes: no continuous particle emitter, pulsing action, or persistent overlay nodes. The subsequent [animation pass](gameplay-animation-polish.md) extends quiet resting artwork to star and lightning pieces too.
+- Creation now uses a 0.32-second gather, squash, pop and settle, a fading ring and four brief sparks (six for the star). The accent is owned by the sprite and removed when the awaited animation finishes. Reduced-motion mode uses a 0.16-second fade without scaling or sparks.
 - Both normal special-piece creation and victory bonus enhancement use this treatment. Feedback does not award moves or progress; gameplay rules and victory move accounting are unchanged.
 - Selection retains its separate rounded outline. Enhanced status uses an octagonal frame and burst seal, so selection does not replace or erase the power marking.
 

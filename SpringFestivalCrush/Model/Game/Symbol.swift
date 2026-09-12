@@ -169,64 +169,7 @@ class Symbol: CustomStringConvertible, Hashable {
 
     @MainActor
     func createSpriteNode(zodiac: Zodiac) -> SKSpriteNode {
-        let spriteNode = SKSpriteNode(texture: TileArtwork.texture(for: type, zodiac: zodiac))
-        if type == .five {
-            addRainbowEffect(to: spriteNode)
-        }
-        if type == .lightning {
-            addLightningGlowEffect(to: spriteNode)
-        }
-        return spriteNode
-    }
-
-    private func addRainbowEffect(to sprite: SKSpriteNode) {
-        let effect = createMagicLightEffect()
-        effect.particleColor = UIColor.cyan
-        effect.particleBirthRate = 30
-        sprite.addChild(effect)
-        let pulse = SKAction.sequence([
-            SKAction.scale(to: 1.12, duration: 0.4),
-            SKAction.scale(to: 1.0, duration: 0.4)
-        ])
-        sprite.run(SKAction.repeatForever(pulse), withKey: "ambientEffect")
-    }
-
-    private func addLightningGlowEffect(to sprite: SKSpriteNode) {
-        let effect = createMagicLightEffect()
-        effect.particleColor = UIColor.yellow
-        effect.particleBirthRate = 35
-        effect.particleSpeed = 40
-        sprite.addChild(effect)
-        let flash = SKAction.sequence([
-            SKAction.colorize(with: .yellow, colorBlendFactor: 0.5, duration: 0.25),
-            SKAction.colorize(withColorBlendFactor: 0.0, duration: 0.25)
-        ])
-        sprite.run(SKAction.repeatForever(flash), withKey: "ambientEffect")
-    }
-
-    private static let magicParticleTexture: SKTexture = {
-        let size = CGSize(width: 20, height: 20)
-        let renderer = UIGraphicsImageRenderer(size: size)
-        let image = renderer.image { ctx in
-            UIColor.white.setFill()
-            UIBezierPath(ovalIn: CGRect(origin: .zero, size: size)).fill()
-        }
-        return SKTexture(image: image)
-    }()
-
-    private func createMagicLightEffect() -> SKEmitterNode {
-        let magicLight = SKEmitterNode()
-        magicLight.particleTexture = Symbol.magicParticleTexture
-        magicLight.particleBirthRate = 20
-        magicLight.particleLifetime = 1.0
-        magicLight.particlePositionRange = CGVector(dx: 2, dy: 2)
-        magicLight.emissionAngleRange = 360
-        magicLight.particleSpeed = 30
-        magicLight.particleScale = 0.1
-        magicLight.particleAlpha = 0.75
-        magicLight.particleColor = UIColor.white
-        magicLight.particleBlendMode = .add
-        return magicLight
+        SKSpriteNode(texture: TileArtwork.texture(for: type, zodiac: zodiac))
     }
 
     func isMovable() -> Bool {

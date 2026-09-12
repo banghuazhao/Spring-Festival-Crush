@@ -1,0 +1,155 @@
+import SpriteKit
+
+extension GameScene {
+    /// One bounded feedback batch per cascade. A tile shared by chains clears once.
+    func animateMatchedSymbols(for chains: Set<Chain>) async {
+        let batch = SKNode()
+        batch.name = "clearFeedback"
+        effectsLayer.addChild(batch)
+        defer { batch.removeFromParent() }
+        let ordered = chains.sorted { clearPriority($0) > clearPriority($1) }
+        let enhanced = Set(chains.flatMap(\.symbols).filter { $0.type.isEnhanced })
+        let origins = enhanced.compactMap { $0.sprite?.position }
+        if !reduceMotion {
+            // Cap overlapping area rings when a whole board of bonus tiles detonates.
+            for origin in origins.sorted(by: { $0.y == $1.y ? $0.x < $1.x : $0.y < $1.y }).prefix(6) {
+                addClearRing(at: origin, radius: gameModel.tileSize.width * 0.42,
+                             expansion: 3.1, color: UIColor(hex: 0xFFD987), to: batch)
+            }
+        }
+        if let strongest = ordered.first { triggerClearHaptic(for: strongest, enhanced: !enhanced.isEmpty) }
+        var claimed = Set<ObjectIdentifier>()
+        var sparkleBudget = 64
+        await withTaskGroup(of: Void.self) { group in
+            for chain in ordered {
+                let center = chain.symbols.first?.sprite?.position ?? .zero
+                if !reduceMotion {
+                    if chain.chainType == .lightning { addLightningTrail(for: chain, to: batch) }
+                    if chain.chainType == .fiveEffect {
+                        addClearRing(at: center, radius: gameModel.tileSize.width * 0.35,
+                                     expansion: 2.4, color: UIColor(hex: 0xBDEEFF), to: batch)
+                    }
+                }
+                for (index, symbol) in chain.symbols.enumerated() {
+                    guard let sprite = symbol.sprite, sprite.parent != nil,
+                          claimed.insert(ObjectIdentifier(sprite)).inserted else { continue }
+                    let isBlast = symbol.type.isEnhanced || chain.chainType == .single || chain.chainType == .enhanced
+                    let isStar = chain.chainType == .fiveEffect
+                    let isLightning = chain.chainType == .lightning
+                    let color = isStar ? UIColor(hex: 0xBDEEFF) : UIColor(hex: 0xFFE5A1)
+                    let distance = origins.map { hypot(sprite.position.x - $0.x, sprite.position.y - $0.y) }.min() ?? 0
+                    let delay = reduceMotion ? 0 : (isLightning ? min(0.12, Double(index) * 0.016)
+                        : (isStar ? min(0.12, Double(index) * 0.008)
+                           : (isBlast ? min(0.08, Double(distance / max(1, gameModel.tileSize.width)) * 0.035) : 0)))
+                    if !reduceMotion && sparkleBudget > 0 {
+                        let count = min(sparkleBudget, isBlast || isStar ? 4 : 2)
+                        sparkleBudget -= count
+                        addClearSparks(at: sprite.position, color: color, count: count,
+                                       delay: delay, to: batch)
+                    }
+                    let action: SKAction
+                    if reduceMotion {
+                        action = .sequence([.fadeOut(withDuration: 0.16), .removeFromParent()])
+                    } else {
+                        let anticipation = SKAction.scale(to: isBlast || isStar ? 1.12 : 1.06, duration: 0.06)
+                        anticipation.timingMode = .easeOut
+                        let collapse = SKAction.scale(to: 0.08, duration: 0.18)
+                        collapse.timingMode = .easeIn
+                        var release: [SKAction] = [collapse, .fadeOut(withDuration: 0.18)]
+                        if isStar && index > 0 {
+                            // A short inward tug communicates collection without dragging
+                            // distant tiles across the entire board or covering other pieces.
+                            let travel = SKAction.move(to: CGPoint(x: sprite.position.x + (center.x - sprite.position.x) * 0.18,
+                                                                   y: sprite.position.y + (center.y - sprite.position.y) * 0.18), duration: 0.18)
+                            travel.timingMode = .easeIn
+                            release.append(travel)
+                        }
+                        action = .sequence([.wait(forDuration: delay), anticipation,
+                                            .group(release), .removeFromParent()])
+                    }
+                    group.addTask { @MainActor in await self.animateRemoval(of: sprite, action: action) }
+                }
+            }
+        }
+    }
+
+    private func clearPriority(_ chain: Chain) -> Int {
+        switch chain.chainType {
+        case .fiveEffect: 4
+        case .lightning: 3
+        case .enhanced: 2
+        default: chain.symbols.contains { $0.type.isEnhanced } ? 2 : 1
+        }
+    }
+
+    private func triggerClearHaptic(for chain: Chain, enhanced: Bool) {
+        if enhanced || chain.chainType == .fiveEffect {
+            HapticManager.explosion()
+            screenShake(magnitude: 3, duration: 0.20)
+        } else if chain.chainType == .lightning || chain.length >= 4 {
+            HapticManager.bigMatch()
+            if chain.chainType == .lightning { screenShake(magnitude: 2, duration: 0.16) }
+        } else if chain.chainType != .locks && chain.chainType != .single {
+            HapticManager.match()
+        }
+    }
+
+    func addClearRing(at position: CGPoint, radius: CGFloat, expansion: CGFloat, color: UIColor, to parent: SKNode) {
+        let ring = SKShapeNode(circleOfRadius: radius)
+        ring.position = position
+        ring.strokeColor = color
+        ring.lineWidth = max(1.2, gameModel.tileSize.width * 0.045)
+        ring.fillColor = .clear
+        parent.addChild(ring)
+        let expand = SKAction.scale(to: expansion, duration: 0.24)
+        expand.timingMode = .easeOut
+        ring.run(.sequence([.group([expand, .fadeOut(withDuration: 0.24)]), .removeFromParent()]), withKey: "clearRing")
+    }
+
+    func addClearSparks(at position: CGPoint, color: UIColor, count: Int, delay: TimeInterval = 0, to parent: SKNode) {
+        for index in 0..<count {
+            let spark = SKSpriteNode(color: color, size: CGSize(width: 2.2, height: 4.4))
+            spark.position = position
+            spark.zRotation = CGFloat(index) * .pi / 2 + .pi / 4
+            spark.alpha = 0
+            parent.addChild(spark)
+            let angle = CGFloat(index) * 2 * .pi / CGFloat(count) + .pi / 4
+            let reach = gameModel.tileSize.width * 0.6
+            let move = SKAction.moveBy(x: cos(angle) * reach, y: sin(angle) * reach, duration: 0.22)
+            move.timingMode = .easeOut
+            spark.run(.sequence([.wait(forDuration: delay), .fadeIn(withDuration: 0.02),
+                                 .group([move, .fadeOut(withDuration: 0.22), .scale(to: 0.3, duration: 0.22)]),
+                                 .removeFromParent()]), withKey: "clearSpark")
+        }
+    }
+
+    private func addLightningTrail(for chain: Chain, to parent: SKNode) {
+        let positions = chain.symbols.compactMap { $0.sprite?.position }
+        guard let first = positions.first, let last = positions.last, positions.count > 1 else { return }
+        let path = CGMutablePath()
+        path.move(to: first)
+        let horizontal = Set(chain.symbols.map(\.row)).count == 1
+        for index in 1...12 {
+            let t = CGFloat(index) / 12
+            let bend: CGFloat = index == 12 ? 0 : (index.isMultiple(of: 2) ? 2.5 : -2.5)
+            path.addLine(to: CGPoint(x: first.x + (last.x - first.x) * t + (horizontal ? 0 : bend),
+                                    y: first.y + (last.y - first.y) * t + (horizontal ? bend : 0)))
+        }
+        let line = SKShapeNode(path: path)
+        line.strokeColor = UIColor(hex: 0xFFF0B2)
+        line.lineWidth = max(2, gameModel.tileSize.width * 0.07)
+        line.glowWidth = 1
+        parent.addChild(line)
+        line.run(.sequence([.fadeOut(withDuration: 0.24), .removeFromParent()]), withKey: "lightningTrail")
+    }
+
+    private func animateRemoval(of sprite: SKSpriteNode, action: SKAction) async {
+        let id = ObjectIdentifier(sprite)
+        guard sprite.parent != nil, removingSprites.insert(id).inserted else { return }
+        defer { removingSprites.remove(id) }
+        sprite.removeAction(forKey: "landing")
+        sprite.removeAction(forKey: "ambientEffect")
+        sprite.childNode(withName: "tileSelection")?.removeFromParent()
+        await sprite.run(action)
+    }
+}

@@ -82,7 +82,7 @@ struct LevelTarget: Codable {
         if let lock {
             levelTargetDatas.append(
                 LevelTargetData(
-                    image: Image.image(from: "🔒", fontSize: 40),
+                    image: Image("LockTile"),
                     imageName: "lock",
                     targetNum: lock
                 )
@@ -118,7 +118,7 @@ struct LevelTarget: Codable {
         if let fiveCombos {
             levelTargetDatas.append(
                 LevelTargetData(
-                    image: Image.image(from: "🌟", fontSize: 40),
+                    image: Image("StarTile"),
                     imageName: "fiveCombos",
                     targetNum: fiveCombos
                 )

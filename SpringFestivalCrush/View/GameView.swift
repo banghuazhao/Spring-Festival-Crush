@@ -134,19 +134,21 @@ struct GameView: View {
 
                 if gameModel.gameState == .lose {
                     LevelFailedView()
-                        .transition(reduceMotion ? .opacity : .scale(scale: 0.65).combined(with: .opacity))
+                        .transition(reduceMotion ? .opacity : .offset(y: 18).combined(with: .opacity))
                 } else if gameModel.gameState == .win {
                     if !reduceMotion {
                         CelebrationBurstView()
                             .allowsHitTesting(false)
                     }
                     LevelCompleteView()
-                        .transition(reduceMotion ? .opacity : .scale(scale: 0.65).combined(with: .opacity))
+                        .transition(reduceMotion ? .opacity : .scale(scale: 0.92).combined(with: .opacity))
                 }
             }
         }
         .animation(.easeInOut(duration: 0.25), value: activeBanner)
-        .animation(.spring(response: 0.48, dampingFraction: 0.72), value: gameModel.gameState)
+        .animation(reduceMotion ? .easeOut(duration: 0.18)
+                   : (gameModel.gameState == .lose ? .easeOut(duration: 0.24)
+                      : .spring(response: 0.36, dampingFraction: 0.8)), value: gameModel.gameState)
         .onPreferenceChange(GoalFramePreference.self) { frames in
             feedback.goalFrames = frames
         }
@@ -158,6 +160,7 @@ struct GameView: View {
             gameScene?.setFeedbackPaused(paused)
         }
         .onChange(of: gameModel.gameState) { _, state in
+            if state == .win { gameScene?.playVictoryAccent() }
             if state != .inProgress {
                 feedback.clear()
                 gameScene?.cancelIdleHint()

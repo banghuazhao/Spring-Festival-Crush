@@ -533,7 +533,7 @@ final class ReleaseRegressionTests: XCTestCase {
     }
 
     func testTileArtworkIsTransparentAndUsesOneCachedTexture() throws {
-        let names = ["firecracker", "redPocket", "dumpling", "bowl", "lantern", "RatTile", "OxTile", "TigerTile"]
+        let names = ["firecracker", "redPocket", "dumpling", "bowl", "lantern", "RatTile", "OxTile", "TigerTile", "StarTile", "LockTile"]
         for name in names {
             let image = try XCTUnwrap(UIImage(named: name), name)
             let cg = try XCTUnwrap(image.cgImage)
@@ -709,6 +709,194 @@ final class ReleaseRegressionTests: XCTestCase {
         add(attachment)
     }
 
+    func testAllPowerBirthsAndClearsReturnToRestWithoutFloatingScores() async throws {
+        let game = makeGame()
+        await game.setupNewGame()
+        let settings = SettingModel()
+        settings.playSoundEffect = false
+        settings.idleHintsEnabled = false
+        settings.screenShakeEnabled = false
+        let scene = GameScene(size: CGSize(width: 375, height: 812), gameModel: game,
+                              themeModel: ThemeModel(), settingModel: settings, feedback: GameFeedback())
+        scene.setupLayerPosition()
+        scene.addTiles()
+        scene.gameLayer.isHidden = false
+        let view = try presentTestScene(scene)
+        let powerTypes: [SymbolType] = [.firecrackerEnhanced, .redPocketEnhanced, .dumplingEnhanced,
+                                       .bowlEnhanced, .lanternEnhanced, .zodiacEnhanced, .five, .lightning]
+        let moves = game.movesLeft
+        let score = game.score
+        for reduced in [false, true] {
+            scene.reduceMotion = reduced
+            let powers = powerTypes.enumerated().map { index, type in
+                Symbol(column: index % 4 + 1, row: index / 4 + 2, symbolType: type)
+            }
+            await scene.animateCreatingSpecialSymbols(for: powers)
+            for symbol in powers {
+                let sprite = try XCTUnwrap(symbol.sprite)
+                XCTAssertEqual(sprite.xScale, 1)
+                XCTAssertEqual(sprite.alpha, 1)
+                XCTAssertTrue(sprite.children.isEmpty)
+                XCTAssertFalse(sprite.hasActions())
+            }
+            scene.removeAllSymbols()
+            for kind: Chain.ChainType in [.horizontal3, .enhanced, .single, .lightning, .fiveEffect, .locks] {
+                let symbols = (0..<5).map { Symbol(column: $0 + 1, row: 3, symbolType: .bowl) }
+                if kind == .fiveEffect { symbols[0].type = .five }
+                else if kind == .lightning { symbols[0].type = .lightning }
+                else if kind == .enhanced { symbols[0].type = .bowlEnhanced }
+                else if kind == .locks { symbols.forEach { $0.type = .lock } }
+                await scene.addSymbols(for: Set(symbols), shouldAnimate: false)
+                let chain = Chain(chainType: kind)
+                chain.add(symbols: symbols)
+                let overlap = Chain(chainType: .vertical3)
+                overlap.add(symbols: Array(symbols.prefix(3)))
+                // Record a frame at a known point in SpriteKit's animation timeline;
+                // test completion still awaits the real clear, never a wall-clock sleep.
+                var captured = false
+                if !reduced {
+                    scene.run(.customAction(withDuration: 0.2) { _, elapsed in
+                        guard elapsed >= 0.08, !captured else { return }
+                        captured = true
+                        if let texture = view.texture(from: scene, crop: CGRect(x: -187.5, y: -406, width: 375, height: 812)) {
+                            let attachment = XCTAttachment(image: UIImage(cgImage: texture.cgImage()))
+                            attachment.name = "Clear-\(kind)"
+                            attachment.lifetime = .keepAlways
+                            self.add(attachment)
+                        }
+                    }, withKey: "clearSnapshot")
+                }
+                await scene.animateMatchedSymbols(for: [chain, overlap])
+                XCTAssertTrue(symbols.allSatisfy { $0.sprite?.parent == nil })
+                XCTAssertTrue(scene.effectsLayer.children.isEmpty)
+                XCTAssertTrue(scene.removingSprites.isEmpty)
+                XCTAssertFalse(scene.symbolsLayer.children.contains { $0 is SKLabelNode })
+                scene.removeAction(forKey: "clearSnapshot")
+            }
+        }
+        XCTAssertEqual(game.movesLeft, moves)
+        XCTAssertEqual(game.score, score)
+    }
+
+    func testLockArtworkTracksAllDamageStages() async throws {
+        let game = makeGame()
+        await game.setupNewGame()
+        let scene = GameScene(size: CGSize(width: 375, height: 812), gameModel: game,
+                              themeModel: ThemeModel(), settingModel: SettingModel(), feedback: GameFeedback(), reduceMotion: true)
+        let symbol = try XCTUnwrap(game.level.symbol(atColumn: 3, row: 3))
+        symbol.type = .vaultLock
+        await scene.addSymbols(for: [symbol], shouldAnimate: false)
+        let sprite = try XCTUnwrap(symbol.sprite)
+        let threeHit = try XCTUnwrap(sprite.texture)
+        _ = game.level.useHammer(atColumn: 3, row: 2)
+        _ = game.level.resolveBlockers()
+        game.invokeCommand?(.refreshOverlays)
+        XCTAssertEqual(game.level.symbol(atColumn: 3, row: 3)?.type, .heavyLock)
+        XCTAssertTrue(sprite.texture === TileArtwork.texture(for: .heavyLock, zodiac: game.zodiac))
+        XCTAssertFalse(sprite.texture === threeHit)
+        _ = game.level.resolveBlockers()
+        game.invokeCommand?(.refreshOverlays)
+        XCTAssertEqual(game.level.symbol(atColumn: 3, row: 3)?.type, .lock)
+        XCTAssertTrue(sprite.texture === TileArtwork.texture(for: .lock, zodiac: game.zodiac))
+        let cleared = try XCTUnwrap(game.level.resolveBlockers())
+        XCTAssertTrue(cleared.symbols.contains { $0.column == 3 && $0.row == 3 })
+        XCTAssertNil(game.level.symbol(atColumn: 3, row: 3))
+    }
+
+    func testBonusWaveRefillAndResultResetPreserveState() async throws {
+        let game = makeGame()
+        await game.setupNewGame()
+        let settings = SettingModel()
+        settings.playSoundEffect = false
+        settings.idleHintsEnabled = false
+        let scene = GameScene(size: CGSize(width: 375, height: 812), gameModel: game,
+                              themeModel: ThemeModel(), settingModel: settings, feedback: GameFeedback())
+        scene.setupLayerPosition()
+        _ = try presentTestScene(scene)
+        for reduced in [false, true] {
+            scene.reduceMotion = reduced
+            let symbols = (0..<4).map { Symbol(column: $0, row: 2, symbolType: .firecrackerEnhanced) }
+            let moves = game.movesLeft
+            await scene.animateEnhancedSymbols(for: symbols)
+            XCTAssertEqual(game.movesLeft, moves - 4)
+            for symbol in symbols {
+                let position = try XCTUnwrap(symbol.sprite?.position)
+                let expected = scene.pointFor(column: symbol.column, row: symbol.row)
+                XCTAssertEqual(position.x, expected.x, accuracy: 0.001)
+                XCTAssertEqual(position.y, expected.y, accuracy: 0.001)
+                XCTAssertEqual(symbol.sprite?.xScale, 1)
+            }
+            await scene.animateFallingSymbols(in: [symbols])
+            await scene.animateNewSymbols(in: [[], [Symbol(column: 0, row: 5, symbolType: .bowl)]])
+            await scene.animateGameOver()
+            XCTAssertEqual(scene.gameLayer.position, .zero)
+            XCTAssertEqual(scene.gameLayer.alpha, 0.65, accuracy: 0.01)
+            await scene.animateBeginGame()
+            XCTAssertEqual(scene.gameLayer.position, .zero)
+            XCTAssertEqual(scene.gameLayer.alpha, 1)
+            XCTAssertEqual(scene.gameLayer.xScale, 1)
+            scene.removeAllSymbols()
+        }
+        scene.reduceMotion = false
+        let movesBeforeExit = game.movesLeft
+        scene.run(.run { game.onTapBack() }, withKey: "exitDuringBonus")
+        await scene.animateEnhancedSymbols(for: [Symbol(column: 0, row: 0, symbolType: .bowlEnhanced)])
+        XCTAssertEqual(game.gameState, .notStart)
+        XCTAssertEqual(game.movesLeft, movesBeforeExit)
+    }
+
+    func testResultScreensAndFiniteConfettiAtAccessibleSizes() async throws {
+        let game = makeGame()
+        await game.setupNewGame()
+        game.movesLeft = 0
+        game.score = 1000
+        game.level.levelGoal.levelTarget = LevelTarget()
+        await game.beginNextTurn()
+        for (size, accessible, dark) in [(CGSize(width: 320, height: 568), false, false),
+                                          (CGSize(width: 375, height: 812), true, true),
+                                          (CGSize(width: 812, height: 375), false, true)] {
+            try await snapshot(name: "Defeat-\(Int(size.width))-\(accessible)", size: size) { ready in
+                LevelFailedView(onRevealComplete: ready)
+                    .environmentObject(game)
+                    .environment(\.dynamicTypeSize, accessible ? .accessibility3 : .large)
+                    .environment(\.gameReducedEffects, accessible)
+                    .environment(\.colorScheme, dark ? .dark : .light)
+                    .background(AppTheme.festivalRedDark)
+            }
+            try await snapshot(name: "New-Victory-\(Int(size.width))-\(accessible)", size: size) { ready in
+                LevelCompleteView(onRevealComplete: ready)
+                    .environmentObject(game)
+                    .environment(\.dynamicTypeSize, accessible ? .accessibility3 : .large)
+                    .environment(\.gameReducedEffects, accessible)
+                    .environment(\.colorScheme, dark ? .dark : .light)
+                    .background(AppTheme.festivalRedDark)
+            }
+        }
+        for reduced in [false, true] {
+            try await snapshot(name: "Confetti-finished-\(reduced)", size: CGSize(width: 375, height: 812)) { ready in
+                CelebrationBurstView(onComplete: ready).environment(\.gameReducedEffects, reduced)
+            }
+        }
+    }
+
+    private func presentTestScene(_ scene: GameScene) throws -> SKView {
+        let windowScene = try XCTUnwrap(UIApplication.shared.connectedScenes.first as? UIWindowScene)
+        let previousWindow = windowScene.keyWindow
+        let window = UIWindow(windowScene: windowScene)
+        let controller = UIViewController()
+        let view = SKView(frame: CGRect(origin: .zero, size: scene.size))
+        controller.view = view
+        window.rootViewController = controller
+        window.makeKeyAndVisible()
+        view.presentScene(scene)
+        addTeardownBlock { @MainActor in
+            view.presentScene(nil)
+            window.isHidden = true
+            previousWindow?.makeKeyAndVisible()
+        }
+        return view
+    }
+
     private func alpha(_ image: UIImage, at point: CGPoint) -> CGFloat {
         let format = UIGraphicsImageRendererFormat()
         format.scale = 1
@@ -747,5 +935,24 @@ final class ReleaseRegressionTests: XCTestCase {
         attachment.name = name
         attachment.lifetime = .keepAlways
         add(attachment)
+        if name.hasPrefix("Defeat-") || name.hasPrefix("New-Victory-") {
+            func scrollViews(in view: UIView) -> [UIScrollView] {
+                (view as? UIScrollView).map { [$0] } ?? view.subviews.flatMap { scrollViews(in: $0) }
+            }
+            let scroll = try XCTUnwrap(scrollViews(in: host.view).first)
+            let bottom = max(-scroll.adjustedContentInset.top,
+                             scroll.contentSize.height - scroll.bounds.height + scroll.adjustedContentInset.bottom)
+            scroll.setContentOffset(CGPoint(x: 0, y: bottom), animated: false)
+            scroll.layoutIfNeeded()
+            window.layoutIfNeeded()
+            XCTAssertEqual(scroll.contentOffset.y, bottom, accuracy: 0.5)
+            let bottomImage = UIGraphicsImageRenderer(bounds: window.bounds).image { _ in
+                window.drawHierarchy(in: window.bounds, afterScreenUpdates: true)
+            }
+            let bottomAttachment = XCTAttachment(image: bottomImage)
+            bottomAttachment.name = "\(name)-scrolled-controls"
+            bottomAttachment.lifetime = .keepAlways
+            add(bottomAttachment)
+        }
     }
 }

@@ -10,6 +10,12 @@ enum TileArtwork {
         let asset: String?
         let emoji: String?
         switch type {
+        case .five:
+            asset = "StarTile"
+            emoji = type.emojiForHighlight
+        case .lock, .heavyLock, .vaultLock:
+            asset = "LockTile"
+            emoji = type.emojiForHighlight
         case .zodiac, .zodiacEnhanced:
             asset = zodiac.tileAssetName
             emoji = zodiac.emoji
@@ -17,7 +23,8 @@ enum TileArtwork {
             asset = type.emojiForHighlight == nil ? type.spriteName : nil
             emoji = type.emojiForHighlight
         }
-        let key = (asset ?? emoji ?? type.spriteName) + (type.isEnhanced ? ":enhanced" : "")
+        let strength = type == .vaultLock ? 3 : (type == .heavyLock ? 2 : 0)
+        let key = (asset ?? emoji ?? type.spriteName) + (type.isEnhanced ? ":enhanced" : "") + (strength > 0 ? ":\(strength)" : "")
         if let cached = textures[key] { return cached }
         let image: UIImage
         if let asset, let artwork = UIImage(named: asset) {
@@ -35,7 +42,9 @@ enum TileArtwork {
                                       width: size.width, height: size.height))
             }
         }
-        let texture = SKTexture(image: type.isEnhanced ? EnhancedTileAppearance.image(over: image) : image)
+        let decorated = type.isEnhanced ? EnhancedTileAppearance.image(over: image)
+            : (strength > 0 ? LockTileAppearance.image(over: image, strength: strength) : image)
+        let texture = SKTexture(image: decorated)
         texture.filteringMode = .linear
         textures[key] = texture
         return texture
