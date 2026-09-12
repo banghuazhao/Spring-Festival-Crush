@@ -90,6 +90,8 @@ class GameModel: ObservableObject {
         // (or both) may have changed anywhere on the board.
         case refreshOverlays
         case onChocolateSpread(Symbol)
+        case onGoalProgress([GoalProgress])
+        case onCascade(Int)
     }
 
     enum CommandAsync {
@@ -105,6 +107,7 @@ class GameModel: ObservableObject {
         case onGameBegin
         case onGameOver
         case shuffle(Set<Symbol>)
+        case onHammerImpact(Symbol)
     }
 
     enum GameState {
@@ -174,6 +177,7 @@ class GameModel: ObservableObject {
     private static let levelWinCoinReward = 15
 
     var level: Level!
+    private(set) var cascadeDepth = 0
     var zodiac: Zodiac!
     var currentZodiacRecord: ZodiacRecord?
     var currentLevelRecords = [LevelRecord]()
@@ -278,6 +282,7 @@ class GameModel: ObservableObject {
     @MainActor
     func selectLevel(_ selectedLevel: Int) {
         attemptID = UUID()
+        cascadeDepth = 0
         gameState = .loading
         currentLevel = selectedLevel
         level = Level(filename: "\(zodiac.zodiacType.name)_Level_\(selectedLevel)")
@@ -291,6 +296,7 @@ class GameModel: ObservableObject {
         isResolvingBoard = false
         toolNotice = nil
         isTutorialHintActive = false
+        cascadeDepth = 0
     }
 
     /// Applies a purchased "+moves" booster to the level about to start. Call before `selectLevel`.
@@ -347,7 +353,7 @@ class GameModel: ObservableObject {
         }
     }
 
-    /// Instantly clears the tapped tile using a purchased hammer charge, at no move cost.
+    /// Clears the tapped tile after a short impact cue, at no move cost.
     @MainActor
     func useHammer(atColumn column: Int, row: Int) async {
         guard gameState == .inProgress, !isResolvingBoard,
@@ -358,8 +364,14 @@ class GameModel: ObservableObject {
         defer { if isCurrentAttempt(attempt) { isResolvingBoard = false } }
         hammerCharges -= 1
         hammerModeActive = false
-        HapticManager.bigMatch()
+        cascadeDepth = 0
+        isTutorialHintActive = false
+        invokeCommand?(.hideTutorialHint)
         invokeCommand?(.setUserInteraction(false))
+        if let symbol = chain.symbols.first {
+            await invokeCommandAsync?(.onHammerImpact(symbol))
+            guard isCurrentAttempt(attempt) else { return }
+        }
         await handleMatches(for: [chain])
         guard isCurrentAttempt(attempt) else { return }
         await handleRemoveAndMatches()
@@ -388,6 +400,7 @@ class GameModel: ObservableObject {
         }
         let attempt = attemptID
         toolNotice = nil
+        cascadeDepth = 0
         isTutorialHintActive = false
         invokeCommand?(.hideTutorialHint)
         // Reserve a charge synchronously so rapid taps cannot launch overlapping shuffles.
@@ -505,6 +518,7 @@ class GameModel: ObservableObject {
     func handleSwipe(_ swap: Swap) async {
         guard gameState == .inProgress, !isResolvingBoard else { return }
         let attempt = attemptID
+        cascadeDepth = 0
         isResolvingBoard = true
         defer { if isCurrentAttempt(attempt) { isResolvingBoard = false } }
         toolNotice = nil
@@ -552,6 +566,12 @@ class GameModel: ObservableObject {
 
     private func handleMatches(for chains: Set<Chain>) async {
         let attempt = attemptID
+        let goalsBefore = createLevelTargetDatas()
+        if chains.contains(where: { $0.chainType != .locks && !$0.symbols.isEmpty }) {
+            if gameState == .inProgress { cascadeDepth += 1 }
+            // Bonus cleanup keeps a quiet base cue, without pretending it is a player cascade.
+            invokeCommand?(.onCascade(gameState == .inProgress ? cascadeDepth : 1))
+        }
         var allChains = chains
         async let onMatchedSymbols: Void? = invokeCommandAsync?(.onMatchedSymbols(chains))
 
@@ -580,15 +600,22 @@ class GameModel: ObservableObject {
 
         updateScores(from: allChains)
         level.updateLevelTarget(by: allChains)
+        invokeCommand?(.onGoalProgress(GoalProgress.changes(
+            before: goalsBefore, after: createLevelTargetDatas(), symbols: allChains.flatMap(\.symbols)
+        )))
         invokeCommand?(.refreshOverlays)
 
         let columns = level.fillHoles()
         await invokeCommandAsync?(.onFallingSymbols(columns))
         guard isCurrentAttempt(attempt) else { return }
 
+        let goalsBeforeIngredients = createLevelTargetDatas()
         let collectedIngredients = level.collectIngredientsAtBottom()
         if !collectedIngredients.isEmpty {
             score += Self.ingredientCollectedScore * collectedIngredients.count
+            invokeCommand?(.onGoalProgress(GoalProgress.changes(
+                before: goalsBeforeIngredients, after: createLevelTargetDatas(), symbols: collectedIngredients
+            )))
             await invokeCommandAsync?(.onIngredientsCollected(collectedIngredients))
             guard isCurrentAttempt(attempt) else { return }
         }

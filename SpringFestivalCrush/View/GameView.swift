@@ -16,6 +16,7 @@ struct GameView: View {
     let screenSize: CGSize
 
     @State private var gameScene: GameScene?
+    @StateObject private var feedback = GameFeedback()
     @State private var showingPause = false
     @State private var exitAfterPause = false
     @State private var refillTool: GameTool?
@@ -116,6 +117,9 @@ struct GameView: View {
             .accessibilityHidden(isShowingResult || showingPause || refillTool != nil)
             .animation(.spring(response: 0.35, dampingFraction: 0.75), value: gameModel.hammerCharges)
 
+            GoalCollectionOverlay(feedback: feedback)
+                .ignoresSafeArea()
+
             ZStack {
                 if isShowingResult {
                     Rectangle()
@@ -141,6 +145,23 @@ struct GameView: View {
         }
         .animation(.easeInOut(duration: 0.25), value: activeBanner)
         .animation(.spring(response: 0.48, dampingFraction: 0.72), value: gameModel.gameState)
+        .onPreferenceChange(GoalFramePreference.self) { frames in
+            feedback.goalFrames = frames
+        }
+        .onPreferenceChange(GoalViewportPreference.self) { frame in
+            feedback.viewport = frame
+        }
+        .onChange(of: isGameplayPaused) { _, paused in
+            if paused { feedback.clear() }
+        }
+        .onChange(of: gameModel.gameState) { _, state in
+            if state != .inProgress { feedback.clear() }
+        }
+        .onChange(of: reduceMotion) { _, value in
+            gameScene?.reduceMotion = value
+            feedback.clear()
+        }
+        .onDisappear { feedback.clear() }
         .sheet(isPresented: $showingPause, onDismiss: {
             needsResumeAfterInterruption = false
             // Dismiss the pause sheet before dismissing its presenting game screen.
@@ -174,7 +195,9 @@ struct GameView: View {
                 size: screenSize,
                 gameModel: gameModel,
                 themeModel: themeModel,
-                settingModel: settingModel
+                settingModel: settingModel,
+                feedback: feedback,
+                reduceMotion: reduceMotion
             )
         }
         .onReceive(timerTicker) { _ in
@@ -249,7 +272,14 @@ struct GameView: View {
                     .font(.system(size: 9, weight: .black, design: .rounded))
                     .foregroundStyle(.white.opacity(0.72))
 
-                LevelTargetView(levelTargetDatas: gameModel.createLevelTargetDatas())
+                LevelTargetView(
+                    levelTargetDatas: gameModel.createLevelTargetDatas(),
+                    pendingAmounts: Dictionary(uniqueKeysWithValues: gameModel.createLevelTargetDatas().map {
+                        ($0.id, feedback.pendingAmount(for: $0.id))
+                    }),
+                    impacts: feedback.impacts,
+                    reportsFrames: true
+                )
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
@@ -429,32 +459,32 @@ struct StarProgressView: View {
 
 struct LevelTargetView: View {
     let levelTargetDatas: [LevelTargetData]
+    var pendingAmounts: [String: Int] = [:]
+    var impacts: [String: Int] = [:]
+    var reportsFrames = false
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack {
                 ForEach(levelTargetDatas) { levelTargetData in
-                    HStack(spacing: 2) {
-                        levelTargetData.image
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 26, height: 26)
-
-                        if levelTargetData.targetNum > 0 {
-                            Text("\(levelTargetData.targetNum)")
-                                .font(.system(size: 16, weight: .semibold))
-                                .foregroundColor(.white)
-                                .shadow(color: Color.black.opacity(0.3), radius: 2, x: 2, y: 2)
-                        } else {
-                            Text("✅")
-                                .font(.system(size: 16))
-                        }
-                    }
+                    GoalTargetPill(
+                        target: levelTargetData,
+                        pendingAmount: pendingAmounts[levelTargetData.id, default: 0],
+                        impact: impacts[levelTargetData.id, default: 0],
+                        reportsFrame: reportsFrames
+                    )
                 }
             }
             .padding(.horizontal, 4)
         }
         .frame(height: 34)
+        .background {
+            if reportsFrames {
+                GeometryReader { geometry in
+                    Color.clear.preference(key: GoalViewportPreference.self, value: geometry.frame(in: .global))
+                }
+            }
+        }
         .background(
             RoundedRectangle(cornerRadius: 17)
                 .fill(Color.black.opacity(0.2))

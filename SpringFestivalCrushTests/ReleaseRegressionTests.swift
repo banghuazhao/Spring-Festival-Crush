@@ -1,4 +1,6 @@
 import XCTest
+import SpriteKit
+import SwiftUI
 @testable import SpringFestivalCrush
 
 @MainActor
@@ -197,5 +199,152 @@ final class ReleaseRegressionTests: XCTestCase {
         XCTAssertEqual(game.secondsLeft, 0)
         XCTAssertEqual(game.lives, 9)
         XCTAssertEqual(game.gameState, .lose)
+    }
+
+    func testGoalReceiptsClampOvercollectionAndUseMatchingSource() {
+        let before = LevelTarget(firecracker: 2, dumpling: 0).getLevelTargetDatas(gameZodiac: Zodiac.all[0])
+        let after = LevelTarget(firecracker: -3, dumpling: -1).getLevelTargetDatas(gameZodiac: Zodiac.all[0])
+        let receipts = GoalProgress.changes(before: before, after: after, symbols: [
+            Symbol(column: 0, row: 0, symbolType: .dumpling),
+            Symbol(column: 3, row: 4, symbolType: .firecrackerEnhanced)
+        ])
+        XCTAssertEqual(receipts.count, 1)
+        XCTAssertEqual(receipts.first?.amount, 2)
+        XCTAssertEqual(receipts.first?.goalID, "firecracker")
+        XCTAssertEqual(receipts.first?.column, 3)
+        XCTAssertEqual(receipts.first?.row, 4)
+    }
+
+    func testGoalFlightArrivalIsIdempotentAndClearInvalidatesOldArrivals() throws {
+        let feedback = GameFeedback()
+        feedback.viewport = CGRect(x: 0, y: 0, width: 300, height: 100)
+        feedback.goalFrames = ["bowl": CGRect(x: 100, y: 30, width: 26, height: 26)]
+        let receipt = GoalProgress(goalID: "bowl", amount: 3, column: 1, row: 1)
+        feedback.collect(receipt, image: Image("bowl"), source: CGPoint(x: 100, y: 300), reduceMotion: false)
+        XCTAssertEqual(feedback.pendingAmount(for: "bowl"), 3)
+        let id = try XCTUnwrap(feedback.flights.first?.id)
+        feedback.arrive(id)
+        feedback.arrive(id)
+        XCTAssertEqual(feedback.impacts["bowl"], 1)
+        XCTAssertEqual(feedback.pendingAmount(for: "bowl"), 0)
+        feedback.collect(receipt, image: Image("bowl"), source: .zero, reduceMotion: false)
+        let oldID = try XCTUnwrap(feedback.flights.first?.id)
+        feedback.clear()
+        feedback.arrive(oldID)
+        XCTAssertTrue(feedback.impacts.isEmpty)
+        XCTAssertTrue(feedback.flights.isEmpty)
+    }
+
+    func testReducedMotionAndOffscreenGoalsNeverHoldCounters() {
+        let feedback = GameFeedback()
+        feedback.viewport = CGRect(x: 0, y: 0, width: 100, height: 50)
+        feedback.goalFrames = ["bowl": CGRect(x: 10, y: 10, width: 26, height: 26)]
+        let receipt = GoalProgress(goalID: "bowl", amount: 1, column: 1, row: 1)
+        feedback.collect(receipt, image: Image("bowl"), source: .zero, reduceMotion: true)
+        XCTAssertTrue(feedback.flights.isEmpty)
+        XCTAssertEqual(feedback.impacts["bowl"], 1)
+        feedback.goalFrames["bowl"] = CGRect(x: 110, y: 10, width: 26, height: 26)
+        feedback.collect(receipt, image: Image("bowl"), source: .zero, reduceMotion: false)
+        XCTAssertTrue(feedback.flights.isEmpty)
+        XCTAssertEqual(feedback.pendingAmount(for: "bowl"), 0)
+        XCTAssertEqual(feedback.impacts["bowl"], 2)
+    }
+
+    func testCascadeIntensityIsBounded() {
+        XCTAssertNil(CascadeFeedback(depth: 1).title)
+        XCTAssertNotNil(CascadeFeedback(depth: 2).title)
+        XCTAssertLessThan(CascadeFeedback(depth: 1).playbackRate, CascadeFeedback(depth: 3).playbackRate)
+        XCTAssertEqual(CascadeFeedback(depth: 5).playbackRate, CascadeFeedback(depth: 999).playbackRate)
+        XCTAssertLessThanOrEqual(CascadeFeedback(depth: 999).volume, 0.8)
+    }
+
+    func testExitDuringHammerWindupCannotApplyOldGoalFeedback() async throws {
+        let game = makeGame()
+        await game.setupNewGame()
+        game.grantRewardedHammer()
+        game.hammerModeActive = true
+        let charges = game.hammerCharges
+        var receipts = 0
+        game.invokeCommand = { command in
+            if case .onGoalProgress = command { receipts += 1 }
+        }
+        game.invokeCommandAsync = { command in
+            if case .onHammerImpact = command {
+                game.onTapBack()
+                game.selectLevel(2)
+                game.score = 123
+            }
+        }
+        await game.useHammer(atColumn: 0, row: 0)
+        XCTAssertEqual(game.currentLevel, 2)
+        XCTAssertEqual(game.gameState, .loading)
+        XCTAssertEqual(game.score, 123)
+        XCTAssertEqual(game.hammerCharges, charges - 1)
+        XCTAssertEqual(receipts, 0)
+    }
+
+    func testEachPlayerActionStartsCascadeAtOne() async throws {
+        let game = makeGame()
+        await game.setupNewGame()
+        game.level.levelGoal.levelTarget.zodiac = 10000
+        var depths: [Int] = []
+        game.invokeCommand = { command in
+            if case let .onCascade(depth) = command { depths.append(depth) }
+        }
+        for _ in 0..<2 {
+            depths.removeAll()
+            let swap = try XCTUnwrap(game.level.possibleSwaps.first)
+            await game.handleSwipe(swap)
+            XCTAssertEqual(depths.first, 1)
+            XCTAssertEqual(depths, Array(0..<depths.count).map { $0 + 1 })
+        }
+    }
+
+    func testShuffleAnimationKeepsSpriteIdentityAndEndsExactlyOnCells() async throws {
+        let game = makeGame()
+        await game.setupNewGame()
+        let feedback = GameFeedback()
+        let scene = GameScene(size: CGSize(width: 390, height: 844), gameModel: game,
+                              themeModel: ThemeModel(), settingModel: SettingModel(), feedback: feedback)
+        scene.setupLayerPosition()
+        let original = (0..<game.numRows).flatMap { row in
+            (0..<game.numColumns).compactMap { game.level.symbol(atColumn: $0, row: row) }
+        }
+        await scene.addSymbols(for: Set(original), shouldAnimate: false)
+        let identities = original.map { ObjectIdentifier($0.sprite!) }
+        let windowScene = try XCTUnwrap(UIApplication.shared.connectedScenes.first as? UIWindowScene)
+        let previousWindow = windowScene.keyWindow
+        let window = UIWindow(windowScene: windowScene)
+        let controller = UIViewController()
+        let view = SKView(frame: windowScene.coordinateSpace.bounds)
+        controller.view = view
+        window.rootViewController = controller
+        window.makeKeyAndVisible()
+        view.presentScene(scene)
+        addTeardownBlock { @MainActor in
+            view.presentScene(nil)
+            window.isHidden = true
+            previousWindow?.makeKeyAndVisible()
+        }
+        for reduced in [false, true] {
+            scene.reduceMotion = reduced
+            let shuffled = try XCTUnwrap(game.level.reshuffleExistingSymbols())
+            await scene.shuffle(by: shuffled)
+            XCTAssertEqual(original.map { ObjectIdentifier($0.sprite!) }, identities)
+            for symbol in original {
+                let sprite = try XCTUnwrap(symbol.sprite)
+                XCTAssertEqual(sprite.position, scene.pointFor(column: symbol.column, row: symbol.row))
+                XCTAssertEqual(sprite.xScale, 1)
+                XCTAssertEqual(sprite.yScale, 1)
+                XCTAssertEqual(sprite.alpha, 1)
+                XCTAssertTrue(sprite.parent === scene.symbolsLayer)
+            }
+        }
+        let match = Chain(chainType: .horizontal3)
+        match.add(symbols: Array(original.prefix(3)))
+        await scene.animateMatchedSymbols(for: [match])
+        // Native keyed `run` is synchronous: this catches an accidental fire-and-forget
+        // removal that lets the next cascade fill cells before the old sprites disappear.
+        for symbol in match.symbols { XCTAssertNil(symbol.sprite?.parent) }
     }
 }

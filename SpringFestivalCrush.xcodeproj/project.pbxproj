@@ -7,6 +7,17 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C202609150000000000000230 /* GoalViewportPreference.swift in Sources */ = {isa = PBXBuildFile; fileRef = C202609150000000000000130; };
+		C20260915000000000000020 /* GoalProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260915000000000000010; };
+		C20260915000000000000021 /* GoalFlight.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260915000000000000011; };
+		C20260915000000000000022 /* GameFeedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260915000000000000012; };
+		C20260915000000000000023 /* CascadeFeedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260915000000000000013; };
+		C20260915000000000000024 /* GoalCollectionOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260915000000000000014; };
+		C20260915000000000000025 /* GoalFlightView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260915000000000000015; };
+		C20260915000000000000026 /* GoalFlightPath.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260915000000000000016; };
+		C20260915000000000000027 /* GoalFramePreference.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260915000000000000017; };
+		C20260915000000000000028 /* GoalTargetPill.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260915000000000000018; };
+		C20260915000000000000029 /* GameScene+Feedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260915000000000000019; };
 		C20260914000000000000001 /* ReleaseRegressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260914000000000000002; };
 		C20260913000000000000001 /* GameTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260913000000000000101 /* GameTool.swift */; };
 		C20260913000000000000002 /* ToolRewardAdManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260913000000000000102 /* ToolRewardAdManager.swift */; };
@@ -125,6 +136,17 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		C202609150000000000000130 /* GoalViewportPreference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = View/Components/GoalViewportPreference.swift; sourceTree = "<group>"; };
+		C20260915000000000000010 /* GoalProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Model/Game/GoalProgress.swift"; sourceTree = "<group>"; };
+		C20260915000000000000011 /* GoalFlight.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Model/Game/GoalFlight.swift"; sourceTree = "<group>"; };
+		C20260915000000000000012 /* GameFeedback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Model/Game/GameFeedback.swift"; sourceTree = "<group>"; };
+		C20260915000000000000013 /* CascadeFeedback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Model/Game/CascadeFeedback.swift"; sourceTree = "<group>"; };
+		C20260915000000000000014 /* GoalCollectionOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View/Components/GoalCollectionOverlay.swift"; sourceTree = "<group>"; };
+		C20260915000000000000015 /* GoalFlightView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View/Components/GoalFlightView.swift"; sourceTree = "<group>"; };
+		C20260915000000000000016 /* GoalFlightPath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View/Components/GoalFlightPath.swift"; sourceTree = "<group>"; };
+		C20260915000000000000017 /* GoalFramePreference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View/Components/GoalFramePreference.swift"; sourceTree = "<group>"; };
+		C20260915000000000000018 /* GoalTargetPill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View/Components/GoalTargetPill.swift"; sourceTree = "<group>"; };
+		C20260915000000000000019 /* GameScene+Feedback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Scene/GameScene+Feedback.swift"; sourceTree = "<group>"; };
 		C20260914000000000000002 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringFestivalCrushTests/ReleaseRegressionTests.swift; sourceTree = SOURCE_ROOT; };
 		C20260914000000000000003 = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; path = SpringFestivalCrushTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C20260913000000000000101 /* GameTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameTool.swift; sourceTree = "<group>"; };
@@ -373,6 +395,17 @@
 				99340CE12C715EA50096BBF5 /* Config */,
 				9955DBA223D7E4D2007786D5 /* Util */,
 				9955DBB923D7E50C007786D5 /* Scene */,
+				C202609150000000000000130 /* GoalViewportPreference.swift */,
+				C20260915000000000000010 /* GoalProgress.swift */,
+				C20260915000000000000011 /* GoalFlight.swift */,
+				C20260915000000000000012 /* GameFeedback.swift */,
+				C20260915000000000000013 /* CascadeFeedback.swift */,
+				C20260915000000000000014 /* GoalCollectionOverlay.swift */,
+				C20260915000000000000015 /* GoalFlightView.swift */,
+				C20260915000000000000016 /* GoalFlightPath.swift */,
+				C20260915000000000000017 /* GoalFramePreference.swift */,
+				C20260915000000000000018 /* GoalTargetPill.swift */,
+				C20260915000000000000019 /* GameScene+Feedback.swift */,
 				9955DBB723D7E505007786D5 /* Model */,
 				9971C95725FC6713008CFCF9 /* View */,
 				9955DBC023D7E852007786D5 /* Sounds */,
@@ -705,6 +738,17 @@
 			buildActionMask = 2147483647;
 			files = (
 				9955DBAE23D7E4E4007786D5 /* LevelData.swift in Sources */,
+				C202609150000000000000230 /* GoalViewportPreference.swift in Sources */,
+				C20260915000000000000020 /* GoalProgress.swift in Sources */,
+				C20260915000000000000021 /* GoalFlight.swift in Sources */,
+				C20260915000000000000022 /* GameFeedback.swift in Sources */,
+				C20260915000000000000023 /* CascadeFeedback.swift in Sources */,
+				C20260915000000000000024 /* GoalCollectionOverlay.swift in Sources */,
+				C20260915000000000000025 /* GoalFlightView.swift in Sources */,
+				C20260915000000000000026 /* GoalFlightPath.swift in Sources */,
+				C20260915000000000000027 /* GoalFramePreference.swift in Sources */,
+				C20260915000000000000028 /* GoalTargetPill.swift in Sources */,
+				C20260915000000000000029 /* GameScene+Feedback.swift in Sources */,
 				994625A52C720A6C00FC2C6A /* MainView.swift in Sources */,
 				994625BB2C76022C00FC2C6A /* Zodiac.swift in Sources */,
 				994625B92C74A3F700FC2C6A /* SelectZodiacView.swift in Sources */,

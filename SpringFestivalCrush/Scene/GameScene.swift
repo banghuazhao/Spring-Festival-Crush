@@ -7,6 +7,9 @@ class GameScene: SKScene {
     let gameModel: GameModel
     let themeModel: ThemeModel
     let settingModel: SettingModel
+    let feedback: GameFeedback
+    var reduceMotion: Bool
+    let cascadeAudio = SKAudioNode(fileNamed: "Ka-Ching.wav")
 
     // MARK: - Layers
     let gameLayer = SKNode()
@@ -22,6 +25,7 @@ class GameScene: SKScene {
     private var swipeFromRow: Int?
     private var selectionSprite = SKSpriteNode()
     private var tutorialHintNodes: [SKNode] = []
+    private var removingSprites = Set<ObjectIdentifier>()
 
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder) is not used in this app")
@@ -31,11 +35,15 @@ class GameScene: SKScene {
         size: CGSize,
         gameModel: GameModel,
         themeModel: ThemeModel,
-        settingModel: SettingModel
+        settingModel: SettingModel,
+        feedback: GameFeedback,
+        reduceMotion: Bool = false
     ) {
         self.gameModel = gameModel
         self.themeModel = themeModel
         self.settingModel = settingModel
+        self.feedback = feedback
+        self.reduceMotion = reduceMotion
 
         super.init(size: size)
 
@@ -61,6 +69,9 @@ class GameScene: SKScene {
         gameLayer.addChild(cropLayer)
         cropLayer.addChild(overlayLayer)
         cropLayer.addChild(symbolsLayer)
+        cascadeAudio.autoplayLooped = false
+        cascadeAudio.isPositional = false
+        addChild(cascadeAudio)
 
         _ = SKLabelNode(fontNamed: "GillSans-BoldItalic")
     }
@@ -97,6 +108,10 @@ class GameScene: SKScene {
             refreshOverlays()
         case let .onChocolateSpread(symbol):
             animateChocolateSpread(symbol)
+        case let .onGoalProgress(progress):
+            animateGoalProgress(progress)
+        case let .onCascade(depth):
+            animateCascade(depth: depth)
         }
     }
 
@@ -128,6 +143,8 @@ class GameScene: SKScene {
             await animateGameOver()
         case let .shuffle(newSprites):
             await shuffle(by: newSprites)
+        case let .onHammerImpact(symbol):
+            await animateHammerImpact(symbol)
         }
     }
 
@@ -150,8 +167,7 @@ class GameScene: SKScene {
     }
 
     func shuffle(by newSymbols: Set<Symbol>) async {
-        removeAllSymbols()
-        await addSymbols(for: newSymbols)
+        await animateShuffle(newSymbols)
     }
 
     func addTiles() {
@@ -200,7 +216,7 @@ class GameScene: SKScene {
     func addSymbols(for symbols: Set<Symbol>, shouldAnimate: Bool = true) async {
         await withTaskGroup(of: Void.self) { taskGroup in
             for symbol in symbols {
-                taskGroup.addTask {
+                taskGroup.addTask { @MainActor in
                     await self.createSpriteForSymbol(symbol, shouldAnimate: shouldAnimate)
                 }
             }
@@ -230,7 +246,7 @@ class GameScene: SKScene {
             ]))
     }
 
-    private func pointFor(column: Int, row: Int) -> CGPoint {
+    func pointFor(column: Int, row: Int) -> CGPoint {
         let tileWidth = gameModel.tileSize.width
         let tileHeight = gameModel.tileSize.height
         return CGPoint(
@@ -435,41 +451,34 @@ class GameScene: SKScene {
                 triggerHaptic(for: chain)
                 switch chain.chainType {
                 case .fiveEffect:
-                    taskGroup.addTask { await self.animateFiveChainEffect(for: chain) }
+                    taskGroup.addTask { @MainActor in await self.animateFiveChainEffect(for: chain) }
                 case .lightning:
-                    taskGroup.addTask { await self.animateLightningChainEffect(for: chain) }
+                    taskGroup.addTask { @MainActor in await self.animateLightningChainEffect(for: chain) }
                 case .enhanced:
-                    taskGroup.addTask { await self.animateEnhancedChainEffect(for: chain) }
+                    taskGroup.addTask { @MainActor in await self.animateEnhancedChainEffect(for: chain) }
                 case .single:
-                    taskGroup.addTask { await self.animateSingleExplosionEffect(for: chain) }
+                    taskGroup.addTask { @MainActor in await self.animateSingleExplosionEffect(for: chain) }
                 default:
                     // An enhanced tile swapped into a normal match must still explode.
                     if let enhancedSymbol = chain.symbols.first(where: { $0.type.isEnhanced }),
                        let sprite = enhancedSymbol.sprite {
                         fireShockwave(at: sprite.position)
                         for symbol in chain.symbols {
-                            taskGroup.addTask { await self.popExplode(symbol: symbol) }
+                            taskGroup.addTask { @MainActor in await self.popExplode(symbol: symbol) }
                         }
                     } else {
                         for symbol in chain.symbols {
                             guard let sprite = symbol.sprite else { continue }
-                            guard sprite.action(forKey: "removing") == nil else { continue }
                             let anticipate = SKAction.scale(to: 1.15, duration: 0.06)
                             let scaleAction = SKAction.scale(to: 0.1, duration: 0.22)
                             scaleAction.timingMode = .easeIn
-                            taskGroup.addTask {
-                                await sprite.run(
-                                    SKAction.sequence([anticipate, scaleAction, SKAction.removeFromParent()]),
-                                    withKey: "removing"
+                            taskGroup.addTask { @MainActor in
+                                await self.animateRemoval(of: sprite,
+                                    action: SKAction.sequence([anticipate, scaleAction, SKAction.removeFromParent()])
                                 )
                             }
                         }
                     }
-                }
-            }
-            if settingModel.playSoundEffect {
-                taskGroup.addTask {
-                    await self.run(self.themeModel.matchSound)
                 }
             }
         }
@@ -523,10 +532,9 @@ class GameScene: SKScene {
         await withTaskGroup(of: Void.self) { taskGroup in
             for (index, symbol) in chain.symbols.enumerated() {
                 guard let sprite = symbol.sprite else { continue }
-                guard sprite.action(forKey: "removing") == nil else { continue }
 
                 if index == 0 {
-                    taskGroup.addTask {
+                    taskGroup.addTask { @MainActor in
                         let flash = SKAction.group([
                             SKAction.colorize(with: .cyan, colorBlendFactor: 0.9, duration: 0.12),
                             SKAction.scale(to: 1.5, duration: 0.12)
@@ -535,14 +543,13 @@ class GameScene: SKScene {
                             SKAction.scale(to: 0.0, duration: 0.22),
                             SKAction.fadeOut(withDuration: 0.22)
                         ])
-                        await sprite.run(
-                            SKAction.sequence([flash, vanish, SKAction.removeFromParent()]),
-                            withKey: "removing"
+                        await self.animateRemoval(of: sprite,
+                            action: SKAction.sequence([flash, vanish, SKAction.removeFromParent()])
                         )
                     }
                 } else {
-                    let delay = 0.04 * TimeInterval(index)
-                    taskGroup.addTask {
+                    let delay = min(0.18, 0.012 * TimeInterval(index))
+                    taskGroup.addTask { @MainActor in
                         let flash  = SKAction.group([
                             SKAction.colorize(with: .cyan, colorBlendFactor: 0.7, duration: 0.08),
                             SKAction.scale(to: 1.15, duration: 0.08)
@@ -551,14 +558,13 @@ class GameScene: SKScene {
                         move.timingMode = .easeIn
                         let shrink = SKAction.scale(to: 0.0, duration: 0.28)
                         let fade   = SKAction.fadeOut(withDuration: 0.22)
-                        await sprite.run(
-                            SKAction.sequence([
+                        await self.animateRemoval(of: sprite,
+                            action: SKAction.sequence([
                                 SKAction.wait(forDuration: delay),
                                 flash,
                                 SKAction.group([move, shrink, fade]),
                                 SKAction.removeFromParent()
-                            ]),
-                            withKey: "removing"
+                            ])
                         )
                     }
                 }
@@ -626,15 +632,13 @@ class GameScene: SKScene {
         await withTaskGroup(of: Void.self) { taskGroup in
             for symbol in chain.symbols {
                 guard let sprite = symbol.sprite else { continue }
-                guard sprite.action(forKey: "removing") == nil else { continue }
-                taskGroup.addTask {
+                taskGroup.addTask { @MainActor in
                     let scale = SKAction.scale(to: 0.1, duration: 0.25)
                     scale.timingMode = .easeOut
-                    await sprite.run(
-                        SKAction.sequence([SKAction.wait(forDuration: 0.1),
+                    await self.animateRemoval(of: sprite,
+                        action: SKAction.sequence([SKAction.wait(forDuration: 0.1),
                                            scale,
-                                           SKAction.removeFromParent()]),
-                        withKey: "removing"
+                                           SKAction.removeFromParent()])
                     )
                 }
             }
@@ -648,7 +652,7 @@ class GameScene: SKScene {
         }
         await withTaskGroup(of: Void.self) { taskGroup in
             for symbol in chain.symbols {
-                taskGroup.addTask { await self.popExplode(symbol: symbol) }
+                taskGroup.addTask { @MainActor in await self.popExplode(symbol: symbol) }
             }
         }
     }
@@ -673,7 +677,7 @@ class GameScene: SKScene {
     private func animateSingleExplosionEffect(for chain: Chain) async {
         await withTaskGroup(of: Void.self) { taskGroup in
             for symbol in chain.symbols {
-                taskGroup.addTask { await self.popExplode(symbol: symbol) }
+                taskGroup.addTask { @MainActor in await self.popExplode(symbol: symbol) }
             }
         }
     }
@@ -681,7 +685,6 @@ class GameScene: SKScene {
     // Shared pop-explode: white flash scale-up then collapse to zero.
     private func popExplode(symbol: Symbol) async {
         guard let sprite = symbol.sprite else { return }
-        guard sprite.action(forKey: "removing") == nil else { return }
         let pop = SKAction.group([
             SKAction.scale(to: 1.3, duration: 0.1),
             SKAction.colorize(with: .white, colorBlendFactor: 0.85, duration: 0.1)
@@ -690,16 +693,24 @@ class GameScene: SKScene {
             SKAction.scale(to: 0.0, duration: 0.2),
             SKAction.fadeOut(withDuration: 0.2)
         ])
-        await sprite.run(
-            SKAction.sequence([pop, explode, SKAction.removeFromParent()]),
-            withKey: "removing"
+        await animateRemoval(of: sprite,
+            action: SKAction.sequence([pop, explode, SKAction.removeFromParent()])
         )
+    }
+
+    /// The keyed SpriteKit run API is synchronous, even when written with `await`.
+    /// Reserve once on the main actor, then await the real completion before refilling.
+    private func animateRemoval(of sprite: SKSpriteNode, action: SKAction) async {
+        let id = ObjectIdentifier(sprite)
+        guard sprite.parent != nil, removingSprites.insert(id).inserted else { return }
+        defer { removingSprites.remove(id) }
+        await sprite.run(action)
     }
 
     func animateCreatingSpecialSymbols(for specialSymbols: [Symbol]) async {
         await withTaskGroup(of: Void.self) { taskGroup in
             for specialSymbol in specialSymbols {
-                taskGroup.addTask {
+                taskGroup.addTask { @MainActor in
                     await self.createSpriteForSymbol(specialSymbol)
                 }
             }
@@ -716,7 +727,7 @@ class GameScene: SKScene {
                     let duration = TimeInterval(((sprite.position.y - newPosition.y) / gameModel.tileSize.height) * 0.1)
                     let moveAction = SKAction.move(to: newPosition, duration: duration)
                     moveAction.timingMode = .easeIn
-                    taskGroup.addTask {
+                    taskGroup.addTask { @MainActor in
                         await sprite.run(
                             SKAction.sequence([
                                 SKAction.wait(forDuration: delay),
@@ -728,7 +739,7 @@ class GameScene: SKScene {
                 }
             }
             if settingModel.playSoundEffect {
-                taskGroup.addTask {
+                taskGroup.addTask { @MainActor in
                     await self.run(self.themeModel.fallingSymbolSound)
                 }
             }
@@ -752,7 +763,7 @@ class GameScene: SKScene {
                     let moveAction = SKAction.move(to: newPosition, duration: duration)
                     moveAction.timingMode = .easeIn
                     sprite.alpha = 0
-                    taskGroup.addTask {
+                    taskGroup.addTask { @MainActor in
                         await sprite.run(
                             SKAction.sequence([
                                 SKAction.wait(forDuration: delay),
@@ -962,20 +973,13 @@ class GameScene: SKScene {
         ]))
     }
 
-    /// Ingredients that settled at the bottom row are "delivered" — fly them up off the
-    /// board and fade, rather than the usual pop-and-shrink match removal.
+    /// The HUD owns the delivery flight; fade the original so we don't fly two gifts.
     private func animateIngredientsCollected(_ symbols: [Symbol]) async {
         await withTaskGroup(of: Void.self) { taskGroup in
             for symbol in symbols {
                 guard let sprite = symbol.sprite else { continue }
-                taskGroup.addTask {
-                    let riseAndFade = SKAction.group([
-                        SKAction.moveBy(x: 0, y: self.gameModel.tileSize.height * 1.5, duration: 0.35),
-                        SKAction.fadeOut(withDuration: 0.35),
-                        SKAction.scale(to: 0.6, duration: 0.35),
-                    ])
-                    riseAndFade.timingMode = .easeOut
-                    await sprite.run(SKAction.sequence([riseAndFade, SKAction.removeFromParent()]))
+                taskGroup.addTask { @MainActor in
+                    await sprite.run(SKAction.sequence([.fadeOut(withDuration: 0.14), .removeFromParent()]))
                 }
             }
         }
@@ -988,6 +992,7 @@ class GameScene: SKScene {
 
     /// Quick squash-and-stretch settle used when a tile lands (falling, new tiles, swap arrival).
     private func landingSquash(_ sprite: SKSpriteNode) {
+        guard !reduceMotion else { return }
         let squash = SKAction.scaleX(to: 1.18, y: 0.82, duration: 0.06)
         let settle = SKAction.scale(to: 1.0, duration: 0.12)
         settle.timingMode = .easeOut
@@ -995,10 +1000,10 @@ class GameScene: SKScene {
     }
 
     /// Small camera-shake for big explosions/combos — the board itself kicks.
-    private func screenShake(magnitude: CGFloat = 6, duration: TimeInterval = 0.28) {
+    func screenShake(magnitude: CGFloat = 6, duration: TimeInterval = 0.28) {
         // Never restart mid-shake: the restart would read an already-offset position as the
         // rest position, so a cascade of big matches walks the board permanently off centre.
-        guard gameLayer.action(forKey: "screenShake") == nil else { return }
+        guard !reduceMotion, gameLayer.action(forKey: "screenShake") == nil else { return }
         let originalPosition = gameLayer.position
         var actions: [SKAction] = []
         let steps = 6
