@@ -4,9 +4,10 @@ struct ToolRefillView: View {
     let tool: GameTool
     let onReward: () -> Void
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var earnedReward = false
     #if !targetEnvironment(macCatalyst)
-    @StateObject private var ads = ToolRewardAdManager()
+    @ObservedObject private var ads = ToolRewardAdManager.shared
     #endif
 
     var body: some View {
@@ -47,14 +48,22 @@ struct ToolRefillView: View {
                     Text("Ad refills are available on iPhone and iPad.")
                         .font(.subheadline).foregroundStyle(AppTheme.ink)
                     #endif
-                    Button(earnedReward ? "Back to Game" : "Not Now") { dismiss() }
-                        .buttonStyle(.gamePrimary(gradient: AppTheme.neutralGradient))
                 }
             }
             .padding(24)
         }
         .background(AppTheme.festivalRedDark.gradient)
-        .presentationDetents([.medium, .large])
+        .safeAreaInset(edge: .bottom) {
+            Button(earnedReward ? "Back to Game" : "Not Now") { dismiss() }
+                .buttonStyle(.gamePrimary(gradient: AppTheme.neutralGradient))
+                .padding(12)
+                .frame(maxWidth: .infinity)
+                .background(AppTheme.creamHighlight)
+                #if !targetEnvironment(macCatalyst)
+                .disabled(ads.isPresenting)
+                #endif
+        }
+        .presentationDetents(dynamicTypeSize.isAccessibilitySize ? [.large] : [.medium, .large])
         .presentationDragIndicator(.visible)
         #if !targetEnvironment(macCatalyst)
         .interactiveDismissDisabled(ads.isPresenting)

@@ -7,6 +7,7 @@ import SwiftUI
 
 struct LevelCompleteView: View {
     @EnvironmentObject var gameModel: GameModel
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var starsVisible = false
 
@@ -43,17 +44,17 @@ struct LevelCompleteView: View {
                         .font(.system(size: 40, weight: .black))
                         .foregroundStyle(AppTheme.festivalRed)
                 }
-                .scaleEffect(starsVisible ? 1 : 0.35)
-                .rotationEffect(.degrees(starsVisible ? 0 : -12))
-                .animation(.spring(response: 0.48, dampingFraction: 0.58), value: starsVisible)
+                .scaleEffect(reduceMotion || starsVisible ? 1 : 0.35)
+                .rotationEffect(.degrees(reduceMotion || starsVisible ? 0 : -12))
+                .animation(reduceMotion ? nil : .spring(response: 0.48, dampingFraction: 0.58), value: starsVisible)
 
                 HStack(spacing: 7) {
                     ForEach(earnedStars.indices, id: \.self) { index in
                         StarView(earned: earnedStars[index])
-                            .scaleEffect(starsVisible ? 1 : 0.05)
-                            .rotationEffect(.degrees(starsVisible ? 0 : -20))
+                            .scaleEffect(reduceMotion || starsVisible ? 1 : 0.05)
+                            .rotationEffect(.degrees(reduceMotion || starsVisible ? 0 : -20))
                             .animation(
-                                .spring(response: 0.42, dampingFraction: 0.5)
+                                reduceMotion ? nil : .spring(response: 0.42, dampingFraction: 0.5)
                                     .delay(0.12 + Double(index) * 0.15),
                                 value: starsVisible
                             )

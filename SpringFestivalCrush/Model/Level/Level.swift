@@ -115,6 +115,41 @@ class Level {
         return set
     }
 
+    /// Rearrange the live board, never recreate it from the authored level layout.
+    /// Fixed blockers, ice, ingredients, specials, and objective progress are preserved.
+    /// A bounded search avoids hanging on constrained boards; failure restores the board.
+    func reshuffleExistingSymbols() -> Set<Symbol>? {
+        guard !noShuffle else { return nil }
+        var all: [Symbol] = []
+        for row in 0..<numRows {
+            for column in 0..<numColumns {
+                if let symbol = symbols[column, row] { all.append(symbol) }
+            }
+        }
+        let movable = all.filter { $0.isMovable() && !$0.isFrozen && $0.type != .ingredient }
+        guard movable.count > 1 else { return nil }
+        let positions = movable.map { (column: $0.column, row: $0.row) }
+        for _ in 0..<200 {
+            for (symbol, position) in zip(movable.shuffled(), positions) {
+                symbol.column = position.column
+                symbol.row = position.row
+                symbols[position.column, position.row] = symbol
+            }
+            detectPossibleSwaps()
+            if !possibleSwaps.isEmpty && !hasAnyExistingMatch() {
+                lastSwappedSymbols = nil
+                return Set(all)
+            }
+        }
+        for (symbol, position) in zip(movable, positions) {
+            symbol.column = position.column
+            symbol.row = position.row
+            symbols[position.column, position.row] = symbol
+        }
+        detectPossibleSwaps()
+        return nil
+    }
+
     // A freshly dealt board should never already contain a match — real match-3 games always
     // reshuffle until the initial deal is match-free, so tiles never evaporate with no player
     // action. This also closes a real risk for fixed Enhanced tiles specifically: Enhanced is

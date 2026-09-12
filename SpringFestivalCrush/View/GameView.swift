@@ -10,6 +10,8 @@ struct GameView: View {
     @EnvironmentObject var gameModel: GameModel
     @EnvironmentObject var themeModel: ThemeModel
     @EnvironmentObject var settingModel: SettingModel
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     let screenSize: CGSize
 
@@ -17,8 +19,22 @@ struct GameView: View {
     @State private var showingPause = false
     @State private var exitAfterPause = false
     @State private var refillTool: GameTool?
+    @State private var needsResumeAfterInterruption = false
+    #if !targetEnvironment(macCatalyst)
+    @ObservedObject private var rewardAds = ToolRewardAdManager.shared
+    #endif
 
-    private var isGameplayPaused: Bool { showingPause || exitAfterPause || refillTool != nil }
+    private var isWatchingRewardAd: Bool {
+        #if !targetEnvironment(macCatalyst)
+        rewardAds.isPresenting
+        #else
+        false
+        #endif
+    }
+
+    private var isGameplayPaused: Bool {
+        showingPause || exitAfterPause || refillTool != nil || scenePhase != .active || needsResumeAfterInterruption || isWatchingRewardAd
+    }
 
     private let timerTicker = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
@@ -29,6 +45,12 @@ struct GameView: View {
     // Only one hint is ever shown — hammer mode (an active state needing the player's
     // attention) takes priority over the one-time tutorial hint.
     private var activeBanner: HUDBanner? {
+        if gameModel.gameState == .finishing {
+            return HUDBanner(id: "finishing", text: "Level cleared! Counting your bonus…", icon: "star.fill", tint: .orange)
+        }
+        if let notice = gameModel.toolNotice {
+            return HUDBanner(id: notice, text: notice, icon: "shuffle", tint: .black)
+        }
         if gameModel.hammerModeActive {
             return HUDBanner(id: "hammer", text: "Tap a tile to clear it", icon: "hammer.fill", tint: .orange)
         }
@@ -75,7 +97,7 @@ struct GameView: View {
                     .allowsHitTesting(!isGameplayPaused)
                     .ignoresSafeArea(.all)
                     .blur(radius: isShowingResult ? 2 : 0)
-                    .scaleEffect(isShowingResult ? 0.99 : 1)
+                    .scaleEffect(isShowingResult && !reduceMotion ? 0.99 : 1)
                     .animation(.easeOut(duration: 0.3), value: isShowingResult)
             }
 
@@ -90,6 +112,8 @@ struct GameView: View {
                 Spacer(minLength: 0)
                 bottomDock
             }
+            .allowsHitTesting(!isShowingResult && !isGameplayPaused)
+            .accessibilityHidden(isShowingResult || showingPause || refillTool != nil)
             .animation(.spring(response: 0.35, dampingFraction: 0.75), value: gameModel.hammerCharges)
 
             ZStack {
@@ -104,23 +128,29 @@ struct GameView: View {
 
                 if gameModel.gameState == .lose {
                     LevelFailedView()
-                        .transition(.scale(scale: 0.65).combined(with: .opacity))
+                        .transition(reduceMotion ? .opacity : .scale(scale: 0.65).combined(with: .opacity))
                 } else if gameModel.gameState == .win {
-                    CelebrationBurstView()
-                        .allowsHitTesting(false)
+                    if !reduceMotion {
+                        CelebrationBurstView()
+                            .allowsHitTesting(false)
+                    }
                     LevelCompleteView()
-                        .transition(.scale(scale: 0.65).combined(with: .opacity))
+                        .transition(reduceMotion ? .opacity : .scale(scale: 0.65).combined(with: .opacity))
                 }
             }
         }
         .animation(.easeInOut(duration: 0.25), value: activeBanner)
         .animation(.spring(response: 0.48, dampingFraction: 0.72), value: gameModel.gameState)
         .sheet(isPresented: $showingPause, onDismiss: {
+            needsResumeAfterInterruption = false
             // Dismiss the pause sheet before dismissing its presenting game screen.
             if exitAfterPause { gameModel.onTapBack() }
         }) {
             PauseMenuView(
-                onResume: { showingPause = false },
+                onResume: {
+                    needsResumeAfterInterruption = false
+                    showingPause = false
+                },
                 onExit: {
                     exitAfterPause = true
                     showingPause = false
@@ -151,6 +181,18 @@ struct GameView: View {
             // Settings is pushed inside Pause, so the entire menu flow suspends time.
             guard !isGameplayPaused else { return }
             gameModel.tickTimer()
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active, !showingPause, refillTool == nil, !isShowingResult, !isWatchingRewardAd {
+                needsResumeAfterInterruption = true
+            } else if phase == .active, needsResumeAfterInterruption {
+                showingPause = true
+            }
+        }
+        .task(id: gameModel.toolNotice) {
+            guard gameModel.toolNotice != nil else { return }
+            do { try await Task.sleep(for: .seconds(4)) } catch { return }
+            gameModel.toolNotice = nil
         }
     }
 

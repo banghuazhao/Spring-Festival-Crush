@@ -31,8 +31,8 @@ struct LevelFailedView: View {
                         .font(.system(size: 35, weight: .black))
                         .foregroundStyle(AppTheme.festivalRed)
                 }
-                .offset(x: shake ? -6 : 6)
-                .rotationEffect(.degrees(shake ? -4 : 4))
+                .offset(x: reduceMotion ? 0 : (shake ? -6 : 6))
+                .rotationEffect(.degrees(reduceMotion ? 0 : (shake ? -4 : 4)))
                 .animation(
                     reduceMotion ? .none : .easeInOut(duration: 0.1).repeatCount(5, autoreverses: true),
                     value: shake

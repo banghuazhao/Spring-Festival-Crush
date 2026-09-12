@@ -9,7 +9,7 @@
 
 Debug builds use Google's iOS rewarded test unit `ca-app-pub-3940256099942544/1712485313`. Release builds read the `RewardedAdUnitID` build setting through Info.plist, configured in `SpringFestivalCrush/Config/Release.xcconfig` as `ca-app-pub-4766086782456413/2156787796`. This must remain an AdMob **Rewarded** unit; an Interstitial ID is not compatible. With no ID or no fill, refills display an unavailable message and do not grant rewards. Mac Catalyst does not serve ads.
 
-The new ToolRewardAdManager is isolated from the legacy coin/life interstitial-based helper. Rewards are issued only from GADRewardedAd's earned-reward callback, at most once per presentation.
+ToolRewardAdManager is shared by tool, coin and life reward buttons. Rewards are issued only from GADRewardedAd's earned-reward callback, at most once per presentation. The old interstitial-dismissal reward helper has been removed.
 
 Reference: [Google's rewarded-ad guide](https://developers.google.com/admob/ios/rewarded).
 

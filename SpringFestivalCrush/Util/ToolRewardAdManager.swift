@@ -2,9 +2,10 @@
 import GoogleMobileAds
 import SwiftUI
 
-/// Tool refills use true rewarded ads, independently of the legacy coin/life ad flow.
+/// Shared rewarded-ad lifecycle for tools, coins and lives.
 @MainActor
 final class ToolRewardAdManager: NSObject, ObservableObject, GADFullScreenContentDelegate {
+    static let shared = ToolRewardAdManager()
     @Published private(set) var isReady = false
     @Published private(set) var isLoading = false
     @Published private(set) var isPresenting = false
@@ -27,20 +28,27 @@ final class ToolRewardAdManager: NSObject, ObservableObject, GADFullScreenConten
         message = nil
         defer { isLoading = false }
         do {
-            ad = try await GADRewardedAd.load(withAdUnitID: unitID, request: GADRequest())
+            let loadedAd = try await GADRewardedAd.load(withAdUnitID: unitID, request: GADRequest())
+            guard !Task.isCancelled else { return }
+            ad = loadedAd
             ad?.fullScreenContentDelegate = self
             isReady = true
         } catch {
+            guard !Task.isCancelled else { return }
             message = "No ad available right now. Please try again."
         }
     }
 
     func show(onReward: @escaping () -> Void) {
-        guard isReady, !isPresenting, let ad,
-              let scene = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene })
+        guard isReady, !isPresenting, let ad else { return }
+        guard let scene = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene })
                 .first(where: { $0.activationState == .foregroundActive }),
-              var presenter = scene.windows.first(where: \.isKeyWindow)?.rootViewController else { return }
+              var presenter = scene.windows.first(where: \.isKeyWindow)?.rootViewController else {
+            message = "Please return to the app and try again."
+            return
+        }
         while let presented = presenter.presentedViewController { presenter = presented }
+        message = nil
         isReady = false
         isPresenting = true
         reward = onReward

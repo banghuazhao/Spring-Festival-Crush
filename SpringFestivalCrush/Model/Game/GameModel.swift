@@ -111,6 +111,7 @@ class GameModel: ObservableObject {
         case notStart
         case loading
         case inProgress
+        case finishing
         case lose
         case win
     }
@@ -160,6 +161,12 @@ class GameModel: ObservableObject {
         didSet { UserDefaults.standard.set(shuffleCharges, forKey: "shuffleCharges") }
     }
     @Published private(set) var isResolvingBoard = false
+    @Published var toolNotice: String?
+    private var attemptID = UUID()
+
+    private func isCurrentAttempt(_ id: UUID) -> Bool {
+        attemptID == id && !Task.isCancelled
+    }
     @Published var hammerModeActive: Bool = false
     static let extraMovesBoosterCost = 20
     static let extraMovesBoosterAmount = 5
@@ -270,6 +277,7 @@ class GameModel: ObservableObject {
 
     @MainActor
     func selectLevel(_ selectedLevel: Int) {
+        attemptID = UUID()
         gameState = .loading
         currentLevel = selectedLevel
         level = Level(filename: "\(zodiac.zodiacType.name)_Level_\(selectedLevel)")
@@ -281,6 +289,8 @@ class GameModel: ObservableObject {
         pendingExtraMoves = 0
         hammerModeActive = false
         isResolvingBoard = false
+        toolNotice = nil
+        isTutorialHintActive = false
     }
 
     /// Applies a purchased "+moves" booster to the level about to start. Call before `selectLevel`.
@@ -302,6 +312,8 @@ class GameModel: ObservableObject {
 
     @MainActor
     func setupNewGame() async {
+        guard gameState == .loading else { return }
+        let attempt = attemptID
         loseReason = .outOfMoves
         movesLeft = level.maximumMoves + pendingExtraMoves
         pendingExtraMoves = 0
@@ -311,7 +323,9 @@ class GameModel: ObservableObject {
         invokeCommand?(.setupTiles)
         let newSymbols = level.shuffle()
         await invokeCommandAsync?(.setupSymbols(newSymbols))
+        guard isCurrentAttempt(attempt) else { return }
         await invokeCommandAsync?(.onGameBegin)
+        guard isCurrentAttempt(attempt) else { return }
         gameState = .inProgress
         maybeShowTutorial()
         invokeCommand?(.refreshOverlays)
@@ -320,11 +334,14 @@ class GameModel: ObservableObject {
     /// Called once per second by the UI while a timed level is in progress.
     @MainActor
     func tickTimer() {
-        guard gameState == .inProgress, var remaining = secondsLeft else { return }
+        guard gameState == .inProgress, var remaining = secondsLeft, remaining > 0 else { return }
         remaining -= 1
         secondsLeft = remaining
-        if remaining <= 0 {
+        // Let a move already in flight settle before deciding win versus timeout.
+        if remaining == 0 && !isResolvingBoard {
+            let attempt = attemptID
             Task { @MainActor in
+                guard isCurrentAttempt(attempt) else { return }
                 await handleGameLose(reason: .outOfTime)
             }
         }
@@ -336,14 +353,17 @@ class GameModel: ObservableObject {
         guard gameState == .inProgress, !isResolvingBoard,
               hammerModeActive, hammerCharges > 0 else { return }
         guard let chain = level.useHammer(atColumn: column, row: row) else { return }
+        let attempt = attemptID
         isResolvingBoard = true
-        defer { isResolvingBoard = false }
+        defer { if isCurrentAttempt(attempt) { isResolvingBoard = false } }
         hammerCharges -= 1
         hammerModeActive = false
         HapticManager.bigMatch()
         invokeCommand?(.setUserInteraction(false))
         await handleMatches(for: [chain])
+        guard isCurrentAttempt(attempt) else { return }
         await handleRemoveAndMatches()
+        guard isCurrentAttempt(attempt), gameState == .inProgress else { return }
         invokeCommand?(.setUserInteraction(true))
     }
 
@@ -362,18 +382,30 @@ class GameModel: ObservableObject {
 
     func onTapShuffle() {
         guard gameState == .inProgress, !isResolvingBoard, shuffleCharges > 0 else { return }
+        guard let newSymbols = level.reshuffleExistingSymbols() else {
+            toolNotice = "No safe shuffle available. Your charge was kept."
+            return
+        }
+        let attempt = attemptID
+        toolNotice = nil
+        isTutorialHintActive = false
+        invokeCommand?(.hideTutorialHint)
         // Reserve a charge synchronously so rapid taps cannot launch overlapping shuffles.
         isResolvingBoard = true
         shuffleCharges -= 1
         hammerModeActive = false
         invokeCommand?(.setUserInteraction(false))
         Task { @MainActor in
+            guard isCurrentAttempt(attempt) else { return }
             defer {
-                isResolvingBoard = false
-                if gameState == .inProgress { invokeCommand?(.setUserInteraction(true)) }
+                if isCurrentAttempt(attempt) {
+                    isResolvingBoard = false
+                    if gameState == .inProgress { invokeCommand?(.setUserInteraction(true)) }
+                }
             }
-            let newSymbols = level.shuffle()
             await invokeCommandAsync?(.shuffle(newSymbols))
+            guard isCurrentAttempt(attempt) else { return }
+            if secondsLeft == 0 { await handleGameLose(reason: .outOfTime) }
         }
     }
 
@@ -389,9 +421,13 @@ class GameModel: ObservableObject {
         // async chain was still in flight (e.g. mid match-cascade animation), it would
         // otherwise run a second time — double-awarding coins or double-deducting a life.
         guard gameState == .inProgress else { return }
+        let attempt = attemptID
+        gameState = .finishing
         invokeCommand?(.setUserInteraction(false))
         await handleRemainingSpecialSymbol()
+        guard isCurrentAttempt(attempt) else { return }
         await handleExtraStepsBonus()
+        guard isCurrentAttempt(attempt) else { return }
         updateRecord()
         coins += Self.levelWinCoinReward
         gameState = .win
@@ -400,6 +436,7 @@ class GameModel: ObservableObject {
     }
 
     private func handleRemainingSpecialSymbol() async {
+        let attempt = attemptID
         let matchChains = level.removeMatches()
         let specialChains = level.removeSpecialSymbols()
         var chains = specialChains.union(matchChains)
@@ -411,13 +448,16 @@ class GameModel: ObservableObject {
         }
 
         await handleMatches(for: chains)
+        guard isCurrentAttempt(attempt) else { return }
 
         await handleRemainingSpecialSymbol()
     }
 
     private func handleExtraStepsBonus() async {
+        let attempt = attemptID
         let enhancedSymbols = level.enhanceSymbols(num: movesLeft)
         await invokeCommandAsync?(.onEnhanceSymbols(enhancedSymbols))
+        guard isCurrentAttempt(attempt) else { return }
         await handleRemainingSpecialSymbol()
     }
 
@@ -440,6 +480,7 @@ class GameModel: ObservableObject {
     /// (shouldPresentDebugDemo). Both flags exist because GameView is reused for both.
     @MainActor
     private func exitToMenu() {
+        attemptID = UUID()
         gameState = .notStart
         // Clear temporary extra moves and armed targeting, but retain tool inventory.
         resetBoostersForNewAttempt()
@@ -463,8 +504,10 @@ class GameModel: ObservableObject {
     @MainActor
     func handleSwipe(_ swap: Swap) async {
         guard gameState == .inProgress, !isResolvingBoard else { return }
+        let attempt = attemptID
         isResolvingBoard = true
-        defer { isResolvingBoard = false }
+        defer { if isCurrentAttempt(attempt) { isResolvingBoard = false } }
+        toolNotice = nil
         if isTutorialHintActive {
             isTutorialHintActive = false
             invokeCommand?(.hideTutorialHint)
@@ -473,19 +516,25 @@ class GameModel: ObservableObject {
             decreaseMove()
             level.performSwap(swap)
             await invokeCommandAsync?(.onValidSwap(swap))
+            guard isCurrentAttempt(attempt) else { return }
             invokeCommand?(.setUserInteraction(false))
             if let powerUpChains = level.tryActivateSpecialSwap(swap) {
                 await handleMatches(for: powerUpChains)
+                guard isCurrentAttempt(attempt) else { return }
             }
             await handleRemoveAndMatches()
+            guard isCurrentAttempt(attempt), gameState == .inProgress else { return }
             invokeCommand?(.setUserInteraction(true))
         } else {
             await invokeCommandAsync?(.onInvalidSwap(swap))
+            guard isCurrentAttempt(attempt) else { return }
+            if secondsLeft == 0 { await handleGameLose(reason: .outOfTime) }
         }
     }
 
     @MainActor
     func handleRemoveAndMatches() async {
+        let attempt = attemptID
         var chains = level.removeMatches()
         if let lockChain = level.resolveBlockers() {
             chains.insert(lockChain)
@@ -496,11 +545,13 @@ class GameModel: ObservableObject {
         }
 
         await handleMatches(for: chains)
+        guard isCurrentAttempt(attempt) else { return }
 
         await handleRemoveAndMatches()
     }
 
     private func handleMatches(for chains: Set<Chain>) async {
+        let attempt = attemptID
         var allChains = chains
         async let onMatchedSymbols: Void? = invokeCommandAsync?(.onMatchedSymbols(chains))
 
@@ -509,6 +560,7 @@ class GameModel: ObservableObject {
         async let onSpecialSymbolExplode: Void? = invokeCommandAsync?(.onMatchedSymbols(explodeChains))
 
         await _ = [onMatchedSymbols, onSpecialSymbolExplode]
+        guard isCurrentAttempt(attempt) else { return }
 
         var nextExplodeChains = explodeChains
         while true {
@@ -516,6 +568,7 @@ class GameModel: ObservableObject {
                 nextExplodeChains = level.explodeSpecialSymbols(for: nextExplodeChains)
                 allChains = allChains.union(nextExplodeChains)
                 await invokeCommandAsync?(.onMatchedSymbols(nextExplodeChains))
+                guard isCurrentAttempt(attempt) else { return }
             } else {
                 break
             }
@@ -523,6 +576,7 @@ class GameModel: ObservableObject {
 
         let specialSymbols = level.createSpecialSymbols(for: chains)
         await invokeCommandAsync?(.onCreatingSpecialSymbols(specialSymbols))
+        guard isCurrentAttempt(attempt) else { return }
 
         updateScores(from: allChains)
         level.updateLevelTarget(by: allChains)
@@ -530,11 +584,13 @@ class GameModel: ObservableObject {
 
         let columns = level.fillHoles()
         await invokeCommandAsync?(.onFallingSymbols(columns))
+        guard isCurrentAttempt(attempt) else { return }
 
         let collectedIngredients = level.collectIngredientsAtBottom()
         if !collectedIngredients.isEmpty {
             score += Self.ingredientCollectedScore * collectedIngredients.count
             await invokeCommandAsync?(.onIngredientsCollected(collectedIngredients))
+            guard isCurrentAttempt(attempt) else { return }
         }
 
         let topUpColumns = level.topUpSymbols()
@@ -552,8 +608,12 @@ class GameModel: ObservableObject {
 
     @MainActor
     func beginNextTurn() async {
+        guard gameState == .inProgress else { return }
+        let attempt = attemptID
         if hasGameWin() {
             await handleGameWin()
+        } else if secondsLeft == 0 {
+            await handleGameLose(reason: .outOfTime)
         } else if hasGameLose() {
             await handleGameLose()
         } else {
@@ -561,11 +621,22 @@ class GameModel: ObservableObject {
                 invokeCommand?(.onChocolateSpread(spread))
             }
             level.detectPossibleSwaps()
+            if level.possibleSwaps.isEmpty, !level.noShuffle {
+                if let rearranged = level.reshuffleExistingSymbols() {
+                    toolNotice = "No swaps left — reshuffled for free!"
+                    await invokeCommandAsync?(.shuffle(rearranged))
+                    guard isCurrentAttempt(attempt) else { return }
+                    if secondsLeft == 0 { await handleGameLose(reason: .outOfTime) }
+                } else {
+                    toolNotice = "No swaps available. Try a Hammer to open the board."
+                }
+            }
         }
     }
 
     @MainActor
     func onTapNextLevel() {
+        guard gameState == .win else { return }
         // currentLevel < 1 means this isn't a real, file-backed level (e.g. the DEBUG
         // special-effects demo uses -1) — there's no "next level" to load in that case.
         guard currentLevel >= 1, currentLevel < zodiac.numLevels else {
@@ -578,21 +649,22 @@ class GameModel: ObservableObject {
             return
         }
         resetBoostersForNewAttempt()
+        selectLevel(currentLevel + 1)
         Task { @MainActor in
-            selectLevel(currentLevel + 1)
             await setupNewGame()
         }
     }
 
     @MainActor
     func onTapTryAgainLevel() {
+        guard gameState == .lose else { return }
         guard currentLevel >= 1, lives > 0 else {
             exitToMenu()
             return
         }
         resetBoostersForNewAttempt()
+        selectLevel(currentLevel)
         Task { @MainActor in
-            selectLevel(currentLevel)
             await setupNewGame()
         }
     }

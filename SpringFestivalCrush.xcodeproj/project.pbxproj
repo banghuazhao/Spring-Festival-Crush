@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C20260914000000000000001 /* ReleaseRegressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260914000000000000002; };
 		C20260913000000000000001 /* GameTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260913000000000000101 /* GameTool.swift */; };
 		C20260913000000000000002 /* ToolRewardAdManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260913000000000000102 /* ToolRewardAdManager.swift */; };
 		C20260913000000000000003 /* ToolRefillView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260913000000000000103 /* ToolRefillView.swift */; };
@@ -124,6 +125,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		C20260914000000000000002 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringFestivalCrushTests/ReleaseRegressionTests.swift; sourceTree = SOURCE_ROOT; };
+		C20260914000000000000003 = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; path = SpringFestivalCrushTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C20260913000000000000101 /* GameTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameTool.swift; sourceTree = "<group>"; };
 		C20260913000000000000102 /* ToolRewardAdManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolRewardAdManager.swift; sourceTree = "<group>"; };
 		C20260913000000000000103 /* ToolRefillView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolRefillView.swift; sourceTree = "<group>"; };
@@ -245,6 +248,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		C20260914000000000000006 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 		9955DB8423D7E420007786D5 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -348,6 +352,7 @@
 			isa = PBXGroup;
 			children = (
 				9955DB8923D7E420007786D5 /* SpringFestivalCrush */,
+				C20260914000000000000002 /* ReleaseRegressionTests.swift */,
 				9955DB8823D7E420007786D5 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -356,6 +361,7 @@
 			isa = PBXGroup;
 			children = (
 				9955DB8723D7E420007786D5 /* SpringFestivalCrush.app */,
+				C20260914000000000000003 /* SpringFestivalCrushTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -542,6 +548,17 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		C20260914000000000000004 /* SpringFestivalCrushTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C20260914000000000000008;
+			buildPhases = (C20260914000000000000005, C20260914000000000000006);
+			buildRules = ();
+			dependencies = (C20260914000000000000011);
+			name = SpringFestivalCrushTests;
+			productName = SpringFestivalCrushTests;
+			productReference = C20260914000000000000003;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		9955DB8623D7E420007786D5 /* SpringFestivalCrush */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 9955DB9F23D7E424007786D5 /* Build configuration list for PBXNativeTarget "SpringFestivalCrush" */;
@@ -566,6 +583,13 @@
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
+
+/* Begin PBXContainerItemProxy section */
+		C20260914000000000000012 = {isa = PBXContainerItemProxy; containerPortal = 9955DB7F23D7E420007786D5; proxyType = 1; remoteGlobalIDString = 9955DB8623D7E420007786D5; remoteInfo = SpringFestivalCrush; };
+/* End PBXContainerItemProxy section */
+/* Begin PBXTargetDependency section */
+		C20260914000000000000011 = {isa = PBXTargetDependency; target = 9955DB8623D7E420007786D5; targetProxy = C20260914000000000000012; };
+/* End PBXTargetDependency section */
 
 /* Begin PBXProject section */
 		9955DB7F23D7E420007786D5 /* Project object */ = {
@@ -601,6 +625,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
+				C20260914000000000000004 /* SpringFestivalCrushTests */,
 				9955DB8623D7E420007786D5 /* SpringFestivalCrush */,
 			);
 		};
@@ -674,6 +699,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		C20260914000000000000005 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (C20260914000000000000001); runOnlyForDeploymentPostprocessing = 0; };
 		9955DB8323D7E420007786D5 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -768,6 +794,8 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		C20260914000000000000009 = {isa = XCBuildConfiguration; buildSettings = {BUNDLE_LOADER = "$(TEST_HOST)"; TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SpringFestivalCrush.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/SpringFestivalCrush"; GENERATE_INFOPLIST_FILE = YES; PRODUCT_BUNDLE_IDENTIFIER = "com.Banghua-Zhao.SpringFestivalCrushTests"; PRODUCT_NAME = "$(TARGET_NAME)"; SWIFT_VERSION = 5.0; IPHONEOS_DEPLOYMENT_TARGET = 17.0; TARGETED_DEVICE_FAMILY = "1,2"; LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks"; }; name = Debug; };
+		C20260914000000000000010 = {isa = XCBuildConfiguration; buildSettings = {BUNDLE_LOADER = "$(TEST_HOST)"; TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SpringFestivalCrush.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/SpringFestivalCrush"; GENERATE_INFOPLIST_FILE = YES; PRODUCT_BUNDLE_IDENTIFIER = "com.Banghua-Zhao.SpringFestivalCrushTests"; PRODUCT_NAME = "$(TARGET_NAME)"; SWIFT_VERSION = 5.0; IPHONEOS_DEPLOYMENT_TARGET = 17.0; TARGETED_DEVICE_FAMILY = "1,2"; LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks"; }; name = Release; };
 		9955DB9D23D7E424007786D5 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 99340CE02C715DC20096BBF5 /* Debug.xcconfig */;
@@ -937,6 +965,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		C20260914000000000000008 = {isa = XCConfigurationList; buildConfigurations = (C20260914000000000000009, C20260914000000000000010); defaultConfigurationIsVisible = 0; defaultConfigurationName = Debug; };
 		9955DB8223D7E420007786D5 /* Build configuration list for PBXProject "SpringFestivalCrush" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

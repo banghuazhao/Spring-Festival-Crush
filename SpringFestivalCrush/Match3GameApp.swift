@@ -51,7 +51,13 @@ struct Match3GameApp: App {
                     }
                     #if !targetEnvironment(macCatalyst) && !targetEnvironment(simulator)
                         if newPhase == .active {
-                            ad.tryToPresentAd()
+                            // A returning rewarded ad or system interruption must not trigger
+                            // another full-screen ad, especially over an active game.
+                            if ad.appHasEnterBackgroundBefore,
+                               gameModel.gameState == .notStart,
+                               !ToolRewardAdManager.shared.isPresenting {
+                                ad.tryToPresentAd()
+                            }
                             ad.appHasEnterBackgroundBefore = false
                         } else if newPhase == .background {
                             ad.appHasEnterBackgroundBefore = true
