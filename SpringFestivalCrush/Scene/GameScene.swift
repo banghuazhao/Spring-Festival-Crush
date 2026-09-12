@@ -219,6 +219,7 @@ class GameScene: SKScene {
         sprite.position = pointFor(column: symbol.column, row: symbol.row)
         symbolsLayer.addChild(sprite)
         symbol.sprite = sprite
+        configurePowerAura(on: sprite, type: symbol.type)
 
         guard shouldAnimate else { return }
         if symbol.type.isEnhanced || symbol.type == .five || symbol.type == .lightning {

@@ -3,6 +3,7 @@ import SwiftUI
 /// A modal alert over the frozen board. Opening Settings keeps this alert active.
 struct PauseMenuView: View {
     let onResume: () -> Void
+    let onRestart: () -> Void
     let onExit: () -> Void
 
     @State private var showingSettings = false
@@ -62,6 +63,17 @@ struct PauseMenuView: View {
 
                 Button {
                     HapticManager.buttonTap()
+                    onRestart()
+                } label: {
+                    Label("Restart", systemImage: "arrow.clockwise")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.gamePrimary(gradient: AppTheme.accentGradient))
+                .accessibilityHint("Start this level again with its original moves and goals")
+                .accessibilityIdentifier("pause-restart")
+
+                Button {
+                    HapticManager.buttonTap()
                     showingSettings = true
                 } label: {
                     Label("Settings", systemImage: "gearshape.fill")
@@ -88,7 +100,7 @@ struct PauseMenuView: View {
 #Preview {
     ZStack {
         Image("RatBoardBackground").resizable().scaledToFill().ignoresSafeArea()
-        PauseMenuView(onResume: {}, onExit: {})
+        PauseMenuView(onResume: {}, onRestart: {}, onExit: {})
     }
     .environmentObject(SettingModel())
 }

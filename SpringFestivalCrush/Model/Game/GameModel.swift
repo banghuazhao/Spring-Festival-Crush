@@ -146,6 +146,8 @@ class GameModel: ObservableObject {
     @Published var shouldPresentGame: Bool = false
     #if DEBUG
     @Published var shouldPresentDebugDemo: Bool = false
+    private var debugDemoFilename: String?
+    private var debugDemoCombination: PowerUpCombination?
     #endif
 
     @Published var currentLevel: Int = 0
@@ -610,7 +612,7 @@ class GameModel: ObservableObject {
         updateScores(from: allChains)
         level.updateLevelTarget(by: allChains)
         invokeCommand?(.onGoalProgress(GoalProgress.changes(
-            before: goalsBefore, after: createLevelTargetDatas(), symbols: allChains.flatMap(\.symbols)
+            before: goalsBefore, after: createLevelTargetDatas(), symbols: allChains.flatMap(\.clearedSymbols)
         )))
         invokeCommand?(.refreshOverlays)
 
@@ -646,6 +648,8 @@ class GameModel: ObservableObject {
     func beginNextTurn() async {
         guard gameState == .inProgress else { return }
         let attempt = attemptID
+        level.finishArmorTurn()
+        invokeCommand?(.refreshOverlays)
         if hasGameWin() {
             await handleGameWin()
         } else if secondsLeft == 0 {
@@ -711,6 +715,23 @@ class GameModel: ObservableObject {
             (lhs.symbolA.row, lhs.symbolA.column, lhs.symbolB.row, lhs.symbolB.column)
                 < (rhs.symbolA.row, rhs.symbolA.column, rhs.symbolB.row, rhs.symbolB.column)
         }
+    }
+
+    @MainActor
+    func onTapRestartLevel() async {
+        guard gameState == .inProgress else { return }
+        if currentLevel >= 1 {
+            resetBoostersForNewAttempt()
+            selectLevel(currentLevel)
+        } else {
+            #if DEBUG
+            guard let debugDemoFilename else { return }
+            debugLaunchDemo(filename: debugDemoFilename, combination: debugDemoCombination)
+            #else
+            return
+            #endif
+        }
+        await setupNewGame()
     }
 
     @MainActor
@@ -838,8 +859,16 @@ class GameModel: ObservableObject {
     }
 
     @MainActor
-    private func debugLaunchDemo(filename: String) {
+    func debugLaunchCombinationDemo(_ combination: PowerUpCombination) {
+        debugLaunchDemo(filename: "Debug_Special", combination: combination)
+    }
+
+    @MainActor
+    private func debugLaunchDemo(filename: String, combination: PowerUpCombination? = nil) {
         guard let demoLevel = Level(filename: filename) else { return }
+        debugDemoFilename = filename
+        debugDemoCombination = combination
+        if let combination { demoLevel.configureCombinationDemo(combination) }
         attemptID = UUID()
         resetBoostersForNewAttempt()
         gameState = .loading

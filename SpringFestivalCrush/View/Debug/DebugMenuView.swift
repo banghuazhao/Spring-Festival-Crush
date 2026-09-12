@@ -32,6 +32,26 @@ struct DebugMenuView: View {
                         .foregroundStyle(.secondary)
                 }
 
+                Section {
+                    ForEach(PowerUpCombination.allCases) { combination in
+                        Button {
+                            gameModel.debugLaunchCombinationDemo(combination)
+                            dismiss()
+                        } label: {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Label(combination.title, systemImage: "sparkles")
+                                    .font(.headline)
+                                Text(combination.detail).font(.caption).foregroundStyle(.secondary)
+                            }
+                        }
+                        .accessibilityIdentifier("debug-combo-\(combination.rawValue)")
+                    }
+                } header: {
+                    Text("Power-up Combinations")
+                } footer: {
+                    Text("Swap the two charged pieces in the center. Restart restores the pair for another try.")
+                }
+
                 Section("Level Elements Demo") {
                     Button {
                         gameModel.debugLaunchElementsDemo()

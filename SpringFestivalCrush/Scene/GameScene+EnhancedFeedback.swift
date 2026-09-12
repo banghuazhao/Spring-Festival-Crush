@@ -14,6 +14,10 @@ extension GameScene {
             await sprite.run(.fadeIn(withDuration: 0.16))
             return
         }
+        if type == .five {
+            await animateFiveBirth(on: sprite)
+            return
+        }
         let accent = SKNode()
         accent.name = "specialBirth"
         accent.zPosition = 15
@@ -22,7 +26,7 @@ extension GameScene {
 
         let radius = min(sprite.size.width, sprite.size.height) * 0.43
         let ring = SKShapeNode(circleOfRadius: radius)
-        let tint = type == .five ? UIColor(hex: 0xBDEEFF) : UIColor(hex: 0xFFE5A1)
+        let tint = UIColor(hex: 0xFFE5A1)
         ring.strokeColor = tint
         ring.lineWidth = 2
         ring.fillColor = .clear
@@ -30,7 +34,7 @@ extension GameScene {
         ring.setScale(1.15)
         ring.run(.sequence([.group([.scale(to: 0.7, duration: 0.12), .fadeAlpha(to: 0.5, duration: 0.12)]),
                             .group([.scale(to: 1.35, duration: 0.20), .fadeOut(withDuration: 0.20)])]), withKey: "birthRing")
-        let count = type == .five ? 6 : 4
+        let count = 4
         for index in 0..<count {
             let angle = CGFloat(index) * 2 * .pi / CGFloat(count) + .pi / 4
             let spark = SKShapeNode(circleOfRadius: max(1, radius * 0.06))

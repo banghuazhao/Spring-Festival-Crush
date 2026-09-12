@@ -152,6 +152,12 @@ struct GameView: View {
                         needsResumeAfterInterruption = false
                         showingPause = false
                     },
+                    onRestart: {
+                        needsResumeAfterInterruption = false
+                        showingPause = false
+                        feedback.clear()
+                        Task { @MainActor in await gameModel.onTapRestartLevel() }
+                    },
                     onExit: {
                         isExiting = true
                         showingPause = false

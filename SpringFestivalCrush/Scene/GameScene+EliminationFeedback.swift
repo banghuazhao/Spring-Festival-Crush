@@ -8,7 +8,7 @@ extension GameScene {
         effectsLayer.addChild(batch)
         defer { batch.removeFromParent() }
         let ordered = chains.sorted { clearPriority($0) > clearPriority($1) }
-        let enhanced = Set(chains.flatMap(\.symbols).filter { $0.type.isEnhanced })
+        let enhanced = Set(chains.filter { $0.combination == nil }.flatMap(\.clearedSymbols).filter { $0.type.isEnhanced })
         let origins = enhanced.compactMap { $0.sprite?.position }
         if !reduceMotion {
             // Cap overlapping area rings when a whole board of bonus tiles detonates.
@@ -21,26 +21,35 @@ extension GameScene {
         var claimed = Set<ObjectIdentifier>()
         var sparkleBudget = 64
         await withTaskGroup(of: Void.self) { group in
+            if !reduceMotion, let duration = ordered.compactMap({ $0.combination?.duration }).max() {
+                group.addTask { @MainActor in await self.run(.wait(forDuration: duration)) }
+            }
+            if !reduceMotion, ordered.contains(where: { $0.chainType == .fiveEffect }) {
+                // Keep the visual batch alive through its final ribbon and tile pulse.
+                group.addTask { @MainActor in await self.run(.wait(forDuration: 0.76)) }
+            }
             for chain in ordered {
-                let center = chain.symbols.first?.sprite?.position ?? .zero
+                let source = chain.symbols.first(where: { $0.type == .five }) ?? chain.symbols.first
+                let center = chain.combination == nil ? (source?.sprite?.position ?? .zero) : combinationCenter(chain)
                 if !reduceMotion {
+                    if chain.combination != nil { addCombinationCelebration(for: chain, to: batch) }
                     if chain.chainType == .lightning { addLightningTrail(for: chain, to: batch) }
                     if chain.chainType == .fiveEffect {
-                        addClearRing(at: center, radius: gameModel.tileSize.width * 0.35,
-                                     expansion: 2.4, color: UIColor(hex: 0xBDEEFF), to: batch)
+                        addFiveCelebration(for: chain, to: batch)
                     }
                 }
-                for (index, symbol) in chain.symbols.enumerated() {
+                for (index, symbol) in chain.clearedSymbols.enumerated() {
                     guard let sprite = symbol.sprite, sprite.parent != nil,
                           claimed.insert(ObjectIdentifier(sprite)).inserted else { continue }
                     let isBlast = symbol.type.isEnhanced || chain.chainType == .single || chain.chainType == .enhanced
                     let isStar = chain.chainType == .fiveEffect
                     let isLightning = chain.chainType == .lightning
-                    let color = isStar ? UIColor(hex: 0xBDEEFF) : UIColor(hex: 0xFFE5A1)
+                    let color = isStar ? UIColor(hex: 0xFFD979) : UIColor(hex: 0xFFE5A1)
                     let distance = origins.map { hypot(sprite.position.x - $0.x, sprite.position.y - $0.y) }.min() ?? 0
-                    let delay = reduceMotion ? 0 : (isLightning ? min(0.12, Double(index) * 0.016)
-                        : (isStar ? min(0.12, Double(index) * 0.008)
-                           : (isBlast ? min(0.08, Double(distance / max(1, gameModel.tileSize.width)) * 0.035) : 0)))
+                    let delay = chain.combination != nil ? combinationDelay(for: symbol, chain: chain)
+                        : (reduceMotion ? 0 : (isLightning ? min(0.12, Double(index) * 0.016)
+                        : (isStar ? (symbol === source ? 0 : fiveClearDelay(at: sprite.position, origin: center))
+                           : (isBlast ? min(0.08, Double(distance / max(1, gameModel.tileSize.width)) * 0.035) : 0))))
                     if !reduceMotion && sparkleBudget > 0 {
                         let count = min(sparkleBudget, isBlast || isStar ? 4 : 2)
                         sparkleBudget -= count
@@ -51,12 +60,14 @@ extension GameScene {
                     if reduceMotion {
                         action = .sequence([.fadeOut(withDuration: 0.16), .removeFromParent()])
                     } else {
-                        let anticipation = SKAction.scale(to: isBlast || isStar ? 1.12 : 1.06, duration: 0.06)
+                        let isFiveSource = isStar && symbol === source
+                        let anticipation = SKAction.scale(to: isFiveSource ? 1.5 : (isBlast || isStar ? 1.12 : 1.06),
+                                                         duration: isFiveSource ? 0.24 : 0.06)
                         anticipation.timingMode = .easeOut
                         let collapse = SKAction.scale(to: 0.08, duration: 0.18)
                         collapse.timingMode = .easeIn
                         var release: [SKAction] = [collapse, .fadeOut(withDuration: 0.18)]
-                        if isStar && index > 0 {
+                        if (isStar && !isFiveSource) || chain.combination == .fiveFive {
                             // A short inward tug communicates collection without dragging
                             // distant tiles across the entire board or covering other pieces.
                             let travel = SKAction.move(to: CGPoint(x: sprite.position.x + (center.x - sprite.position.x) * 0.18,
@@ -65,6 +76,7 @@ extension GameScene {
                             release.append(travel)
                         }
                         action = .sequence([.wait(forDuration: delay), anticipation,
+                                            .wait(forDuration: isFiveSource ? 0.26 : 0),
                                             .group(release), .removeFromParent()])
                     }
                     group.addTask { @MainActor in await self.animateRemoval(of: sprite, action: action) }
@@ -75,6 +87,7 @@ extension GameScene {
 
     private func clearPriority(_ chain: Chain) -> Int {
         switch chain.chainType {
+        case .combination: 5
         case .fiveEffect: 4
         case .lightning: 3
         case .enhanced: 2
@@ -83,7 +96,13 @@ extension GameScene {
     }
 
     private func triggerClearHaptic(for chain: Chain, enhanced: Bool) {
-        if enhanced || chain.chainType == .fiveEffect {
+        if chain.combination != nil {
+            if reduceMotion { HapticManager.explosion() }
+        } else if chain.chainType == .fiveEffect {
+            // Full effects synchronize impact with the charge release; reduced effects
+            // keep one immediate haptic with the short fade.
+            if reduceMotion { HapticManager.explosion() }
+        } else if enhanced {
             HapticManager.explosion()
             screenShake(magnitude: 3, duration: 0.20)
         } else if chain.chainType == .lightning || chain.length >= 4 {
@@ -150,6 +169,11 @@ extension GameScene {
         sprite.removeAction(forKey: "landing")
         sprite.removeAction(forKey: "ambientEffect")
         sprite.childNode(withName: "tileSelection")?.removeFromParent()
-        await sprite.run(action)
+        sprite.childNode(withName: "powerAura")?.removeFromParent()
+        sprite.run(action, withKey: "tileRemoval")
+        // Restart detaches old sprites. Await the scene clock so an old clear still
+        // completes and releases its task group even after its sprite leaves the board.
+        await run(.wait(forDuration: action.duration))
+        sprite.removeFromParent()
     }
 }

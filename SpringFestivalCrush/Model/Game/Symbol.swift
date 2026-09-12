@@ -160,6 +160,9 @@ class Symbol: CustomStringConvertible, Hashable {
     // one layer at a time whenever an adjacent cell is cleared, same trigger as locks.
     var iceLayer: Int = 0
     var isFrozen: Bool { iceLayer > 0 }
+    var armorLayers = 0
+    // A cracked tile survives the current move, including overlapping blasts and cascades.
+    var armorHitThisTurn = false
 
     init(column: Int, row: Int, symbolType: SymbolType) {
         self.column = column
@@ -182,7 +185,7 @@ class Symbol: CustomStringConvertible, Hashable {
     }
 
     func isMatchable() -> Bool {
-        guard !isFrozen else { return false }
+        guard !isFrozen, !armorHitThisTurn else { return false }
         switch type {
         case .lock, .heavyLock, .vaultLock, .chocolate, .five, .lightning, .ingredient:
             return false

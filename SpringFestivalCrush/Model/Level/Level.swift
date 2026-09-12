@@ -357,6 +357,22 @@ class Level {
     // Returns non-nil chains when the swap activates a five or lightning power-up.
     // Symbols are already removed from the board when this returns.
     func tryActivateSpecialSwap(_ swap: Swap) -> Set<Chain>? {
+        guard swap.symbolA.isMovable(), swap.symbolB.isMovable(),
+              abs(swap.symbolA.column - swap.symbolB.column) + abs(swap.symbolA.row - swap.symbolB.row) == 1 else { return nil }
+        if let combination = PowerUpCombination(swap.symbolA.type, swap.symbolB.type) {
+            let chain = makeCombinationChain(combination, for: swap)
+            if combination == .fiveFive {
+                // The rare double Five explicitly clears every protection layer.
+                for symbol in chain.symbols {
+                    symbol.armorLayers = 0
+                    symbol.armorHitThisTurn = false
+                    symbol.iceLayer = 0
+                }
+            }
+            removeSymbols(in: [chain])
+            chain.score = (combination == .fiveFive ? 300 : 240) * chain.clearedSymbols.count
+            return [chain]
+        }
         if swap.symbolA.type == .five || swap.symbolB.type == .five {
             return activateFiveEffect(for: swap)
         }
@@ -381,8 +397,8 @@ class Level {
                 }
             }
         }
-        chain.score = 200 * chain.symbols.count
         removeSymbols(in: [chain])
+        chain.score = 200 * chain.clearedSymbols.count
         return [chain]
     }
 
@@ -405,8 +421,8 @@ class Level {
         if !rowChain.symbols.isEmpty { chains.insert(rowChain) }
         if !colChain.symbols.isEmpty { chains.insert(colChain) }
 
-        for chain in chains { chain.score = 150 * chain.symbols.count }
         removeSymbols(in: chains)
+        for chain in chains { chain.score = 150 * chain.clearedSymbols.count }
         return chains
     }
 
@@ -508,9 +524,10 @@ class Level {
     func explodeSpecialSymbols(for chains: Set<Chain>) -> Set<Chain> {
         var newChains = Set<Chain>()
         let symbols = allSymbolsFor(for: chains)
+        let combinedSources = Set(chains.flatMap(\.combinationSources).map(ObjectIdentifier.init))
         var enhancedTriggerCount = 0
         for symbol in symbols {
-            if symbol.type.isEnhanced {
+            if symbol.type.isEnhanced && !combinedSources.contains(ObjectIdentifier(symbol)) {
                 newChains = newChains.union(detectSpecialElimination(for: symbol))
                 enhancedTriggerCount += 1
             }
@@ -555,7 +572,7 @@ class Level {
     func allSymbolsFor(for chains: Set<Chain>) -> Set<Symbol> {
         var set = Set<Symbol>()
         for chain in chains {
-            for symbol in chain.symbols {
+            for symbol in chain.clearedSymbols {
                 set.insert(symbol)
             }
         }
@@ -664,11 +681,24 @@ class Level {
     }
 
     private func removeSymbols(in chains: Set<Chain>) {
-        for chain in chains {
-            for symbol in chain.symbols {
+        var resisted = Set<ObjectIdentifier>()
+        for symbol in Set(chains.flatMap(\.symbols)) {
+            guard symbols[symbol.column, symbol.row] === symbol else { continue }
+            if symbol.armorLayers > 0 || symbol.armorHitThisTurn {
+                if !symbol.armorHitThisTurn { symbol.armorLayers = max(0, symbol.armorLayers - 1) }
+                symbol.armorHitThisTurn = true
+                resisted.insert(ObjectIdentifier(symbol))
+            } else {
                 symbols[symbol.column, symbol.row] = nil
             }
         }
+        for chain in chains {
+            chain.resistedSymbols.formUnion(resisted)
+        }
+    }
+
+    func finishArmorTurn() {
+        for symbol in symbols.nonNilElements() { symbol.armorHitThisTurn = false }
     }
 
     // Booster: instantly clears a single tile without requiring a match, at no move cost.
@@ -775,7 +805,7 @@ class Level {
             let candidates = adjacentPositions(column: chocolate.column, row: chocolate.row)
                 .filter { isPositionInside(column: $0[0], row: $0[1]) }
                 .compactMap { pos -> Symbol? in
-                    guard let sym = symbols[pos[0], pos[1]], sym.type.isNormalMatchable else { return nil }
+                    guard let sym = symbols[pos[0], pos[1]], sym.type.isNormalMatchable, !sym.isFrozen, sym.armorLayers == 0 else { return nil }
                     return sym
                 }
             if let target = candidates.randomElement() {
@@ -805,13 +835,14 @@ class Level {
     func createSpecialSymbols(for chains: Set<Chain>) -> [Symbol] {
         var specialSymbols = [Symbol]()
         for chain in chains {
+            guard !chain.clearedSymbols.isEmpty else { continue }
             switch chain.chainType {
             case .horizontal4, .vertical4:
-                guard let first = chain.symbols.first else { continue }
+                guard let first = chain.clearedSymbols.first else { continue }
                 // Prefer the position of whichever swapped symbol landed in this chain.
                 let anchor: Symbol
                 if let (a, b) = lastSwappedSymbols,
-                   let swapped = chain.symbols.first(where: { $0 == a || $0 == b }) {
+                   let swapped = chain.clearedSymbols.first(where: { $0 == a || $0 == b }) {
                     anchor = swapped
                 } else {
                     anchor = first
@@ -824,14 +855,14 @@ class Level {
             case .five:
                 // Place universal (five) symbol at the centre of the matched row/column.
                 guard chain.symbols.count >= 3 else { continue }
-                let mid = chain.symbols[chain.symbols.count / 2]
+                let mid = chain.clearedSymbols[chain.clearedSymbols.count / 2]
                 let universal = Symbol(column: mid.column, row: mid.row, symbolType: .five)
                 symbols[mid.column, mid.row] = universal
                 specialSymbols.append(universal)
 
             case .lShape:
                 // First symbol in the chain is the pivot (intersection).
-                guard let pivot = chain.symbols.first else { continue }
+                guard let pivot = chain.clearedSymbols.first else { continue }
                 let lightning = Symbol(column: pivot.column, row: pivot.row, symbolType: .lightning)
                 symbols[pivot.column, pivot.row] = lightning
                 specialSymbols.append(lightning)
@@ -993,6 +1024,11 @@ class Level {
                 chain.score = 200 * chain.length
             case .lightning:
                 chain.score = 150 * chain.length
+            case .combination:
+                chain.score = (chain.combination == .fiveFive ? 300 : 240) * chain.length
+            }
+            if !chain.symbols.isEmpty {
+                chain.score = chain.score * chain.clearedSymbols.count / chain.symbols.count
             }
         }
     }
@@ -1040,9 +1076,13 @@ class Level {
                 if let zodiac = levelGoal.levelTarget.zodiac {
                     levelGoal.levelTarget.zodiac = zodiac - 1
                 }
-            case .lock:
+            case .lock, .heavyLock, .vaultLock:
                 if let lock = levelGoal.levelTarget.lock {
                     levelGoal.levelTarget.lock = lock - 1
+                }
+            case .ingredient:
+                if let count = levelGoal.levelTarget.ingredient {
+                    levelGoal.levelTarget.ingredient = max(0, count - 1)
                 }
             default: continue
             }
@@ -1051,11 +1091,13 @@ class Level {
         // Jelly is positional, not symbol-typed: any cell that had jelly and got cleared
         // this batch loses one layer, regardless of what was cleared there.
         if levelGoal.levelTarget.jelly != nil {
+            let fullClear = chains.contains { $0.combination == .fiveFive }
             var jellyCleared = 0
             for symbol in allSymbols {
                 if let tile = tiles[symbol.column, symbol.row], tile.jellyCount > 0 {
-                    tile.jellyCount -= 1
-                    jellyCleared += 1
+                    let layers = fullClear ? tile.jellyCount : 1
+                    tile.jellyCount -= layers
+                    jellyCleared += layers
                 }
             }
             if jellyCleared > 0, let jelly = levelGoal.levelTarget.jelly {
@@ -1066,6 +1108,18 @@ class Level {
         // Combo objectives: each chain of the matching special type counts once,
         // regardless of how many symbols it cleared.
         for chain in chains {
+            if let combination = chain.combination {
+                if let count = levelGoal.levelTarget.fiveCombos {
+                    levelGoal.levelTarget.fiveCombos = max(0, count - combination.fiveCount)
+                }
+                if let count = levelGoal.levelTarget.lightningCombos {
+                    levelGoal.levelTarget.lightningCombos = max(0, count - combination.lightningCount)
+                }
+                if let count = levelGoal.levelTarget.enhancedCombos {
+                    levelGoal.levelTarget.enhancedCombos = max(0, count - combination.enhancedCount)
+                }
+                continue
+            }
             switch chain.chainType {
             case .lightning:
                 if let count = levelGoal.levelTarget.lightningCombos {
@@ -1089,7 +1143,9 @@ class Level {
         var enhancedSymbols = [Symbol]()
         var remaining = num
         while remaining > 0 {
-            let normalCandidates = symbols.nonNilElements().filter { $0.type.isNormalMatchable }
+            let normalCandidates = symbols.nonNilElements().filter {
+                $0.type.isNormalMatchable && $0.armorLayers == 0 && !$0.armorHitThisTurn && !$0.isFrozen
+            }
             guard !normalCandidates.isEmpty, let symbolToEnhance = normalCandidates.randomElement() else {
                 break
             }

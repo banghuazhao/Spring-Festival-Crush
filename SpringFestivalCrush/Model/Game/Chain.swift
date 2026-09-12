@@ -1,6 +1,14 @@
 class Chain: Hashable, CustomStringConvertible {
     var symbols: [Symbol] = []
     var score = 0
+    var combination: PowerUpCombination?
+    var combinationSources: [Symbol] = []
+    var blastCenters: [Symbol] = []
+    // Keep the original match geometry for special creation; only cleared pieces score goals.
+    var resistedSymbols = Set<ObjectIdentifier>()
+    var clearedSymbols: [Symbol] {
+        symbols.filter { !resistedSymbols.contains(ObjectIdentifier($0)) }
+    }
 
     enum ChainType: CustomStringConvertible {
         case horizontal3
@@ -17,6 +25,7 @@ class Chain: Hashable, CustomStringConvertible {
         case fiveEffect
         // Result of activating a lightning symbol (clears full row + column)
         case lightning
+        case combination
 
         var description: String {
             switch self {
@@ -31,6 +40,7 @@ class Chain: Hashable, CustomStringConvertible {
             case .lShape: return "LShape"
             case .fiveEffect: return "FiveEffect"
             case .lightning: return "Lightning"
+            case .combination: return "Combination"
             }
         }
     }
@@ -69,9 +79,10 @@ class Chain: Hashable, CustomStringConvertible {
             hasher.combine(symbol)
         }
         hasher.combine(chainType)
+        hasher.combine(combination)
     }
 
     static func == (lhs: Chain, rhs: Chain) -> Bool {
-        lhs.symbols == rhs.symbols && lhs.chainType == rhs.chainType
+        lhs.symbols == rhs.symbols && lhs.chainType == rhs.chainType && lhs.combination == rhs.combination
     }
 }

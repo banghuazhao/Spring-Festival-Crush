@@ -21,7 +21,11 @@ extension GameScene {
             gameLayer.removeAction(forKey: "victorySettle")
             gameLayer.setScale(1)
         }
-        for sprite in symbolsLayer.children.compactMap({ $0 as? SKSpriteNode }) { configureAmbientMotion(sprite) }
+        for sprite in symbolsLayer.children.compactMap({ $0 as? SKSpriteNode }) {
+            configureAmbientMotion(sprite)
+            refreshPowerAura(on: sprite)
+        }
+        if reduceMotion { effectsLayer.children.forEach { $0.isHidden = true } }
     }
 
     /// Cached, bounded voices make the effects slider apply to every gameplay sound.

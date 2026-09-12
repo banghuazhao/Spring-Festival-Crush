@@ -12,6 +12,7 @@
 		C202609210000000000000020 /* LockTileAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = C202609210000000000000010; };
 		C202609200000000000000020 /* GameScene+ResultFeedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = C202609200000000000000010; };
 		C202609190000000000000020 /* GameScene+EliminationFeedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = C202609190000000000000010; };
+		A7F28D3B095E4C26B1D8F002 /* GameScene+FiveFeedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7F28D3B095E4C26B1D8F001; };
 		C20260918000000000000020 /* EnhancedTileAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260918000000000000010; };
 		C20260918000000000000021 /* GameScene+EnhancedFeedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260918000000000000011; };
 		C20260917000000000000020 /* BoardSurface.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260917000000000000010; };
@@ -149,6 +150,10 @@
 		4E2754F3BE884619B406FABB /* Tiger_Level_9.json in Resources */ = {isa = PBXBuildFile; fileRef = 8076663C2BA74722B5E7A4CA /* Tiger_Level_9.json */; };
 		58965B303EEB42269802C431 /* Tiger_Level_10.json in Resources */ = {isa = PBXBuildFile; fileRef = 84B0B756DDE6450492E75F91 /* Tiger_Level_10.json */; };
 		5EB38E89C1F643909A894D3C /* DebugMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56D8646EAFA9422880FC0D2E /* DebugMenuView.swift */; };
+		01F14BFFC3D4411797FAE758 /* PowerUpCombination.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36461253306C416EA492211A; };
+		81D570D2F830429EA1D33109 /* Level+PowerUpCombinations.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB7B4C467F51447B8CDE1693; };
+		73D2C81DAD2A481680B8C01D /* GameScene+PowerAura.swift in Sources */ = {isa = PBXBuildFile; fileRef = 528858BED3D24BA784F7CC9E; };
+		A3AAEC7D09E94770B745BF26 /* GameScene+CombinationFeedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1EADC5CBDDF4AB28BD53242; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -157,6 +162,7 @@
 		C202609210000000000000010 /* LockTileAppearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Scene/LockTileAppearance.swift"; sourceTree = "<group>"; };
 		C202609200000000000000010 /* GameScene+ResultFeedback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Scene/GameScene+ResultFeedback.swift"; sourceTree = "<group>"; };
 		C202609190000000000000010 /* GameScene+EliminationFeedback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Scene/GameScene+EliminationFeedback.swift"; sourceTree = "<group>"; };
+		A7F28D3B095E4C26B1D8F001 /* GameScene+FiveFeedback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Scene/GameScene+FiveFeedback.swift"; sourceTree = "<group>"; };
 		C20260918000000000000010 /* EnhancedTileAppearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Scene/EnhancedTileAppearance.swift"; sourceTree = "<group>"; };
 		C20260918000000000000011 /* GameScene+EnhancedFeedback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Scene/GameScene+EnhancedFeedback.swift"; sourceTree = "<group>"; };
 		C20260917000000000000010 /* BoardSurface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Scene/BoardSurface.swift"; sourceTree = "<group>"; };
@@ -299,6 +305,10 @@
 		8076663C2BA74722B5E7A4CA /* Tiger_Level_9.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Tiger_Level_9.json; sourceTree = "<group>"; };
 		84B0B756DDE6450492E75F91 /* Tiger_Level_10.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Tiger_Level_10.json; sourceTree = "<group>"; };
 		56D8646EAFA9422880FC0D2E /* DebugMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugMenuView.swift; sourceTree = "<group>"; };
+		36461253306C416EA492211A /* PowerUpCombination.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Model/Game/PowerUpCombination.swift"; sourceTree = "<group>"; };
+		CB7B4C467F51447B8CDE1693 /* Level+PowerUpCombinations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Model/Level/Level+PowerUpCombinations.swift"; sourceTree = "<group>"; };
+		528858BED3D24BA784F7CC9E /* GameScene+PowerAura.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Scene/GameScene+PowerAura.swift"; sourceTree = "<group>"; };
+		D1EADC5CBDDF4AB28BD53242 /* GameScene+CombinationFeedback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Scene/GameScene+CombinationFeedback.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -437,6 +447,11 @@
 				C20260917000000000000010 /* BoardSurface.swift */,
 				C20260917000000000000011 /* TileArtwork.swift */,
 				C202609190000000000000010 /* GameScene+EliminationFeedback.swift */,
+		A7F28D3B095E4C26B1D8F001 /* GameScene+FiveFeedback.swift */,
+				D1EADC5CBDDF4AB28BD53242 /* GameScene+CombinationFeedback.swift */,
+				528858BED3D24BA784F7CC9E /* GameScene+PowerAura.swift */,
+				CB7B4C467F51447B8CDE1693 /* Level+PowerUpCombinations.swift */,
+				36461253306C416EA492211A /* PowerUpCombination.swift */,
 				C202609200000000000000010 /* GameScene+ResultFeedback.swift */,
 				C202609210000000000000010 /* LockTileAppearance.swift */,
 				C202609220000000000000010 /* StarView.swift */,
@@ -794,6 +809,11 @@
 				C20260917000000000000020 /* BoardSurface.swift in Sources */,
 				C20260917000000000000021 /* TileArtwork.swift in Sources */,
 				C202609190000000000000020 /* GameScene+EliminationFeedback.swift in Sources */,
+		A7F28D3B095E4C26B1D8F002 /* GameScene+FiveFeedback.swift in Sources */,
+				A3AAEC7D09E94770B745BF26 /* GameScene+CombinationFeedback.swift in Sources */,
+				73D2C81DAD2A481680B8C01D /* GameScene+PowerAura.swift in Sources */,
+				81D570D2F830429EA1D33109 /* Level+PowerUpCombinations.swift in Sources */,
+				01F14BFFC3D4411797FAE758 /* PowerUpCombination.swift in Sources */,
 				C202609200000000000000020 /* GameScene+ResultFeedback.swift in Sources */,
 				C202609210000000000000020 /* LockTileAppearance.swift in Sources */,
 				C202609220000000000000020 /* StarView.swift in Sources */,
