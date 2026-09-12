@@ -365,6 +365,22 @@ final class ReleaseRegressionTests: XCTestCase {
                 XCTAssertTrue(sprite.parent === scene.symbolsLayer)
             }
         }
+        scene.reduceMotion = false
+        let a = try XCTUnwrap(original[0].sprite)
+        let b = try XCTUnwrap(original[1].sprite)
+        let positions = (a.position, b.position)
+        let depths = (a.zPosition, b.zPosition)
+        let visualSwap = Swap(symbolA: original[0], symbolB: original[1])
+        await scene.animateSwap(visualSwap)
+        XCTAssertEqual(a.position, positions.1)
+        XCTAssertEqual(b.position, positions.0)
+        XCTAssertEqual(a.zPosition, depths.0)
+        XCTAssertEqual(b.zPosition, depths.1)
+        await scene.animateInvalidSwap(visualSwap)
+        XCTAssertEqual(a.position, positions.1)
+        XCTAssertEqual(b.position, positions.0)
+        XCTAssertEqual(a.zPosition, depths.0)
+        XCTAssertEqual(b.zPosition, depths.1)
         let match = Chain(chainType: .horizontal3)
         match.add(symbols: Array(original.prefix(3)))
         await scene.animateMatchedSymbols(for: [match])
@@ -498,6 +514,107 @@ final class ReleaseRegressionTests: XCTestCase {
                 .background(ZodiacChapterScenery(theme: theme))
                 .onAppear(perform: ready)
         }
+    }
+
+    func testTileArtworkIsTransparentAndUsesOneCachedTexture() throws {
+        let names = ["firecracker", "redPocket", "dumpling", "bowl", "lantern", "RatTile", "OxTile", "TigerTile"]
+        for name in names {
+            let image = try XCTUnwrap(UIImage(named: name), name)
+            let cg = try XCTUnwrap(image.cgImage)
+            XCTAssertEqual(cg.width, 256, name)
+            XCTAssertEqual(cg.height, 256, name)
+            XCTAssertLessThan(alpha(image, at: .zero), 0.01, name)
+        }
+        for zodiac in Zodiac.all.prefix(3) {
+            let first = TileArtwork.texture(for: .zodiac, zodiac: zodiac)
+            XCTAssertTrue(first === TileArtwork.texture(for: .zodiacEnhanced, zodiac: zodiac))
+            XCTAssertNotNil(zodiac.tileAssetName)
+        }
+        XCTAssertTrue(TileArtwork.texture(for: .firecracker, zodiac: Zodiac.all[0]) ===
+                      TileArtwork.texture(for: .firecrackerEnhanced, zodiac: Zodiac.all[0]))
+    }
+
+    func testBoardSurfaceKeepsHolesTransparentAndFitsAvailableSpace() {
+        let image = BoardSurface.image(columns: 3, rows: 3, tileSize: CGSize(width: 48, height: 48)) { column, row in
+            !(column == 1 && row == 1)
+        }
+        XCTAssertEqual(image.size, CGSize(width: 158, height: 158))
+        XCTAssertLessThan(alpha(image, at: CGPoint(x: 79, y: 79)), 0.01)
+        XCTAssertGreaterThan(alpha(image, at: CGPoint(x: 31, y: 31)), 0.99)
+        let attachment = XCTAttachment(image: image)
+        attachment.name = "Board-with-hole"
+        attachment.lifetime = .keepAlways
+        add(attachment)
+        let game = makeGame()
+        for size in [CGSize(width: 320, height: 568), CGSize(width: 375, height: 812), CGSize(width: 812, height: 375)] {
+            game.screenSize = size
+            XCTAssertGreaterThan(game.tileSize.width, 0)
+            XCTAssertLessThanOrEqual(game.tileSize.width * CGFloat(game.numColumns), size.width - 40)
+            XCTAssertLessThanOrEqual(game.tileSize.height * CGFloat(game.numRows), max(120, size.height - 360))
+        }
+    }
+
+    func testNewBoardRendersAcrossPlayableChapters() async throws {
+        for (index, width, height) in [(0, 375.0, 812.0), (1, 375.0, 812.0), (2, 375.0, 812.0), (0, 320.0, 568.0)] {
+            let game = makeGame()
+            game.zodiac = Zodiac.all[index]
+            game.selectLevel(1)
+            await game.setupNewGame()
+            let settings = SettingModel()
+            settings.isPlayBackgroundMusic = false
+            settings.playSoundEffect = false
+            settings.idleHintsEnabled = false
+            let size = CGSize(width: width, height: height)
+            let scene = GameScene(size: size, gameModel: game, themeModel: ThemeModel(),
+                                  settingModel: settings, feedback: GameFeedback(), reduceMotion: true)
+            scene.setupLayerPosition()
+            scene.addTiles()
+            let symbols = (0..<game.numRows).flatMap { row in
+                (0..<game.numColumns).compactMap { game.level.symbol(atColumn: $0, row: row) }
+            }
+            await scene.addSymbols(for: Set(symbols), shouldAnimate: false)
+            scene.gameLayer.isHidden = false
+            let windowScene = try XCTUnwrap(UIApplication.shared.connectedScenes.first as? UIWindowScene)
+            let previousWindow = windowScene.keyWindow
+            let window = UIWindow(windowScene: windowScene)
+            let controller = UIViewController()
+            let view = SKView(frame: CGRect(origin: .zero, size: size))
+            controller.view = view
+            window.rootViewController = controller
+            window.makeKeyAndVisible()
+            view.presentScene(scene)
+            defer {
+                view.presentScene(nil)
+                window.isHidden = true
+                previousWindow?.makeKeyAndVisible()
+                game.onTapBack()
+            }
+            XCTAssertEqual(scene.tilesLayer.children.count, 1)
+            XCTAssertEqual(scene.maskLayer.children.count, symbols.count)
+            let selected = try XCTUnwrap(symbols.first)
+            let texture = selected.sprite?.texture
+            scene.showSelectionIndicator(of: selected)
+            XCTAssertNotNil(selected.sprite?.childNode(withName: "tileSelection"))
+            XCTAssertTrue(selected.sprite?.texture === texture)
+            let rendered = try XCTUnwrap(view.texture(from: scene,
+                crop: CGRect(x: -size.width / 2, y: -size.height / 2, width: size.width, height: size.height)))
+            let image = UIImage(cgImage: rendered.cgImage())
+            let attachment = XCTAttachment(image: image)
+            attachment.name = "Board-\(game.zodiac.zodiacType.name)-\(Int(width))"
+            attachment.lifetime = .keepAlways
+            add(attachment)
+        }
+    }
+
+    private func alpha(_ image: UIImage, at point: CGPoint) -> CGFloat {
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        let pixel = UIGraphicsImageRenderer(size: CGSize(width: 1, height: 1), format: format).image { _ in
+            image.draw(at: CGPoint(x: -point.x, y: -point.y))
+        }
+        guard let cg = pixel.cgImage, let data = cg.dataProvider?.data else { return -1 }
+        let bytes = CFDataGetBytePtr(data)!
+        return CGFloat(bytes[3]) / 255
     }
 
     /// Native hosting is required here: ImageRenderer cannot snapshot the live ScrollView

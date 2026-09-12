@@ -26,7 +26,7 @@ class GameScene: SKScene {
     // MARK: - State
     private var swipeFromColumn: Int?
     private var swipeFromRow: Int?
-    private var selectionSprite = SKSpriteNode()
+    private var selectionSprite = SKNode()
     private var tutorialHintNodes: [SKNode] = []
     private var removingSprites = Set<ObjectIdentifier>()
 
@@ -180,46 +180,23 @@ class GameScene: SKScene {
     }
 
     func addTiles() {
-        for row in 0 ..< gameModel.numRows {
-            for column in 0 ..< gameModel.numColumns {
-                if gameModel.level.tileAt(column: column, row: row) != nil {
-                    let tileNode = SKSpriteNode(imageNamed: "MaskTile")
-                    tileNode.size = gameModel.tileSize
-                    tileNode.position = pointFor(column: column, row: row)
-                    maskLayer.addChild(tileNode)
-                }
+        for row in 0..<gameModel.numRows {
+            for column in 0..<gameModel.numColumns where gameModel.level.tileAt(column: column, row: row) != nil {
+                let mask = SKSpriteNode(color: .white, size: gameModel.tileSize)
+                mask.position = pointFor(column: column, row: row)
+                maskLayer.addChild(mask)
             }
         }
-
-        for row in 0 ... gameModel.numRows {
-            for column in 0 ... gameModel.numColumns {
-                let topLeft = (column > 0) && (row < gameModel.numRows)
-                    && gameModel.level.tileAt(column: column - 1, row: row) != nil
-                let bottomLeft = (column > 0) && (row > 0)
-                    && gameModel.level.tileAt(column: column - 1, row: row - 1) != nil
-                let topRight = (column < gameModel.numColumns) && (row < gameModel.numRows)
-                    && gameModel.level.tileAt(column: column, row: row) != nil
-                let bottomRight = (column < gameModel.numColumns) && (row > 0)
-                    && gameModel.level.tileAt(column: column, row: row - 1) != nil
-
-                var value = (topLeft ? 1 : 0)
-                value = value | (topRight ? 1 : 0) << 1
-                value = value | (bottomLeft ? 1 : 0) << 2
-                value = value | (bottomRight ? 1 : 0) << 3
-
-                // Values 0 (no tiles), 6 and 9 (two opposite tiles) are not drawn.
-                if value != 0 && value != 6 && value != 9 {
-                    let name = String(format: "Tile_%ld", value)
-                    let tileNode = SKSpriteNode(imageNamed: name)
-                    tileNode.size = gameModel.tileSize
-                    var point = pointFor(column: column, row: row)
-                    point.x -= gameModel.tileSize.width / 2
-                    point.y -= gameModel.tileSize.height / 2
-                    tileNode.position = point
-                    tilesLayer.addChild(tileNode)
-                }
-            }
+        let image = BoardSurface.image(columns: gameModel.numColumns, rows: gameModel.numRows,
+                                       tileSize: gameModel.tileSize) { column, row in
+            self.gameModel.level.tileAt(column: column, row: row) != nil
         }
+        let surface = SKSpriteNode(texture: SKTexture(image: image))
+        surface.name = "boardSurface"
+        surface.size = image.size
+        surface.position = CGPoint(x: CGFloat(gameModel.numColumns) * gameModel.tileSize.width / 2,
+                                   y: CGFloat(gameModel.numRows) * gameModel.tileSize.height / 2)
+        tilesLayer.addChild(surface)
     }
 
     func addSymbols(for symbols: Set<Symbol>, shouldAnimate: Bool = true) async {
@@ -375,12 +352,18 @@ class GameScene: SKScene {
         let spriteA = swap.symbolA.sprite!
         let spriteB = swap.symbolB.sprite!
 
+        let originalDepths = (spriteA.zPosition, spriteB.zPosition)
+        defer {
+            spriteA.zPosition = originalDepths.0
+            spriteB.zPosition = originalDepths.1
+        }
+
         spriteA.zPosition = 100
         spriteB.zPosition = 90
 
         HapticManager.swap()
 
-        let duration: TimeInterval = 0.3
+        let duration: TimeInterval = reduceMotion ? 0.16 : 0.22
 
         let moveA = SKAction.move(to: spriteB.position, duration: duration)
         moveA.timingMode = .easeOut
@@ -402,6 +385,12 @@ class GameScene: SKScene {
     func animateInvalidSwap(_ swap: Swap) async {
         let spriteA = swap.symbolA.sprite!
         let spriteB = swap.symbolB.sprite!
+
+        let originalDepths = (spriteA.zPosition, spriteB.zPosition)
+        defer {
+            spriteA.zPosition = originalDepths.0
+            spriteB.zPosition = originalDepths.1
+        }
 
         spriteA.zPosition = 100
         spriteB.zPosition = 90
@@ -425,36 +414,30 @@ class GameScene: SKScene {
     }
 
     func showSelectionIndicator(of symbol: Symbol) {
-        if selectionSprite.parent != nil {
-            selectionSprite.removeFromParent()
-        }
-
-        if let sprite = symbol.sprite {
-            if symbol.type == .zodiac || symbol.type == .zodiacEnhanced {
-                selectionSprite = SKSpriteNode.highLightSprite(for: symbol, zodiac: gameModel.zodiac, size: gameModel.tileSize.width)
-                selectionSprite.size = gameModel.tileSize
-            } else if let emoji = symbol.type.emojiForHighlight,
-                      let texture = SKTexture.texture(from: emoji, fontSize: gameModel.tileSize.width) {
-                selectionSprite = SKSpriteNode(texture: texture)
-                selectionSprite.size = gameModel.tileSize
-                selectionSprite.color = UIColor.orange.withAlphaComponent(0.5)
-                selectionSprite.colorBlendFactor = 0.6
-            } else {
-                selectionSprite = SKSpriteNode()
-                let texture = SKTexture(imageNamed: symbol.type.highlightedSpriteName)
-                selectionSprite.size = gameModel.tileSize
-                selectionSprite.run(SKAction.setTexture(texture))
-            }
-            sprite.addChild(selectionSprite)
-            selectionSprite.alpha = 1.0
+        selectionSprite.removeAllActions()
+        selectionSprite.removeFromParent()
+        guard let sprite = symbol.sprite else { return }
+        let ring = SKShapeNode(rectOf: CGSize(width: gameModel.tileSize.width * 0.92,
+                                             height: gameModel.tileSize.height * 0.92), cornerRadius: 8)
+        ring.name = "tileSelection"
+        ring.strokeColor = UIColor(hex: 0xFFF0B7)
+        ring.fillColor = UIColor(hex: 0xFFD36C).withAlphaComponent(0.10)
+        ring.lineWidth = 2.4
+        ring.zPosition = 20
+        selectionSprite = ring
+        sprite.addChild(ring)
+        // A local outline never replaces or recolors the tile's identifying artwork.
+        if !reduceMotion {
+            ring.setScale(0.88)
+            let settle = SKAction.scale(to: 1, duration: 0.12)
+            settle.timingMode = .easeOut
+            ring.run(settle)
         }
     }
 
     func hideSelectionIndicator() {
-        selectionSprite.run(SKAction.sequence([
-            SKAction.fadeOut(withDuration: 0.3),
-            SKAction.removeFromParent()]))
-        selectionSprite.colorBlendFactor = 0
+        selectionSprite.removeAllActions()
+        selectionSprite.run(.sequence([.fadeOut(withDuration: 0.1), .removeFromParent()]))
     }
 
     func animateMatchedSymbols(for chains: Set<Chain>) async {
@@ -732,6 +715,9 @@ class GameScene: SKScene {
         let id = ObjectIdentifier(sprite)
         guard sprite.parent != nil, removingSprites.insert(id).inserted else { return }
         defer { removingSprites.remove(id) }
+        // A landing settle must not restore scale while a match is collapsing.
+        sprite.removeAction(forKey: "landing")
+        sprite.removeAction(forKey: "ambientEffect")
         await sprite.run(action)
     }
 
@@ -1007,8 +993,8 @@ class GameScene: SKScene {
     /// A chocolate blocker just consumed an adjacent candy — swap that tile's texture and
     /// give it a small "grow" pop so the spread reads as an event, not a silent swap.
     private func animateChocolateSpread(_ symbol: Symbol) {
-        guard let sprite = symbol.sprite,
-              let texture = SKTexture.texture(from: "🍫", fontSize: gameModel.tileSize.width) else { return }
+        guard let sprite = symbol.sprite else { return }
+        let texture = TileArtwork.texture(for: .chocolate, zodiac: gameModel.zodiac)
         if reduceMotion {
             sprite.texture = texture
             return
@@ -1038,10 +1024,10 @@ class GameScene: SKScene {
     /// Quick squash-and-stretch settle used when a tile lands (falling, new tiles, swap arrival).
     private func landingSquash(_ sprite: SKSpriteNode) {
         guard !reduceMotion else { return }
-        let squash = SKAction.scaleX(to: 1.18, y: 0.82, duration: 0.06)
+        let squash = SKAction.scaleX(to: 1.10, y: 0.90, duration: 0.06)
         let settle = SKAction.scale(to: 1.0, duration: 0.12)
         settle.timingMode = .easeOut
-        sprite.run(SKAction.sequence([squash, settle]), completion: {})
+        sprite.run(SKAction.sequence([squash, settle]), withKey: "landing")
     }
 
     /// Small camera-shake for big explosions/combos — the board itself kicks.

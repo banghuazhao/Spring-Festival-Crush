@@ -95,6 +95,15 @@ struct Zodiac: Identifiable {
     var emoji: String {
         zodiacType.emoji
     }
+
+    var tileAssetName: String? {
+        switch zodiacType {
+        case .rat: "RatTile"
+        case .ox: "OxTile"
+        case .tiger: "TigerTile"
+        default: nil
+        }
+    }
 }
 
 extension Zodiac {

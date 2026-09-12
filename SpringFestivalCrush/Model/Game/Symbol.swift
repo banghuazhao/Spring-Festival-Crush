@@ -50,12 +50,7 @@ enum SymbolType: String {
         }
     }
 
-    var highlightedSpriteName: String {
-        return spriteName + "-Highlighted"
-    }
-
-    // Returns the emoji string for types whose sprite is rendered from an emoji texture.
-    // nil = type uses an image asset and has a corresponding *-Highlighted asset.
+    // Fallback glyph for blockers/specials that do not yet have bespoke artwork.
     var emojiForHighlight: String? {
         switch self {
         case .lock: return "🔒"
@@ -172,36 +167,9 @@ class Symbol: CustomStringConvertible, Hashable {
         type = symbolType
     }
 
+    @MainActor
     func createSpriteNode(zodiac: Zodiac) -> SKSpriteNode {
-        let spriteNode: SKSpriteNode
-        switch type {
-        case .zodiac, .zodiacEnhanced:
-            let emojiTexture = SKTexture.texture(from: zodiac.emoji, fontSize: 40)
-            spriteNode = SKSpriteNode(texture: emojiTexture)
-        case .heavyLock:
-            let texture = SKTexture.texture(from: "⛓️", fontSize: 40)
-            spriteNode = SKSpriteNode(texture: texture)
-        case .lock:
-            let texture = SKTexture.texture(from: "🔒", fontSize: 40)
-            spriteNode = SKSpriteNode(texture: texture)
-        case .vaultLock:
-            let texture = SKTexture.texture(from: "🔐", fontSize: 40)
-            spriteNode = SKSpriteNode(texture: texture)
-        case .chocolate:
-            let texture = SKTexture.texture(from: "🍫", fontSize: 40)
-            spriteNode = SKSpriteNode(texture: texture)
-        case .ingredient:
-            let texture = SKTexture.texture(from: "🎁", fontSize: 40)
-            spriteNode = SKSpriteNode(texture: texture)
-        case .five:
-            let texture = SKTexture.texture(from: "🌟", fontSize: 40)
-            spriteNode = SKSpriteNode(texture: texture)
-        case .lightning:
-            let texture = SKTexture.texture(from: "⚡️", fontSize: 40)
-            spriteNode = SKSpriteNode(texture: texture)
-        default:
-            spriteNode = SKSpriteNode(imageNamed: type.spriteName)
-        }
+        let spriteNode = SKSpriteNode(texture: TileArtwork.texture(for: type, zodiac: zodiac))
         if type.isEnhanced {
             addMagicEffect(to: spriteNode)
         }

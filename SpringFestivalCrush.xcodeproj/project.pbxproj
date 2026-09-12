@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C20260917000000000000020 /* BoardSurface.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260917000000000000010; };
+		C20260917000000000000021 /* TileArtwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260917000000000000011; };
 		C20260916000000000000026 /* GameReducedEffectsKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260916000000000000016; };
 		C20260916000000000000020 /* VictorySummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260916000000000000010; };
 		C20260916000000000000021 /* GameSound.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260916000000000000011; };
@@ -143,6 +145,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		C20260917000000000000010 /* BoardSurface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Scene/BoardSurface.swift"; sourceTree = "<group>"; };
+		C20260917000000000000011 /* TileArtwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Scene/TileArtwork.swift"; sourceTree = "<group>"; };
 		C20260916000000000000016 /* GameReducedEffectsKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Util/GameReducedEffectsKey.swift; sourceTree = "<group>"; };
 		C20260916000000000000010 /* VictorySummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Model/Game/VictorySummary.swift"; sourceTree = "<group>"; };
 		C20260916000000000000011 /* GameSound.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Model/Game/GameSound.swift"; sourceTree = "<group>"; };
@@ -416,6 +420,8 @@
 				C20260916000000000000013 /* SettingsSoundControl.swift */,
 				C20260916000000000000014 /* VictoryRewardView.swift */,
 				C20260916000000000000015 /* GameScene+Comfort.swift */,
+				C20260917000000000000010 /* BoardSurface.swift */,
+				C20260917000000000000011 /* TileArtwork.swift */,
 				C202609150000000000000130 /* GoalViewportPreference.swift */,
 				C20260915000000000000010 /* GoalProgress.swift */,
 				C20260915000000000000011 /* GoalFlight.swift */,
@@ -699,7 +705,6 @@
 				9955DBD723D7E8D1007786D5 /* Rat_Level_3.json in Resources */,
 				9955DBCD23D7E852007786D5 /* Drip.wav in Resources */,
 				9955DBCF23D7E852007786D5 /* Error.wav in Resources */,
-				9955DBBF23D7E680007786D5 /* Sprites.atlas in Resources */,
 				9955DBD023D7E852007786D5 /* Chinatown.mp3 in Resources */,
 				99AA8BF523D95DDA001EBD04 /* Rat_Level_5.json in Resources */,
 				996C6F102431E85700C54425 /* Ox_Level_8.json in Resources */,
@@ -717,7 +722,6 @@
 				996C6F132431E85700C54425 /* Ox_Level_7.json in Resources */,
 				9955DB9823D7E424007786D5 /* Assets.xcassets in Resources */,
 				9955DBCB23D7E852007786D5 /* Ka-Ching.wav in Resources */,
-				9955DBBE23D7E680007786D5 /* Grid.atlas in Resources */,
 				99CDEC3923F5216C0066B308 /* Ox_Level_2.json in Resources */,
 				9955DBD923D7E8D1007786D5 /* Ox_Level_5.json in Resources */,
 				9955DB9B23D7E424007786D5 /* LaunchScreen.storyboard in Resources */,
@@ -766,6 +770,8 @@
 				C20260916000000000000023 /* SettingsSoundControl.swift in Sources */,
 				C20260916000000000000024 /* VictoryRewardView.swift in Sources */,
 				C20260916000000000000025 /* GameScene+Comfort.swift in Sources */,
+				C20260917000000000000020 /* BoardSurface.swift in Sources */,
+				C20260917000000000000021 /* TileArtwork.swift in Sources */,
 				C202609150000000000000230 /* GoalViewportPreference.swift in Sources */,
 				C20260915000000000000020 /* GoalProgress.swift in Sources */,
 				C20260915000000000000021 /* GoalFlight.swift in Sources */,

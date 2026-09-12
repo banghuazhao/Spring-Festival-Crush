@@ -73,7 +73,7 @@ struct LevelTarget: Codable {
         if let zodiac {
             levelTargetDatas.append(
                 LevelTargetData(
-                    image: Image.image(from: gameZodiac.emoji, fontSize: 40),
+                    image: gameZodiac.tileAssetName.map { Image($0) } ?? Image.image(from: gameZodiac.emoji, fontSize: 40),
                     imageName: "zodiac",
                     targetNum: zodiac
                 )

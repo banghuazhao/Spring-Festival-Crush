@@ -264,14 +264,10 @@ class GameModel: ObservableObject {
     }
 
     private func calculateTileSize(screenSize: CGSize) -> CGSize {
-        let size: CGFloat = if Constants.isIPhone {
-            UIScreen.main.bounds.width <= 330 ? 32.0 : 40.0
-        } else {
-            60.0
-        }
-
+        // Let the board be the focal point, while reserving room for the HUD/dock.
+        let size: CGFloat = Constants.isIPhone ? 48 : 64
         let playgroundWidth = screenSize.width - 20 * 2
-        let playgroundHeight = screenSize.height - 60 - 60
+        let playgroundHeight = max(120, screenSize.height - 360)
         let minSymbolWidth = playgroundWidth / CGFloat(numColumns)
         let minSymbolHeight = playgroundHeight / CGFloat(numRows)
         let minSymbolSize = min(minSymbolWidth, minSymbolHeight)
