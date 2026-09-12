@@ -170,9 +170,6 @@ class Symbol: CustomStringConvertible, Hashable {
     @MainActor
     func createSpriteNode(zodiac: Zodiac) -> SKSpriteNode {
         let spriteNode = SKSpriteNode(texture: TileArtwork.texture(for: type, zodiac: zodiac))
-        if type.isEnhanced {
-            addMagicEffect(to: spriteNode)
-        }
         if type == .five {
             addRainbowEffect(to: spriteNode)
         }
@@ -205,12 +202,6 @@ class Symbol: CustomStringConvertible, Hashable {
             SKAction.colorize(withColorBlendFactor: 0.0, duration: 0.25)
         ])
         sprite.run(SKAction.repeatForever(flash), withKey: "ambientEffect")
-    }
-
-    private func addMagicEffect(to sprite: SKSpriteNode) {
-        let magicLightEffect = createMagicLightEffect()
-        magicLightEffect.position = CGPoint(x: 0, y: 0) // Center the effect on the sprite
-        sprite.addChild(magicLightEffect)
     }
 
     private static let magicParticleTexture: SKTexture = {

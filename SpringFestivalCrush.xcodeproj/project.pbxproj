@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C20260918000000000000020 /* EnhancedTileAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260918000000000000010; };
+		C20260918000000000000021 /* GameScene+EnhancedFeedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260918000000000000011; };
 		C20260917000000000000020 /* BoardSurface.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260917000000000000010; };
 		C20260917000000000000021 /* TileArtwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260917000000000000011; };
 		C20260916000000000000026 /* GameReducedEffectsKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260916000000000000016; };
@@ -145,6 +147,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		C20260918000000000000010 /* EnhancedTileAppearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Scene/EnhancedTileAppearance.swift"; sourceTree = "<group>"; };
+		C20260918000000000000011 /* GameScene+EnhancedFeedback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Scene/GameScene+EnhancedFeedback.swift"; sourceTree = "<group>"; };
 		C20260917000000000000010 /* BoardSurface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Scene/BoardSurface.swift"; sourceTree = "<group>"; };
 		C20260917000000000000011 /* TileArtwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Scene/TileArtwork.swift"; sourceTree = "<group>"; };
 		C20260916000000000000016 /* GameReducedEffectsKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Util/GameReducedEffectsKey.swift; sourceTree = "<group>"; };
@@ -422,6 +426,8 @@
 				C20260916000000000000015 /* GameScene+Comfort.swift */,
 				C20260917000000000000010 /* BoardSurface.swift */,
 				C20260917000000000000011 /* TileArtwork.swift */,
+				C20260918000000000000010 /* EnhancedTileAppearance.swift */,
+				C20260918000000000000011 /* GameScene+EnhancedFeedback.swift */,
 				C202609150000000000000130 /* GoalViewportPreference.swift */,
 				C20260915000000000000010 /* GoalProgress.swift */,
 				C20260915000000000000011 /* GoalFlight.swift */,
@@ -772,6 +778,8 @@
 				C20260916000000000000025 /* GameScene+Comfort.swift in Sources */,
 				C20260917000000000000020 /* BoardSurface.swift in Sources */,
 				C20260917000000000000021 /* TileArtwork.swift in Sources */,
+				C20260918000000000000020 /* EnhancedTileAppearance.swift in Sources */,
+				C20260918000000000000021 /* GameScene+EnhancedFeedback.swift in Sources */,
 				C202609150000000000000230 /* GoalViewportPreference.swift in Sources */,
 				C20260915000000000000020 /* GoalProgress.swift in Sources */,
 				C20260915000000000000021 /* GoalFlight.swift in Sources */,

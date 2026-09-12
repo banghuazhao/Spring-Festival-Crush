@@ -17,7 +17,7 @@ enum TileArtwork {
             asset = type.emojiForHighlight == nil ? type.spriteName : nil
             emoji = type.emojiForHighlight
         }
-        let key = asset ?? emoji ?? type.spriteName
+        let key = (asset ?? emoji ?? type.spriteName) + (type.isEnhanced ? ":enhanced" : "")
         if let cached = textures[key] { return cached }
         let image: UIImage
         if let asset, let artwork = UIImage(named: asset) {
@@ -35,7 +35,7 @@ enum TileArtwork {
                                       width: size.width, height: size.height))
             }
         }
-        let texture = SKTexture(image: image)
+        let texture = SKTexture(image: type.isEnhanced ? EnhancedTileAppearance.image(over: image) : image)
         texture.filteringMode = .linear
         textures[key] = texture
         return texture

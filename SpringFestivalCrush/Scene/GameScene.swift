@@ -218,6 +218,10 @@ class GameScene: SKScene {
         symbol.sprite = sprite
 
         guard shouldAnimate else { return }
+        if symbol.type.isEnhanced {
+            await animateEnhancedBirth(on: sprite)
+            return
+        }
         if reduceMotion {
             sprite.alpha = 0
             await sprite.run(.fadeIn(withDuration: 0.15))
@@ -801,17 +805,7 @@ class GameScene: SKScene {
             symbolsLayer.addChild(sprite)
             symbol.sprite = sprite
 
-            await sprite.run(
-                SKAction.sequence(
-                    [
-                        SKAction.group(
-                            [
-                                SKAction.fadeIn(withDuration: 0.2),
-                            ]
-                        ),
-                    ]
-                )
-            )
+            await animateEnhancedBirth(on: sprite)
             gameModel.decreaseMove()
         }
     }

@@ -367,6 +367,22 @@ final class ReleaseRegressionTests: XCTestCase {
         }
         scene.reduceMotion = false
         let a = try XCTUnwrap(original[0].sprite)
+        let enhancedSymbol = Symbol(column: 0, row: 0, symbolType: .firecrackerEnhanced)
+        let charged = enhancedSymbol.createSpriteNode(zodiac: game.zodiac)
+        charged.size = game.tileSize
+        scene.symbolsLayer.addChild(charged)
+        for reduced in [false, true] {
+            scene.reduceMotion = reduced
+            let movesBefore = game.movesLeft
+            await scene.animateEnhancedBirth(on: charged)
+            XCTAssertEqual(charged.xScale, 1)
+            XCTAssertEqual(charged.yScale, 1)
+            XCTAssertEqual(charged.alpha, 1)
+            XCTAssertTrue(charged.children.isEmpty)
+            XCTAssertEqual(game.movesLeft, movesBefore)
+        }
+        charged.removeFromParent()
+        scene.reduceMotion = false
         let b = try XCTUnwrap(original[1].sprite)
         let positions = (a.position, b.position)
         let depths = (a.zPosition, b.zPosition)
@@ -527,10 +543,11 @@ final class ReleaseRegressionTests: XCTestCase {
         }
         for zodiac in Zodiac.all.prefix(3) {
             let first = TileArtwork.texture(for: .zodiac, zodiac: zodiac)
-            XCTAssertTrue(first === TileArtwork.texture(for: .zodiacEnhanced, zodiac: zodiac))
+            XCTAssertFalse(first === TileArtwork.texture(for: .zodiacEnhanced, zodiac: zodiac))
+            XCTAssertTrue(first === TileArtwork.texture(for: .zodiac, zodiac: zodiac))
             XCTAssertNotNil(zodiac.tileAssetName)
         }
-        XCTAssertTrue(TileArtwork.texture(for: .firecracker, zodiac: Zodiac.all[0]) ===
+        XCTAssertFalse(TileArtwork.texture(for: .firecracker, zodiac: Zodiac.all[0]) ===
                       TileArtwork.texture(for: .firecrackerEnhanced, zodiac: Zodiac.all[0]))
     }
 
@@ -603,7 +620,93 @@ final class ReleaseRegressionTests: XCTestCase {
             attachment.name = "Board-\(game.zodiac.zodiacType.name)-\(Int(width))"
             attachment.lifetime = .keepAlways
             add(attachment)
+
+            // Review charged pieces in context, including adjacent enhanced tiles
+            // and selection; the power marking must not replace the selection ring.
+            let charged = Array(symbols.filter { $0.row == 2 && $0.type.isNormalMatchable }.prefix(2))
+                + Array(symbols.filter { $0.row == 4 && $0.type.isNormalMatchable }.prefix(1))
+            for symbol in charged {
+                symbol.sprite?.removeFromParent()
+                symbol.enhance()
+            }
+            await scene.addSymbols(for: Set(charged), shouldAnimate: false)
+            let selectedCharge = try XCTUnwrap(charged.first)
+            XCTAssertTrue(selectedCharge.type.isEnhanced)
+            scene.showSelectionIndicator(of: selectedCharge)
+            XCTAssertNotNil(selectedCharge.sprite?.childNode(withName: "tileSelection"))
+            let chargedRender = try XCTUnwrap(view.texture(from: scene,
+                crop: CGRect(x: -size.width / 2, y: -size.height / 2, width: size.width, height: size.height)))
+            let chargedAttachment = XCTAttachment(image: UIImage(cgImage: chargedRender.cgImage()))
+            chargedAttachment.name = "Enhanced-board-\(game.zodiac.zodiacType.name)-\(Int(width))"
+            chargedAttachment.lifetime = .keepAlways
+            add(chargedAttachment)
         }
+    }
+
+    func testEnhancedAppearanceIsPersistentCachedAndParticleFree() {
+        let types: [SymbolType] = [.firecracker, .redPocket, .dumpling, .bowl, .lantern, .zodiac]
+        for zodiac in Zodiac.all {
+            for type in types {
+                let enhanced = type.enhancedType
+                let baseTexture = TileArtwork.texture(for: type, zodiac: zodiac)
+                let texture = TileArtwork.texture(for: enhanced, zodiac: zodiac)
+                XCTAssertFalse(baseTexture === texture)
+                XCTAssertTrue(texture === TileArtwork.texture(for: enhanced, zodiac: zodiac))
+                let sprite = Symbol(column: 0, row: 0, symbolType: enhanced).createSpriteNode(zodiac: zodiac)
+                XCTAssertTrue(sprite.children.isEmpty, "Resting enhanced tiles need no particle/overlay nodes")
+                XCTAssertFalse(sprite.hasActions(), "The power marker cannot depend on an idle animation")
+                let image = UIImage(cgImage: texture.cgImage())
+                XCTAssertLessThan(alpha(image, at: .zero), 0.01)
+                XCTAssertGreaterThan(alpha(image, at: CGPoint(x: 128, y: 20)), 0.99)
+                XCTAssertTrue(enhanced.isMatchableTo(type))
+            }
+        }
+    }
+
+    func testEnhancedPowerStillClearsEightSurroundingCells() throws {
+        let level = try XCTUnwrap(Level(filename: "Rat_Level_1"))
+        _ = level.shuffle()
+        let symbol = try XCTUnwrap(level.symbol(atColumn: 3, row: 3))
+        let originalType = symbol.type
+        symbol.enhance()
+        XCTAssertTrue(symbol.type.isEnhanced)
+        XCTAssertTrue(symbol.type.isMatchableTo(originalType))
+        let affected = level.detectSpecialElimination(for: symbol).flatMap(\.symbols)
+        XCTAssertEqual(affected.count, 8)
+        XCTAssertFalse(affected.contains { $0.column == 3 && $0.row == 3 })
+        XCTAssertTrue(affected.allSatisfy { abs($0.column - 3) <= 1 && abs($0.row - 3) <= 1 })
+    }
+
+    func testEnhancedArtworkComparisonAtGameSizes() {
+        let entries: [(String, SymbolType, Zodiac)] = [
+            ("Firecracker", .firecracker, Zodiac.all[0]), ("Red envelope", .redPocket, Zodiac.all[0]),
+            ("Dumpling", .dumpling, Zodiac.all[0]), ("Bowl", .bowl, Zodiac.all[0]),
+            ("Lantern", .lantern, Zodiac.all[0]), ("Rat", .zodiac, Zodiac.all[0]),
+            ("Ox", .zodiac, Zodiac.all[1]), ("Tiger", .zodiac, Zodiac.all[2])
+        ]
+        let image = UIGraphicsImageRenderer(size: CGSize(width: 460, height: 690)).image { _ in
+            UIColor(hex: 0x203C46).setFill()
+            UIBezierPath(rect: CGRect(x: 0, y: 0, width: 460, height: 690)).fill()
+            func label(_ text: String, _ x: CGFloat, _ y: CGFloat, _ size: CGFloat = 13) {
+                text.draw(at: CGPoint(x: x, y: y), withAttributes: [.font: UIFont.systemFont(ofSize: size, weight: .semibold), .foregroundColor: UIColor.white])
+            }
+            label("ENHANCED TILES · STATIC / REDUCED EFFECTS", 16, 16, 16)
+            label("Original", 140, 51); label("64 pt", 235, 51); label("48 pt", 321, 51); label("32 pt", 394, 51)
+            for (index, entry) in entries.enumerated() {
+                let y = CGFloat(82 + index * 74)
+                label(entry.0, 16, y + 23)
+                let normal = UIImage(cgImage: TileArtwork.texture(for: entry.1, zodiac: entry.2).cgImage())
+                let enhanced = UIImage(cgImage: TileArtwork.texture(for: entry.1.enhancedType, zodiac: entry.2).cgImage())
+                normal.draw(in: CGRect(x: 136, y: y, width: 64, height: 64))
+                enhanced.draw(in: CGRect(x: 229, y: y, width: 64, height: 64))
+                enhanced.draw(in: CGRect(x: 316, y: y + 8, width: 48, height: 48))
+                enhanced.draw(in: CGRect(x: 392, y: y + 16, width: 32, height: 32))
+            }
+        }
+        let attachment = XCTAttachment(image: image)
+        attachment.name = "Enhanced-tile-comparison"
+        attachment.lifetime = .keepAlways
+        add(attachment)
     }
 
     private func alpha(_ image: UIImage, at point: CGPoint) -> CGFloat {
