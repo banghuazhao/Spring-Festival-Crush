@@ -203,7 +203,9 @@ struct SelectChineseZodiacView: View {
 }
 
 private struct ZodiacMapNode: View {
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    @Environment(\.gameReducedEffects) private var reducedEffects
+    private var reduceMotion: Bool { systemReduceMotion || reducedEffects }
 
     let zodiac: ChineseZodiac
     let isUnlocked: Bool

@@ -223,7 +223,7 @@ class Symbol: CustomStringConvertible, Hashable {
             SKAction.scale(to: 1.12, duration: 0.4),
             SKAction.scale(to: 1.0, duration: 0.4)
         ])
-        sprite.run(SKAction.repeatForever(pulse))
+        sprite.run(SKAction.repeatForever(pulse), withKey: "ambientEffect")
     }
 
     private func addLightningGlowEffect(to sprite: SKSpriteNode) {
@@ -236,7 +236,7 @@ class Symbol: CustomStringConvertible, Hashable {
             SKAction.colorize(with: .yellow, colorBlendFactor: 0.5, duration: 0.25),
             SKAction.colorize(withColorBlendFactor: 0.0, duration: 0.25)
         ])
-        sprite.run(SKAction.repeatForever(flash))
+        sprite.run(SKAction.repeatForever(flash), withKey: "ambientEffect")
     }
 
     private func addMagicEffect(to sprite: SKSpriteNode) {

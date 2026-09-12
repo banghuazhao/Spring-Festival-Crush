@@ -44,6 +44,7 @@ struct Match3GameApp: App {
                 .environmentObject(gameModel)
                 .environmentObject(settingModel)
                 .environmentObject(themeModel)
+                .environment(\.gameReducedEffects, settingModel.reducedEffects)
                 .onChange(of: scenePhase) { _, newPhase in
                     print("scenePhase: \(newPhase)")
                     if newPhase == .active {

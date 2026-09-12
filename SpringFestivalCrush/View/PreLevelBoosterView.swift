@@ -7,7 +7,9 @@ import SwiftUI
 struct PreLevelBoosterView: View {
     @EnvironmentObject var gameModel: GameModel
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    @Environment(\.gameReducedEffects) private var reducedEffects
+    private var reduceMotion: Bool { systemReduceMotion || reducedEffects }
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     let levelNumber: Int

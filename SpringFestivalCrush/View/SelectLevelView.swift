@@ -3,7 +3,9 @@ import SwiftUI
 struct SelectLevelView: View {
     @EnvironmentObject private var gameModel: GameModel
     @EnvironmentObject private var settingModel: SettingModel
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    @Environment(\.gameReducedEffects) private var reducedEffects
+    private var reduceMotion: Bool { systemReduceMotion || reducedEffects }
     @Environment(\.dismiss) private var dismiss
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
@@ -11,6 +13,9 @@ struct SelectLevelView: View {
     @State private var presentOutOfLives = false
     @State private var selectedLevel: LevelRecord?
     @State private var levelToStart: Int?
+    @State private var gameDismissalCount = 0
+    @State private var celebration: VictorySummary?
+    @State private var revealProgress: CGFloat = 1
 
     private var theme: ZodiacChapterTheme {
         ZodiacChapterTheme(zodiac: gameModel.zodiac?.zodiacType ?? .rat)
@@ -60,6 +65,9 @@ struct SelectLevelView: View {
                                 currentLevel: currentLevel?.number,
                                 unlockAll: settingModel.unlockAllLevels,
                                 theme: theme,
+                                celebratingLevel: celebration?.mapFocusLevel,
+                                newlyUnlockedLevel: celebration?.newlyUnlockedLevel,
+                                revealProgress: revealProgress,
                                 select: selectLevel
                             )
 
@@ -106,14 +114,14 @@ struct SelectLevelView: View {
                         )
                     }
                 }
-                .onChange(of: gameModel.shouldPresentGame) { _, presented in
-                    if !presented, let recommendedLevel {
-                        locate(recommendedLevel.number, using: proxy)
-                    }
+                .onChange(of: gameDismissalCount) { _, _ in
+                    revealReturn(using: proxy)
                 }
             }
         }
-        .fullScreenCover(isPresented: $gameModel.shouldPresentGame) {
+        .fullScreenCover(isPresented: $gameModel.shouldPresentGame, onDismiss: {
+            gameDismissalCount += 1
+        }) {
             GeometryReader { geometry in GameView(screenSize: geometry.size) }
         }
         // Start only after sheet dismissal, avoiding overlapping UIKit presentations.
@@ -145,6 +153,7 @@ struct SelectLevelView: View {
             return
         }
         HapticManager.buttonTap()
+        celebration = nil
         levelToStart = nil
         gameModel.resetBoostersForNewAttempt()
         selectedLevel = record
@@ -160,6 +169,24 @@ struct SelectLevelView: View {
     private func locate(_ number: Int, using proxy: ScrollViewProxy) {
         withAnimation(reduceMotion ? nil : .spring(response: 0.6, dampingFraction: 0.86)) {
             proxy.scrollTo(number, anchor: .center)
+        }
+    }
+
+    private func revealReturn(using proxy: ScrollViewProxy) {
+        guard let receipt = gameModel.takeTrailCelebration(), receipt.level >= 1 else {
+            if let recommendedLevel { locate(recommendedLevel.number, using: proxy) }
+            return
+        }
+        celebration = receipt
+        revealProgress = reduceMotion ? 1 : 0
+        withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.35), completionCriteria: .logicallyComplete) {
+            proxy.scrollTo(receipt.mapFocusLevel, anchor: .center)
+        } completion: {
+            guard celebration?.id == receipt.id, !gameModel.shouldPresentGame else { return }
+            withAnimation(reduceMotion ? nil : .easeOut(duration: 0.65)) {
+                revealProgress = 1
+            }
+            HapticManager.levelWin()
         }
     }
 }

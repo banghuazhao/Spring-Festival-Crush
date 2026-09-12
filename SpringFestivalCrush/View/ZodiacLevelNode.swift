@@ -1,7 +1,9 @@
 import SwiftUI
 
 struct ZodiacLevelNode: View {
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    @Environment(\.gameReducedEffects) private var reducedEffects
+    private var reduceMotion: Bool { systemReduceMotion || reducedEffects }
     @ScaledMetric(relativeTo: .title) private var numberSize = 28
     @ScaledMetric(relativeTo: .caption2) private var badgeSize = 10
 
@@ -12,6 +14,8 @@ struct ZodiacLevelNode: View {
     let isFinal: Bool
     let stars: Int
     let theme: ZodiacChapterTheme
+    var celebrationProgress: CGFloat? = nil
+    var isNewUnlock = false
     let action: () -> Void
 
     private var face: Color { isUnlocked ? (isCurrent ? theme.accent : AppTheme.creamHighlight) : Color(white: 0.65) }
@@ -20,7 +24,7 @@ struct ZodiacLevelNode: View {
     var body: some View {
         Button(action: action) {
             VStack(spacing: 5) {
-                Text(isCurrent ? "PLAY NEXT" : (isFinal ? "FINALE" : " "))
+                Text(isNewUnlock ? "UNLOCKED!" : (isCurrent ? "PLAY NEXT" : (isFinal ? "FINALE" : " ")))
                     .font(.system(size: min(badgeSize, 14), weight: .black, design: .rounded))
                     .lineLimit(1)
                     .tracking(1)
@@ -30,6 +34,14 @@ struct ZodiacLevelNode: View {
                     .background(isCurrent ? theme.accent : .clear, in: Capsule())
 
                 ZStack {
+                    if let progress = celebrationProgress, !reduceMotion {
+                        Circle()
+                            .stroke(AppTheme.festivalGold, lineWidth: 5)
+                            .frame(width: 98, height: 98)
+                            .scaleEffect(0.8 + 0.7 * progress)
+                            .opacity(1 - progress)
+                            .accessibilityHidden(true)
+                    }
                     if isCurrent {
                         Circle().stroke(theme.accent.opacity(0.2), lineWidth: 3)
                             .frame(width: 102, height: 102)

@@ -9,7 +9,10 @@ class GameScene: SKScene {
     let settingModel: SettingModel
     let feedback: GameFeedback
     var reduceMotion: Bool
-    let cascadeAudio = SKAudioNode(fileNamed: "Ka-Ching.wav")
+    var soundVoices: [GameSound: SKAudioNode] = [:]
+    var lastSoundTimes: [GameSound: TimeInterval] = [:]
+    let idleHintLayer = SKNode()
+    var feedbackPaused = false
 
     // MARK: - Layers
     let gameLayer = SKNode()
@@ -69,9 +72,15 @@ class GameScene: SKScene {
         gameLayer.addChild(cropLayer)
         cropLayer.addChild(overlayLayer)
         cropLayer.addChild(symbolsLayer)
-        cascadeAudio.autoplayLooped = false
-        cascadeAudio.isPositional = false
-        addChild(cascadeAudio)
+        for sound in GameSound.allCases {
+            let voice = SKAudioNode(fileNamed: sound.rawValue)
+            voice.autoplayLooped = false
+            voice.isPositional = false
+            soundVoices[sound] = voice
+            addChild(voice)
+        }
+        idleHintLayer.zPosition = 450
+        gameLayer.addChild(idleHintLayer)
 
         _ = SKLabelNode(fontNamed: "GillSans-BoldItalic")
     }
@@ -225,12 +234,18 @@ class GameScene: SKScene {
 
     private func createSpriteForSymbol(_ symbol: Symbol, shouldAnimate: Bool = true) async {
         let sprite = symbol.createSpriteNode(zodiac: gameModel.zodiac)
+        configureAmbientMotion(sprite)
         sprite.size = gameModel.tileSize
         sprite.position = pointFor(column: symbol.column, row: symbol.row)
         symbolsLayer.addChild(sprite)
         symbol.sprite = sprite
 
         guard shouldAnimate else { return }
+        if reduceMotion {
+            sprite.alpha = 0
+            await sprite.run(.fadeIn(withDuration: 0.15))
+            return
+        }
 
         // Give each symbol sprite a small, random delay. Then fade them in.
         sprite.alpha = 0
@@ -266,6 +281,7 @@ class GameScene: SKScene {
     }
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        cancelIdleHint()
         guard let touch = touches.first else { return }
 
         let location = touch.location(in: symbolsLayer)
@@ -328,6 +344,7 @@ class GameScene: SKScene {
 
         swipeFromColumn = nil
         swipeFromRow = nil
+        scheduleIdleHint()
     }
 
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -379,9 +396,7 @@ class GameScene: SKScene {
         landingSquash(spriteA)
         landingSquash(spriteB)
 
-        if settingModel.playSoundEffect {
-            await run(themeModel.swapSound)
-        }
+        playSound(.swap)
     }
 
     func animateInvalidSwap(_ swap: Swap) async {
@@ -406,9 +421,7 @@ class GameScene: SKScene {
 
         await _ = [runMoveA, runMoveB]
 
-        if settingModel.playSoundEffect {
-            await run(themeModel.invalidSwapSound)
-        }
+        playSound(.invalid)
     }
 
     func showSelectionIndicator(of symbol: Symbol) {
@@ -445,6 +458,21 @@ class GameScene: SKScene {
     }
 
     func animateMatchedSymbols(for chains: Set<Chain>) async {
+        if reduceMotion {
+            await withTaskGroup(of: Void.self) { group in
+                for chain in chains {
+                    animateScore(for: chain)
+                    triggerHaptic(for: chain)
+                    for symbol in chain.symbols {
+                        guard let sprite = symbol.sprite else { continue }
+                        group.addTask { @MainActor in
+                            await self.animateRemoval(of: sprite, action: .sequence([.fadeOut(withDuration: 0.16), .removeFromParent()]))
+                        }
+                    }
+                }
+            }
+            return
+        }
         await withTaskGroup(of: Void.self) { taskGroup in
             for chain in chains {
                 animateScore(for: chain)
@@ -738,11 +766,7 @@ class GameScene: SKScene {
                     }
                 }
             }
-            if settingModel.playSoundEffect {
-                taskGroup.addTask { @MainActor in
-                    await self.run(self.themeModel.fallingSymbolSound)
-                }
-            }
+            playSound(.falling, volume: 0.35)
         }
     }
 
@@ -752,6 +776,7 @@ class GameScene: SKScene {
                 let startRow = array[0].row + 1
                 for (index, symbol) in array.enumerated() {
                     let sprite = symbol.createSpriteNode(zodiac: gameModel.zodiac)
+                    configureAmbientMotion(sprite)
                     sprite.size = gameModel.tileSize
                     sprite.position = pointFor(column: symbol.column, row: startRow)
                     symbolsLayer.addChild(sprite)
@@ -773,9 +798,7 @@ class GameScene: SKScene {
                                 ]),
                             ]))
                         self.landingSquash(sprite)
-                        if self.settingModel.playSoundEffect {
-                            await sprite.run(self.themeModel.addSymbolSound)
-                        }
+                        self.playSound(.landing, volume: 0.45)
                     }
                 }
             }
@@ -786,6 +809,7 @@ class GameScene: SKScene {
         for symbol in symbols {
             symbol.sprite?.removeFromParent()
             let sprite = symbol.createSpriteNode(zodiac: gameModel.zodiac)
+            configureAmbientMotion(sprite)
             sprite.size = gameModel.tileSize
             sprite.position = pointFor(column: symbol.column, row: symbol.row)
             symbolsLayer.addChild(sprite)
@@ -827,6 +851,11 @@ class GameScene: SKScene {
         scoreLabel.setScale(0.3)
         scoreLabel.alpha = 0
         symbolsLayer.addChild(scoreLabel)
+        if reduceMotion {
+            scoreLabel.setScale(1)
+            scoreLabel.run(.sequence([.fadeIn(withDuration: 0.1), .wait(forDuration: 0.3), .fadeOut(withDuration: 0.2), .removeFromParent()]))
+            return
+        }
 
         // Pop in with a slight overshoot, hold, then float up and fade — classic combo-counter feel.
         let popIn = SKAction.group([
@@ -848,6 +877,10 @@ class GameScene: SKScene {
 
     func animateGameOver() async {
         gameLayer.removeAction(forKey: "screenShake")
+        if reduceMotion {
+            await gameLayer.run(.fadeOut(withDuration: 0.15))
+            return
+        }
         let action = SKAction.move(by: CGVector(dx: 0, dy: -size.height), duration: 0.3)
         action.timingMode = .easeIn
         await gameLayer.run(action)
@@ -856,6 +889,13 @@ class GameScene: SKScene {
     func animateBeginGame() async {
         gameLayer.removeAction(forKey: "screenShake")
         gameLayer.isHidden = false
+        gameLayer.alpha = 1
+        if reduceMotion {
+            gameLayer.position = .zero
+            gameLayer.alpha = 0
+            await gameLayer.run(.fadeIn(withDuration: 0.15))
+            return
+        }
         gameLayer.position = CGPoint(x: 0, y: size.height)
         let action = SKAction.move(by: CGVector(dx: 0, dy: -size.height), duration: 0.3)
         action.timingMode = .easeOut
@@ -873,6 +913,8 @@ class GameScene: SKScene {
 
     func setUserInteraction(enabled: Bool) {
         isUserInteractionEnabled = enabled
+        if enabled { scheduleIdleHint() }
+        else { cancelIdleHint() }
     }
 
     // MARK: - Tutorial hint
@@ -894,13 +936,14 @@ class GameScene: SKScene {
             ring.zPosition = 400
             ring.alpha = 0.4
             symbolsLayer.addChild(ring)
-            ring.run(SKAction.repeatForever(SKAction.sequence([
+            if !reduceMotion { ring.run(SKAction.repeatForever(SKAction.sequence([
                 SKAction.group([SKAction.fadeAlpha(to: 0.9, duration: 0.5), SKAction.scale(to: 1.1, duration: 0.5)]),
                 SKAction.group([SKAction.fadeAlpha(to: 0.4, duration: 0.5), SKAction.scale(to: 0.95, duration: 0.5)]),
-            ])))
+            ]))) }
             tutorialHintNodes.append(ring)
         }
 
+        guard !reduceMotion else { return }
         let hand = SKLabelNode(text: "👆")
         hand.fontSize = gameModel.tileSize.width * 0.7
         hand.zPosition = 401
@@ -966,6 +1009,10 @@ class GameScene: SKScene {
     private func animateChocolateSpread(_ symbol: Symbol) {
         guard let sprite = symbol.sprite,
               let texture = SKTexture.texture(from: "🍫", fontSize: gameModel.tileSize.width) else { return }
+        if reduceMotion {
+            sprite.texture = texture
+            return
+        }
         sprite.run(SKAction.sequence([
             SKAction.setTexture(texture),
             SKAction.scale(to: 1.3, duration: 0.12),
@@ -983,9 +1030,7 @@ class GameScene: SKScene {
                 }
             }
         }
-        if settingModel.playSoundEffect {
-            await run(themeModel.matchSound)
-        }
+        playSound(.match, volume: 0.55)
     }
 
     // MARK: - Juice helpers
@@ -1003,7 +1048,7 @@ class GameScene: SKScene {
     func screenShake(magnitude: CGFloat = 6, duration: TimeInterval = 0.28) {
         // Never restart mid-shake: the restart would read an already-offset position as the
         // rest position, so a cascade of big matches walks the board permanently off centre.
-        guard !reduceMotion, gameLayer.action(forKey: "screenShake") == nil else { return }
+        guard !reduceMotion, settingModel.screenShakeEnabled, gameLayer.action(forKey: "screenShake") == nil else { return }
         let originalPosition = gameLayer.position
         var actions: [SKAction] = []
         let steps = 6

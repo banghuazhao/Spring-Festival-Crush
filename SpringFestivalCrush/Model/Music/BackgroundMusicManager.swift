@@ -8,11 +8,13 @@
 import AVFoundation
 import SwiftUI
 
+@MainActor
 class BackgroundMusicManager {
     private var backgroundMusicPlayer: AVAudioPlayer?
     private var currentMusicFilename: String?
     
     @AppStorage("isPlayBackgroundMusic") var isPlayBackgroundMusic: Bool = true
+    @AppStorage("musicVolume") private var musicVolume: Double = 0.7
 
 
     // Singleton instance for global access
@@ -46,6 +48,7 @@ class BackgroundMusicManager {
         do {
             backgroundMusicPlayer = try AVAudioPlayer(contentsOf: resourceUrl)
             backgroundMusicPlayer?.numberOfLoops = repeatForever ? -1 : 0
+            backgroundMusicPlayer?.volume = Float(min(1, max(0, musicVolume)))
             backgroundMusicPlayer?.prepareToPlay()
             backgroundMusicPlayer?.play()
         } catch {

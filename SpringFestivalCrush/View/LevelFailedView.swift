@@ -7,7 +7,9 @@ import SwiftUI
 
 struct LevelFailedView: View {
     @EnvironmentObject var gameModel: GameModel
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    @Environment(\.gameReducedEffects) private var reducedEffects
+    private var reduceMotion: Bool { systemReduceMotion || reducedEffects }
 
     @State private var shake = false
 

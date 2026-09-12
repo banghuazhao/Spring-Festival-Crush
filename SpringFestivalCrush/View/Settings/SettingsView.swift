@@ -1,110 +1,130 @@
 import SwiftUI
 
-#if !targetEnvironment(macCatalyst)
-    import GoogleMobileAds
-#endif
-
 struct SettingsView: View {
-    @EnvironmentObject var themeModel: ThemeModel
-    @EnvironmentObject var settingModel: SettingModel
-    @Environment(\.presentationMode) var presentationMode
-    @State var isAds: Bool = false
+    @EnvironmentObject private var settingModel: SettingModel
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @State private var moreAppsExpanded = false
     @State private var tapCount = 0
     @State private var showUnlockLevelsToggle = false
 
     var body: some View {
         ScrollView {
-            VStack {
-                Toggle(isOn: $settingModel.isPlayBackgroundMusic) {
-                    Text("Play Background Music")
-                        .font(.headline)
-                }
-                Toggle(isOn: $settingModel.playSoundEffect) {
-                    Text("Play Sound Effect")
-                        .font(.headline)
-                }
-                if showUnlockLevelsToggle {
-                    Toggle(isOn: $settingModel.unlockAllLevels) {
-                        Text("Unlock All Levels")
-                            .font(.headline)
+            VStack(spacing: 20) {
+                VStack(spacing: 8) {
+                    if !dynamicTypeSize.isAccessibilitySize {
+                        Image(systemName: "slider.horizontal.3")
+                            .font(.largeTitle.bold())
+                            .foregroundStyle(AppTheme.festivalGold)
+                            .accessibilityHidden(true)
+                    }
+                    Text("Your festival, your way").font(dynamicTypeSize.isAccessibilitySize ? .headline : .title2.bold())
+                    if !dynamicTypeSize.isAccessibilitySize {
+                        Text("Tune the sound, feel, and little helping hands.")
+                            .font(.subheadline).foregroundStyle(.white.opacity(0.8))
                     }
                 }
-            }
-            .padding()
-            .onChange(of: settingModel.isPlayBackgroundMusic) { _, newValue in
-                Task {
-                    if newValue {
-                        // Start playing background music
-                        await BackgroundMusicManager.shared.turnOnBackgroundMusic()
-                    } else {
-                        // Stop playing background music
-                        BackgroundMusicManager.shared.stopBackgroundMusic()
-                    }
-                }
-            }
+                .foregroundStyle(.white)
+                .multilineTextAlignment(.center)
+                .padding(.vertical, 8)
 
-            Text("More Apps")
-                .font(.title2)
-                .bold()
-                .onTapGesture {
-                    tapCount += 1
-                    if tapCount == 5 {
-                        showUnlockLevelsToggle = true
-                    }
-                }
-            VStack {
-                if isAds {
-                    Section {
-                        MoreAppsHeaderView()
-                    }
+                SettingsCard(title: "Sound", icon: "speaker.wave.2.fill") {
+                    SettingsSoundControl(title: "Music", icon: "music.note", enabled: $settingModel.isPlayBackgroundMusic, volume: $settingModel.musicVolume)
+                    Divider()
+                    SettingsSoundControl(title: "Sound effects", icon: "waveform", enabled: $settingModel.playSoundEffect, volume: $settingModel.soundEffectsVolume)
                 }
 
-                ForEach(AppItem.allItems) { appItem in
-                    AppItemRow(appItem: appItem)
-                        .onTapGesture {
-                            if let url = appItem.url {
-                                UIApplication.shared.open(url)
+                SettingsCard(title: "Feel & comfort", icon: "hand.tap.fill") {
+                    Toggle("Haptic feedback", isOn: $settingModel.hapticsEnabled)
+                        .accessibilityIdentifier("settings-haptics")
+                    Text("Gentle taps for matches, tools, and victories.")
+                        .font(.footnote).foregroundStyle(AppTheme.ink.opacity(0.7))
+                    Divider()
+                    Toggle("Screen shake", isOn: $settingModel.screenShakeEnabled)
+                        .disabled(settingModel.reducedEffects)
+                        .accessibilityIdentifier("settings-shake")
+                    Toggle("Reduced effects", isOn: $settingModel.reducedEffects)
+                        .accessibilityIdentifier("settings-reduced-effects")
+                    Text("Use quieter transitions and goal highlights instead of big movements. System Reduce Motion is always respected.")
+                        .font(.footnote).foregroundStyle(AppTheme.ink.opacity(0.7))
+                }
+
+                SettingsCard(title: "A little help", icon: "lightbulb.fill") {
+                    Toggle("Gentle move hints", isOn: $settingModel.idleHintsEnabled)
+                        .accessibilityIdentifier("settings-idle-hints")
+                    Text("After 7 quiet seconds, briefly highlight a possible move. Hints never spend a move or use a tool.")
+                        .font(.footnote).foregroundStyle(AppTheme.ink.opacity(0.7))
+                    Divider()
+                    Label("Match 3 or more to collect goals. Match 4 or make a special shape to create a power-up.", systemImage: "sparkles").font(.subheadline)
+                    Label("Hammer clears one tile. Shuffle rearranges the board. Neither spends a move.", systemImage: "info.circle").font(.subheadline)
+                }
+
+                SettingsCard(title: "Discover", icon: "square.grid.2x2.fill") {
+                    Button {
+                        moreAppsExpanded.toggle()
+                        tapCount += 1
+                        if tapCount == 5 { showUnlockLevelsToggle = true }
+                    } label: {
+                        HStack {
+                            Text("More Apps")
+                            Spacer()
+                            Image(systemName: moreAppsExpanded ? "chevron.up" : "chevron.down")
+                        }
+                        .frame(minHeight: 44)
+                    }
+                    .accessibilityValue(moreAppsExpanded ? "Expanded" : "Collapsed")
+                    if moreAppsExpanded {
+                        ForEach(AppItem.allItems) { item in
+                            if let url = item.url {
+                                Link(destination: url) {
+                                    HStack(spacing: 12) {
+                                        if let icon = item.icon {
+                                            Image(uiImage: icon).resizable().scaledToFit()
+                                                .frame(width: 44, height: 44)
+                                                .clipShape(.rect(cornerRadius: 10))
+                                                .accessibilityHidden(true)
+                                        }
+                                        VStack(alignment: .leading, spacing: 3) {
+                                            Text(item.title).font(.headline)
+                                            Text(item.detail).font(.caption).foregroundStyle(AppTheme.ink.opacity(0.7))
+                                        }
+                                        Spacer(minLength: 0)
+                                        Image(systemName: "arrow.up.right")
+                                    }
+                                    .frame(minHeight: 52)
+                                }
                             }
                         }
+                    }
+                    if showUnlockLevelsToggle {
+                        Toggle("Unlock All Levels", isOn: $settingModel.unlockAllLevels)
+                    }
                 }
             }
+            .frame(maxWidth: 560)
+            .padding(20)
+            .frame(maxWidth: .infinity)
         }
-        .background(themeModel.pageBackgroundColor)
-        .navigationBarTitle("Settings")
+        .background(AppTheme.festivalRedDark.gradient)
+        .tint(AppTheme.festivalGold)
+        .navigationTitle("Settings")
         .navigationBarTitleDisplayMode(.inline)
-    }
-}
-
-struct MoreAppsHeaderView: View {
-    var body: some View {
-        Text("Apps".localized())
-            .font(.largeTitle)
-            .foregroundColor(.black)
-    }
-}
-
-struct AppItemRow: View {
-    let appItem: AppItem
-
-    var body: some View {
-        HStack {
-            if let icon = appItem.icon {
-                Image(uiImage: icon)
-                    .resizable()
-                    .frame(width: 50, height: 50)
-                    .cornerRadius(8)
+        .toolbarBackground(AppTheme.festivalRedDark, for: .navigationBar)
+        .toolbarColorScheme(.dark, for: .navigationBar)
+        .onChange(of: settingModel.isPlayBackgroundMusic) { _, enabled in
+            Task { @MainActor in
+                if enabled { await BackgroundMusicManager.shared.turnOnBackgroundMusic() }
+                else { BackgroundMusicManager.shared.stopBackgroundMusic() }
             }
-            VStack(alignment: .leading) {
-                Text(appItem.title)
-                    .font(.headline)
-                Text(appItem.detail)
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
-            }
-            Spacer()
         }
-        .padding(.vertical, 8)
-        .padding(.horizontal, 16)
-        Divider()
+        .onChange(of: settingModel.musicVolume) { _, volume in
+            BackgroundMusicManager.shared.setVolume(Float(volume))
+        }
+        .onChange(of: settingModel.hapticsEnabled) { _, enabled in
+            if enabled { HapticManager.buttonTap() }
+        }
     }
+}
+
+#Preview {
+    NavigationStack { SettingsView().environmentObject(SettingModel()) }
 }

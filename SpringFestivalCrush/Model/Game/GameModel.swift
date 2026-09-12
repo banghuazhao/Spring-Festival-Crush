@@ -165,6 +165,8 @@ class GameModel: ObservableObject {
     }
     @Published private(set) var isResolvingBoard = false
     @Published var toolNotice: String?
+    @Published private(set) var victorySummary: VictorySummary?
+    private var pendingTrailCelebration: VictorySummary?
     private var attemptID = UUID()
 
     private func isCurrentAttempt(_ id: UUID) -> Bool {
@@ -284,6 +286,8 @@ class GameModel: ObservableObject {
         attemptID = UUID()
         cascadeDepth = 0
         gameState = .loading
+        victorySummary = nil
+        pendingTrailCelebration = nil
         currentLevel = selectedLevel
         level = Level(filename: "\(zodiac.zodiacType.name)_Level_\(selectedLevel)")
         currentLevelRecord = currentZodiacRecord?.levelRecords.first { $0.number == selectedLevel }
@@ -335,6 +339,7 @@ class GameModel: ObservableObject {
         gameState = .inProgress
         maybeShowTutorial()
         invokeCommand?(.refreshOverlays)
+        invokeCommand?(.setUserInteraction(true))
     }
 
     /// Called once per second by the UI while a timed level is in progress.
@@ -441,8 +446,16 @@ class GameModel: ObservableObject {
         guard isCurrentAttempt(attempt) else { return }
         await handleExtraStepsBonus()
         guard isCurrentAttempt(attempt) else { return }
+        let next = currentZodiacRecord?.levelRecords.first { $0.number == currentLevel + 1 }
+        let newlyUnlockedLevel = next?.isUnlocked == false ? next?.number : nil
         updateRecord()
         coins += Self.levelWinCoinReward
+        victorySummary = VictorySummary(
+            zodiac: zodiac.zodiacType, level: currentLevel, score: score,
+            stars: [level.levelGoal.firstStarScore, level.levelGoal.secondStarScore, level.levelGoal.thirdStarScore]
+                .filter { score >= $0 }.count,
+            coins: Self.levelWinCoinReward, newlyUnlockedLevel: newlyUnlockedLevel
+        )
         gameState = .win
         HapticManager.levelWin()
         invokeCommand?(.setUserInteraction(true))
@@ -679,6 +692,28 @@ class GameModel: ObservableObject {
         selectLevel(currentLevel + 1)
         Task { @MainActor in
             await setupNewGame()
+        }
+    }
+
+    func onTapVictoryMap() {
+        guard gameState == .win else { return }
+        pendingTrailCelebration = victorySummary
+        exitToMenu()
+    }
+
+    /// Consume exactly once, after the full-screen game has finished dismissing.
+    func takeTrailCelebration() -> VictorySummary? {
+        defer { pendingTrailCelebration = nil }
+        guard pendingTrailCelebration?.zodiac == zodiac.zodiacType else { return nil }
+        return pendingTrailCelebration
+    }
+
+    func suggestedIdleSwap() -> Swap? {
+        guard gameState == .inProgress, !isResolvingBoard,
+              !hammerModeActive, !isTutorialHintActive else { return nil }
+        return level.possibleSwaps.min { lhs, rhs in
+            (lhs.symbolA.row, lhs.symbolA.column, lhs.symbolB.row, lhs.symbolB.column)
+                < (rhs.symbolA.row, rhs.symbolA.column, rhs.symbolB.row, rhs.symbolB.column)
         }
     }
 

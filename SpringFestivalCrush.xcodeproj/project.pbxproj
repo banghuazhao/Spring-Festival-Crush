@@ -7,6 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C20260916000000000000026 /* GameReducedEffectsKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260916000000000000016; };
+		C20260916000000000000020 /* VictorySummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260916000000000000010; };
+		C20260916000000000000021 /* GameSound.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260916000000000000011; };
+		C20260916000000000000022 /* SettingsCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260916000000000000012; };
+		C20260916000000000000023 /* SettingsSoundControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260916000000000000013; };
+		C20260916000000000000024 /* VictoryRewardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260916000000000000014; };
+		C20260916000000000000025 /* GameScene+Comfort.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260916000000000000015; };
 		C202609150000000000000230 /* GoalViewportPreference.swift in Sources */ = {isa = PBXBuildFile; fileRef = C202609150000000000000130; };
 		C20260915000000000000020 /* GoalProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260915000000000000010; };
 		C20260915000000000000021 /* GoalFlight.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260915000000000000011; };
@@ -136,6 +143,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		C20260916000000000000016 /* GameReducedEffectsKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Util/GameReducedEffectsKey.swift; sourceTree = "<group>"; };
+		C20260916000000000000010 /* VictorySummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Model/Game/VictorySummary.swift"; sourceTree = "<group>"; };
+		C20260916000000000000011 /* GameSound.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Model/Game/GameSound.swift"; sourceTree = "<group>"; };
+		C20260916000000000000012 /* SettingsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View/Settings/SettingsCard.swift"; sourceTree = "<group>"; };
+		C20260916000000000000013 /* SettingsSoundControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View/Settings/SettingsSoundControl.swift"; sourceTree = "<group>"; };
+		C20260916000000000000014 /* VictoryRewardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View/Components/VictoryRewardView.swift"; sourceTree = "<group>"; };
+		C20260916000000000000015 /* GameScene+Comfort.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Scene/GameScene+Comfort.swift"; sourceTree = "<group>"; };
 		C202609150000000000000130 /* GoalViewportPreference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = View/Components/GoalViewportPreference.swift; sourceTree = "<group>"; };
 		C20260915000000000000010 /* GoalProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Model/Game/GoalProgress.swift"; sourceTree = "<group>"; };
 		C20260915000000000000011 /* GoalFlight.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Model/Game/GoalFlight.swift"; sourceTree = "<group>"; };
@@ -395,6 +409,13 @@
 				99340CE12C715EA50096BBF5 /* Config */,
 				9955DBA223D7E4D2007786D5 /* Util */,
 				9955DBB923D7E50C007786D5 /* Scene */,
+				C20260916000000000000016 /* GameReducedEffectsKey.swift */,
+				C20260916000000000000010 /* VictorySummary.swift */,
+				C20260916000000000000011 /* GameSound.swift */,
+				C20260916000000000000012 /* SettingsCard.swift */,
+				C20260916000000000000013 /* SettingsSoundControl.swift */,
+				C20260916000000000000014 /* VictoryRewardView.swift */,
+				C20260916000000000000015 /* GameScene+Comfort.swift */,
 				C202609150000000000000130 /* GoalViewportPreference.swift */,
 				C20260915000000000000010 /* GoalProgress.swift */,
 				C20260915000000000000011 /* GoalFlight.swift */,
@@ -738,6 +759,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				9955DBAE23D7E4E4007786D5 /* LevelData.swift in Sources */,
+				C20260916000000000000026 /* GameReducedEffectsKey.swift in Sources */,
+				C20260916000000000000020 /* VictorySummary.swift in Sources */,
+				C20260916000000000000021 /* GameSound.swift in Sources */,
+				C20260916000000000000022 /* SettingsCard.swift in Sources */,
+				C20260916000000000000023 /* SettingsSoundControl.swift in Sources */,
+				C20260916000000000000024 /* VictoryRewardView.swift in Sources */,
+				C20260916000000000000025 /* GameScene+Comfort.swift in Sources */,
 				C202609150000000000000230 /* GoalViewportPreference.swift in Sources */,
 				C20260915000000000000020 /* GoalProgress.swift in Sources */,
 				C20260915000000000000021 /* GoalFlight.swift in Sources */,

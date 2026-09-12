@@ -5,7 +5,9 @@ struct GoalTargetPill: View {
     var pendingAmount = 0
     var impact = 0
     var reportsFrame = false
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    @Environment(\.gameReducedEffects) private var reducedEffects
+    private var reduceMotion: Bool { systemReduceMotion || reducedEffects }
 
     private var remaining: Int { max(0, target.targetNum) + pendingAmount }
 

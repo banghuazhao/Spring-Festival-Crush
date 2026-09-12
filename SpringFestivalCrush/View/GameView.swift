@@ -11,7 +11,9 @@ struct GameView: View {
     @EnvironmentObject var themeModel: ThemeModel
     @EnvironmentObject var settingModel: SettingModel
     @Environment(\.scenePhase) private var scenePhase
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    @Environment(\.gameReducedEffects) private var reducedEffects
+    private var reduceMotion: Bool { systemReduceMotion || reducedEffects }
 
     let screenSize: CGSize
 
@@ -153,15 +155,26 @@ struct GameView: View {
         }
         .onChange(of: isGameplayPaused) { _, paused in
             if paused { feedback.clear() }
+            gameScene?.setFeedbackPaused(paused)
         }
         .onChange(of: gameModel.gameState) { _, state in
-            if state != .inProgress { feedback.clear() }
+            if state != .inProgress {
+                feedback.clear()
+                gameScene?.cancelIdleHint()
+            }
         }
         .onChange(of: reduceMotion) { _, value in
             gameScene?.reduceMotion = value
+            gameScene?.applyMotionPreferences()
             feedback.clear()
+            gameScene?.scheduleIdleHint()
         }
-        .onDisappear { feedback.clear() }
+        .onChange(of: settingModel.idleHintsEnabled) { _, _ in gameScene?.scheduleIdleHint() }
+        .onChange(of: gameModel.hammerModeActive) { _, _ in gameScene?.scheduleIdleHint() }
+        .onDisappear {
+            feedback.clear()
+            gameScene?.cancelIdleHint()
+        }
         .sheet(isPresented: $showingPause, onDismiss: {
             needsResumeAfterInterruption = false
             // Dismiss the pause sheet before dismissing its presenting game screen.

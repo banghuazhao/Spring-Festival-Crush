@@ -78,7 +78,9 @@ enum AppTheme {
 // A raised, glossy pill/rounded-rect button that scales down and dims on press —
 // the same tactile feedback pattern industry match-3 games use for every CTA.
 struct GamePrimaryButtonStyle: ButtonStyle {
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    @Environment(\.gameReducedEffects) private var reducedEffects
+    private var reduceMotion: Bool { systemReduceMotion || reducedEffects }
     @ScaledMetric(relativeTo: .headline) private var fontSize = 18
     var gradient: LinearGradient = AppTheme.primaryGradient
     var shape: AnyShape = AnyShape(RoundedRectangle(cornerRadius: AppTheme.buttonCornerRadius, style: .continuous))
@@ -137,7 +139,9 @@ extension ButtonStyle where Self == GamePrimaryButtonStyle {
 
 // A tap-to-shrink style for icon-only chrome (settings gear, back arrow) — lighter than the full CTA style.
 struct GameIconButtonStyle: ButtonStyle {
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    @Environment(\.gameReducedEffects) private var reducedEffects
+    private var reduceMotion: Bool { systemReduceMotion || reducedEffects }
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -154,7 +158,9 @@ extension ButtonStyle where Self == GameIconButtonStyle {
 // The press feel for map/grid nodes (zodiac landmarks, level medallions) — a deeper squash
 // than the chrome buttons get, shared so both journey screens react identically.
 struct GameNodeButtonStyle: ButtonStyle {
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    @Environment(\.gameReducedEffects) private var reducedEffects
+    private var reduceMotion: Bool { systemReduceMotion || reducedEffects }
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label

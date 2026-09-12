@@ -15,13 +15,7 @@ extension GameScene {
 
     func animateCascade(depth: Int) {
         let cue = CascadeFeedback(depth: depth)
-        if settingModel.playSoundEffect {
-            // One non-positional voice per wave. Explosions within a wave don't stack it.
-            cascadeAudio.run(.sequence([
-                .stop(), .changePlaybackRate(to: cue.playbackRate, duration: 0),
-                .changeVolume(to: cue.volume, duration: 0), .play()
-            ]))
-        }
+        playSound(.match, volume: cue.volume, rate: cue.playbackRate)
         guard let title = cue.title else { return }
         childNode(withName: "cascadeCaption")?.removeFromParent()
         let label = SKLabelNode(fontNamed: "AvenirNext-Heavy")
@@ -69,7 +63,7 @@ extension GameScene {
             screenShake(magnitude: 3, duration: 0.16)
         }
         HapticManager.bigMatch()
-        if settingModel.playSoundEffect { run(.playSoundFileNamed("Chomp.wav", waitForCompletion: false), completion: {}) }
+        playSound(.hammer)
         let release: SKAction = reduceMotion ? .fadeOut(withDuration: 0.16) : .group([
             .scale(to: 1.5, duration: 0.18), .fadeOut(withDuration: 0.18)
         ])
@@ -87,7 +81,7 @@ extension GameScene {
         }
         guard !moving.isEmpty else { return }
         HapticManager.swap()
-        if settingModel.playSoundEffect { run(themeModel.swapSound, completion: {}) }
+        playSound(.swap)
         let shuffleLayer = SKNode()
         shuffleLayer.position = symbolsLayer.position
         shuffleLayer.zPosition = 400

@@ -1,12 +1,20 @@
 import SwiftUI
 
-struct ZodiacLevelTrail: View {
+struct ZodiacLevelTrail: View, Animatable {
     @ScaledMetric(relativeTo: .body) private var scaledRowHeight = 178
     let records: [LevelRecord]
     let currentLevel: Int?
     let unlockAll: Bool
     let theme: ZodiacChapterTheme
+    var celebratingLevel: Int? = nil
+    var newlyUnlockedLevel: Int? = nil
+    var revealProgress: CGFloat = 1
     let select: (LevelRecord) -> Void
+
+    var animatableData: CGFloat {
+        get { revealProgress }
+        set { revealProgress = newValue }
+    }
 
     // Nodes are graphic medallions; avoid enormous gaps at accessibility text sizes.
     private var rowHeight: CGFloat { min(scaledRowHeight, 230) }
@@ -28,7 +36,9 @@ struct ZodiacLevelTrail: View {
                             isCurrent: record.number == currentLevel,
                             isFinal: index == records.count - 1,
                             stars: record.stars,
-                            theme: theme
+                            theme: theme,
+                            celebrationProgress: record.number == celebratingLevel ? revealProgress : nil,
+                            isNewUnlock: record.number == newlyUnlockedLevel
                         ) { select(record) }
                         Spacer(minLength: 0)
                     }
@@ -52,6 +62,11 @@ struct ZodiacLevelTrail: View {
                     context.stroke(path, with: .color(theme.accent.opacity(0.13)), style: StrokeStyle(lineWidth: 26, lineCap: .round))
                     context.stroke(path, with: .color(AppTheme.creamHighlight.opacity(0.88)), style: StrokeStyle(lineWidth: 19, lineCap: .round))
                     context.stroke(path, with: .color(records[index].isComplete ? AppTheme.festivalGoldDark : theme.accent.opacity(0.3)), style: StrokeStyle(lineWidth: 3, lineCap: .round, dash: [3, 10]))
+                    if records[index + 1].number == newlyUnlockedLevel {
+                        context.stroke(path.trimmedPath(from: 0, to: revealProgress),
+                                       with: .color(AppTheme.festivalGold),
+                                       style: StrokeStyle(lineWidth: 6, lineCap: .round))
+                    }
                 }
 
                 for index in stride(from: 1, to: records.count, by: 3) {

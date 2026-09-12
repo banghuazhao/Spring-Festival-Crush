@@ -6,7 +6,9 @@ import SwiftUI
 @MainActor
 final class ReleaseRegressionTests: XCTestCase {
     private func makeGame() -> GameModel {
-        let keys = ["coins", "lives", "lastLifeLostTimestamp", "shuffleCharges", "hammerCharges", "hasSeenTutorial"]
+        let keys = ["coins", "lives", "lastLifeLostTimestamp", "shuffleCharges", "hammerCharges", "hasSeenTutorial",
+                    "isPlayBackgroundMusic", "playSoundEffect", "musicVolume", "soundEffectsVolume", "hapticsEnabled",
+                    "screenShakeEnabled", "reducedEffects", "idleHintsEnabled", "unlockAllLevels"]
         let saved = keys.map { ($0, UserDefaults.standard.object(forKey: $0)) }
         addTeardownBlock {
             for (key, value) in saved {
@@ -326,6 +328,29 @@ final class ReleaseRegressionTests: XCTestCase {
             window.isHidden = true
             previousWindow?.makeKeyAndVisible()
         }
+        let moves = game.movesLeft
+        let charges = game.hammerCharges
+        scene.settingModel.idleHintsEnabled = true
+        scene.showIdleHint()
+        XCTAssertEqual(scene.idleHintLayer.children.count, 2)
+        XCTAssertEqual(game.movesLeft, moves)
+        XCTAssertEqual(game.hammerCharges, charges)
+        scene.setFeedbackPaused(true)
+        XCTAssertTrue(scene.idleHintLayer.children.isEmpty)
+        scene.showIdleHint()
+        XCTAssertTrue(scene.idleHintLayer.children.isEmpty)
+        scene.setFeedbackPaused(false)
+        XCTAssertNotNil(scene.action(forKey: "idleHintDelay"))
+        scene.settingModel.idleHintsEnabled = false
+        scene.scheduleIdleHint()
+        XCTAssertNil(scene.action(forKey: "idleHintDelay"))
+        scene.settingModel.playSoundEffect = false
+        scene.playSound(.hammer)
+        XCTAssertNil(scene.lastSoundTimes[.hammer])
+        scene.settingModel.playSoundEffect = true
+        scene.settingModel.soundEffectsVolume = 0
+        scene.playSound(.hammer)
+        XCTAssertNil(scene.lastSoundTimes[.hammer])
         for reduced in [false, true] {
             scene.reduceMotion = reduced
             let shuffled = try XCTUnwrap(game.level.reshuffleExistingSymbols())
@@ -346,5 +371,161 @@ final class ReleaseRegressionTests: XCTestCase {
         // Native keyed `run` is synchronous: this catches an accidental fire-and-forget
         // removal that lets the next cascade fill cells before the old sprites disappear.
         for symbol in match.symbols { XCTAssertNil(symbol.sprite?.parent) }
+    }
+
+    func testVictoryReceiptAndMapCelebrationAreOneShot() async throws {
+        let game = makeGame()
+        let zodiac = ZodiacRecord(zodiacType: .rat, isUnlocked: true)
+        let first = LevelRecord(number: 1, isUnlocked: true, zodiacRecord: zodiac)
+        let next = LevelRecord(number: 2, isUnlocked: false, zodiacRecord: zodiac)
+        zodiac.levelRecords = [first, next]
+        game.currentZodiacRecord = zodiac
+        game.currentLevelRecord = first
+        await game.setupNewGame()
+        game.level.levelGoal.levelTarget = LevelTarget()
+        game.movesLeft = 0
+        game.score = 1000
+        let coins = game.coins
+        await game.beginNextTurn()
+        let receipt = try XCTUnwrap(game.victorySummary)
+        XCTAssertEqual(receipt.coins, 15)
+        XCTAssertEqual(receipt.score, game.score)
+        XCTAssertEqual(receipt.newlyUnlockedLevel, 2)
+        XCTAssertTrue(next.isUnlocked)
+        game.onTapVictoryMap()
+        game.onTapVictoryMap()
+        XCTAssertEqual(game.takeTrailCelebration()?.id, receipt.id)
+        XCTAssertNil(game.takeTrailCelebration())
+        XCTAssertEqual(game.coins, coins + 15)
+        XCTAssertEqual(game.gameState, .notStart)
+    }
+
+    func testReplayVictoryDoesNotClaimAnExistingUnlock() async throws {
+        let game = makeGame()
+        let zodiac = ZodiacRecord(zodiacType: .rat, isUnlocked: true)
+        let first = LevelRecord(number: 1, isUnlocked: true, zodiacRecord: zodiac)
+        let next = LevelRecord(number: 2, isUnlocked: true, zodiacRecord: zodiac)
+        zodiac.levelRecords = [first, next]
+        game.currentZodiacRecord = zodiac
+        game.currentLevelRecord = first
+        await game.setupNewGame()
+        game.level.levelGoal.levelTarget = LevelTarget()
+        game.movesLeft = 0
+        await game.beginNextTurn()
+        XCTAssertNil(game.victorySummary?.newlyUnlockedLevel)
+        XCTAssertEqual(game.victorySummary?.mapFocusLevel, 1)
+    }
+
+    func testIdleHintPolicySuppressesToolsTutorialAndResolvingMoves() async throws {
+        let game = makeGame()
+        await game.setupNewGame()
+        game.level.levelGoal.levelTarget.zodiac = 10000
+        XCTAssertNotNil(game.suggestedIdleSwap())
+        game.hammerModeActive = true
+        XCTAssertNil(game.suggestedIdleSwap())
+        game.hammerModeActive = false
+        game.isTutorialHintActive = true
+        XCTAssertNil(game.suggestedIdleSwap())
+        game.isTutorialHintActive = false
+        let swap = try XCTUnwrap(game.suggestedIdleSwap())
+        game.invokeCommandAsync = { command in
+            if case .onValidSwap = command { XCTAssertNil(game.suggestedIdleSwap()) }
+        }
+        await game.handleSwipe(swap)
+        game.gameState = .finishing
+        XCTAssertNil(game.suggestedIdleSwap())
+    }
+
+    func testComfortPreferencesPersistAndHapticsRespectMute() {
+        _ = makeGame() // Restore all changed preference keys during teardown.
+        let settings = SettingModel()
+        settings.hapticsEnabled = false
+        settings.musicVolume = 0.25
+        settings.soundEffectsVolume = 0.4
+        settings.reducedEffects = true
+        settings.idleHintsEnabled = false
+        settings.screenShakeEnabled = false
+        XCTAssertFalse(HapticManager.isEnabled)
+        let restored = SettingModel()
+        XCTAssertEqual(restored.musicVolume, 0.25)
+        XCTAssertEqual(restored.soundEffectsVolume, 0.4)
+        XCTAssertTrue(restored.reducedEffects)
+        XCTAssertFalse(restored.idleHintsEnabled)
+        XCTAssertFalse(restored.screenShakeEnabled)
+        settings.hapticsEnabled = true
+        XCTAssertTrue(HapticManager.isEnabled)
+    }
+
+    func testSettingsAndVictoryRenderAtSmallAndAccessibleSizes() async throws {
+        let game = makeGame()
+        await game.setupNewGame()
+        game.movesLeft = 0
+        game.score = 1000
+        game.level.levelGoal.levelTarget = LevelTarget()
+        await game.beginNextTurn()
+        for accessible in [false, true] {
+            let size = CGSize(width: 375, height: 812)
+            let name = accessible ? "accessible" : "regular"
+            try await snapshot(name: "Settings-\(name)", size: size) { ready in
+                NavigationStack {
+                    SettingsView().environmentObject(SettingModel())
+                }
+                .environment(\.dynamicTypeSize, accessible ? .accessibility3 : .large)
+                .environment(\.colorScheme, .light)
+                .onAppear(perform: ready)
+            }
+            try await snapshot(name: "Victory-\(name)", size: size) { ready in
+                LevelCompleteView(onRevealComplete: ready)
+                    .environmentObject(game)
+                    .environment(\.dynamicTypeSize, accessible ? .accessibility3 : .large)
+                    .environment(\.gameReducedEffects, accessible)
+                    .background(AppTheme.festivalRedDark)
+            }
+        }
+        try await snapshot(name: "Settings-landscape-dark", size: CGSize(width: 812, height: 375)) { ready in
+            NavigationStack { SettingsView().environmentObject(SettingModel()) }
+                .environment(\.colorScheme, .dark)
+                .onAppear(perform: ready)
+        }
+        let zodiac = ZodiacRecord(zodiacType: .rat, isUnlocked: true)
+        let records = (1...3).map { LevelRecord(number: $0, isUnlocked: $0 < 3, zodiacRecord: zodiac) }
+        records[0].isComplete = true
+        records[0].stars = 2
+        let theme = ZodiacChapterTheme(zodiac: .rat)
+        try await snapshot(name: "Trail-unlock", size: CGSize(width: 375, height: 812)) { ready in
+            ZodiacLevelTrail(records: records, currentLevel: 2, unlockAll: false, theme: theme,
+                             celebratingLevel: 2, newlyUnlockedLevel: 2, revealProgress: 1, select: { _ in })
+                .background(ZodiacChapterScenery(theme: theme))
+                .onAppear(perform: ready)
+        }
+    }
+
+    /// Native hosting is required here: ImageRenderer cannot snapshot the live ScrollView
+    /// and SpriteKit-backed app window. Wait on appearance/reveal completion, not sleeps.
+    private func snapshot<Content: View>(name: String, size: CGSize,
+                                        content: (@escaping () -> Void) -> Content) async throws {
+        let windowScene = try XCTUnwrap(UIApplication.shared.connectedScenes.first as? UIWindowScene)
+        let previousWindow = windowScene.keyWindow
+        let ready = expectation(description: "\(name) ready")
+        let window = UIWindow(windowScene: windowScene)
+        window.frame = CGRect(origin: .zero, size: size)
+        let host = UIHostingController(rootView: content { ready.fulfill() })
+        window.rootViewController = host
+        window.makeKeyAndVisible()
+        defer {
+            window.isHidden = true
+            previousWindow?.makeKeyAndVisible()
+        }
+        await fulfillment(of: [ready], timeout: 5)
+        host.view.layoutIfNeeded()
+        window.layoutIfNeeded()
+        let image = UIGraphicsImageRenderer(bounds: window.bounds).image { _ in
+            window.drawHierarchy(in: window.bounds, afterScreenUpdates: true)
+        }
+        XCTAssertEqual(image.size, size)
+        let attachment = XCTAttachment(image: image)
+        attachment.name = name
+        attachment.lifetime = .keepAlways
+        add(attachment)
     }
 }

@@ -1,106 +1,124 @@
-//
-// Created by Banghua Zhao on 20/08/2024
-// Copyright Apps Bay Limited. All rights reserved.
-//
-
 import SwiftUI
 
 struct LevelCompleteView: View {
-    @EnvironmentObject var gameModel: GameModel
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-    @State private var starsVisible = false
+    var onRevealComplete: () -> Void = {}
+    @EnvironmentObject private var gameModel: GameModel
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    @Environment(\.gameReducedEffects) private var reducedEffects
+    private var reduceMotion: Bool { systemReduceMotion || reducedEffects }
+    @State private var revealedStars = 0
+    @State private var rewardVisible = false
+    @State private var revealID = UUID()
 
     private var hasNextLevel: Bool {
-        gameModel.currentLevel >= 1 && gameModel.currentLevel < gameModel.zodiac.numLevels
-    }
-
-    private var earnedStars: [Bool] {
-        [
-            gameModel.score >= gameModel.level.levelGoal.firstStarScore,
-            gameModel.score >= gameModel.level.levelGoal.secondStarScore,
-            gameModel.score >= gameModel.level.levelGoal.thirdStarScore,
-        ]
+        gameModel.currentLevel >= 1 && gameModel.currentLevel < gameModel.zodiac.numLevels && gameModel.lives > 0
     }
 
     var body: some View {
-        GamePopupPanel(title: "LEVEL COMPLETE!", tone: .gold) {
-            VStack(spacing: 16) {
-                ZStack {
-                    Circle()
-                        .fill(
-                            RadialGradient(
-                                colors: [Color.white, AppTheme.festivalGold],
-                                center: .topLeading,
-                                startRadius: 2,
-                                endRadius: 52
-                            )
-                        )
-                        .frame(width: 82, height: 82)
-                        .overlay(Circle().stroke(AppTheme.festivalGoldDark, lineWidth: 4))
-                        .shadow(color: AppTheme.festivalGold.opacity(0.7), radius: 16)
+        GeometryReader { geometry in
+            ScrollView {
+                GamePopupPanel(title: "LEVEL COMPLETE!", tone: .gold) {
+                    VStack(spacing: 16) {
+                        Image(systemName: "crown.fill")
+                            .font(.system(size: 38, weight: .black))
+                            .foregroundStyle(AppTheme.festivalRed)
+                            .frame(width: 76, height: 76)
+                            .background(AppTheme.festivalGold.gradient, in: Circle())
+                            .overlay(Circle().stroke(.white.opacity(0.75), lineWidth: 3))
+                            .accessibilityHidden(true)
 
-                    Image(systemName: "crown.fill")
-                        .font(.system(size: 40, weight: .black))
-                        .foregroundStyle(AppTheme.festivalRed)
-                }
-                .scaleEffect(reduceMotion || starsVisible ? 1 : 0.35)
-                .rotationEffect(.degrees(reduceMotion || starsVisible ? 0 : -12))
-                .animation(reduceMotion ? nil : .spring(response: 0.48, dampingFraction: 0.58), value: starsVisible)
+                        HStack(spacing: 7) {
+                            ForEach(0..<3) { index in
+                                StarView(earned: index < (gameModel.victorySummary?.stars ?? 0))
+                                    .opacity(index < revealedStars ? 1 : 0.2)
+                                    .scaleEffect(reduceMotion || index < revealedStars ? 1 : 0.65)
+                            }
+                        }
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel("\(gameModel.victorySummary?.stars ?? 0) of 3 stars earned")
 
-                HStack(spacing: 7) {
-                    ForEach(earnedStars.indices, id: \.self) { index in
-                        StarView(earned: earnedStars[index])
-                            .scaleEffect(reduceMotion || starsVisible ? 1 : 0.05)
-                            .rotationEffect(.degrees(reduceMotion || starsVisible ? 0 : -20))
-                            .animation(
-                                reduceMotion ? nil : .spring(response: 0.42, dampingFraction: 0.5)
-                                    .delay(0.12 + Double(index) * 0.15),
-                                value: starsVisible
-                            )
-                    }
-                }
-
-                VStack(spacing: 3) {
-                    Text("FESTIVAL SCORE")
-                        .font(.system(size: 11, weight: .black, design: .rounded))
-                        .foregroundStyle(AppTheme.ink.opacity(0.62))
-                    Text("\(gameModel.score)")
-                        .font(.system(size: 32, weight: .black, design: .rounded))
-                        .foregroundStyle(AppTheme.festivalRed)
-                        .contentTransition(.numericText())
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 9)
-                .background(
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(AppTheme.creamHighlight)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .stroke(AppTheme.festivalGold.opacity(0.65), lineWidth: 2)
-                        )
-                )
-
-                if hasNextLevel && gameModel.lives <= 0 {
-                    Label("Out of lives", systemImage: "heart.slash.fill")
-                        .font(.system(size: 14, weight: .bold, design: .rounded))
-                        .foregroundStyle(AppTheme.festivalRed)
-                }
-
-                Button {
-                    HapticManager.buttonTap()
-                    gameModel.onTapNextLevel()
-                } label: {
-                    let canContinue = hasNextLevel && gameModel.lives > 0
-                    Label(canContinue ? "Next Level" : "Back to Levels", systemImage: canContinue ? "arrow.right" : "map.fill")
+                        VStack(spacing: 4) {
+                            Text("FESTIVAL SCORE").font(.caption.bold())
+                            Text("\(gameModel.victorySummary?.score ?? gameModel.score)")
+                                .font(.largeTitle.bold().monospacedDigit())
+                                .foregroundStyle(AppTheme.festivalRed)
+                        }
                         .frame(maxWidth: .infinity)
+                        .padding(12)
+                        .background(AppTheme.creamHighlight, in: .rect(cornerRadius: 16))
+
+                        VictoryRewardView(
+                            coins: gameModel.victorySummary?.coins ?? 0,
+                            balance: gameModel.coins,
+                            revealed: rewardVisible
+                        )
+
+                        if let next = gameModel.victorySummary?.newlyUnlockedLevel {
+                            Label("Level \(next) unlocked!", systemImage: "lock.open.fill")
+                                .font(.headline)
+                                .foregroundStyle(AppTheme.festivalRed)
+                        }
+
+                        Button {
+                            HapticManager.buttonTap()
+                            gameModel.onTapVictoryMap()
+                        } label: {
+                            Label("Continue to Map", systemImage: "map.fill").frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.gamePrimary(gradient: AppTheme.successGradient))
+                        .accessibilityIdentifier("victory-map")
+                        .accessibilityHint("You can continue immediately; rewards are already saved")
+
+                        if hasNextLevel {
+                            Button {
+                                HapticManager.buttonTap()
+                                gameModel.onTapNextLevel()
+                            } label: {
+                                Label("Play Next", systemImage: "play.fill").frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.gamePrimary(gradient: AppTheme.neutralGradient))
+                            .accessibilityIdentifier("victory-next")
+                        }
+                    }
+                    .foregroundStyle(AppTheme.ink)
                 }
-                .buttonStyle(.gamePrimary(gradient: AppTheme.successGradient))
+                .padding(20)
+                .frame(maxWidth: .infinity)
+                .frame(minHeight: geometry.size.height)
             }
-            .foregroundStyle(AppTheme.ink)
+            .scrollIndicators(.hidden)
         }
-        .padding(.horizontal, 24)
-        .onAppear { starsVisible = true }
+        .onAppear {
+            let token = UUID()
+            revealID = token
+            if reduceMotion {
+                revealedStars = 3
+                rewardVisible = true
+                onRevealComplete()
+            } else {
+                revealNextStar(token: token)
+            }
+        }
+        .onDisappear { revealID = UUID() }
+    }
+
+    private func revealNextStar(token: UUID) {
+        guard revealID == token else { return }
+        if revealedStars < 3 {
+            withAnimation(.easeOut(duration: 0.16), completionCriteria: .logicallyComplete) {
+                revealedStars += 1
+            } completion: {
+                guard revealID == token else { return }
+                if revealedStars <= (gameModel.victorySummary?.stars ?? 0) { HapticManager.tileSelected() }
+                revealNextStar(token: token)
+            }
+        } else {
+            withAnimation(.easeOut(duration: 0.22), completionCriteria: .logicallyComplete) {
+                rewardVisible = true
+            } completion: {
+                if revealID == token { onRevealComplete() }
+            }
+        }
     }
 }
 
@@ -127,7 +145,9 @@ struct StarView: View {
 
 /// A deterministic celebratory layer: it fires once, returns to rest, and respects Reduce Motion.
 struct CelebrationBurstView: View {
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    @Environment(\.gameReducedEffects) private var reducedEffects
+    private var reduceMotion: Bool { systemReduceMotion || reducedEffects }
     @State private var burst = false
 
     private let particles: [(x: CGFloat, y: CGFloat, rotation: Double, color: Color)] = [
