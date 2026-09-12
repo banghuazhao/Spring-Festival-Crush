@@ -16,6 +16,12 @@ struct SelectLevelView: View {
     @State private var gameDismissalCount = 0
     @State private var celebration: VictorySummary?
     @State private var revealProgress: CGFloat = 1
+    @State private var hasFocusedInitialLevel = false
+
+    /// Progression wins over array order, including a fully completed chapter.
+    static func initialFocusLevel(in records: [LevelRecord], unlockAll: Bool) -> Int? {
+        records.filter { $0.isUnlocked || unlockAll }.map(\.number).max()
+    }
 
     private var theme: ZodiacChapterTheme {
         ZodiacChapterTheme(zodiac: gameModel.zodiac?.zodiacType ?? .rat)
@@ -93,6 +99,19 @@ struct SelectLevelView: View {
                     .frame(maxWidth: .infinity)
                 }
                 .scrollIndicators(.hidden)
+                .onAppear {
+                    // Resolve after the trail IDs have been laid out. Do this once per
+                    // map visit, not on sheet dismissals or subsequent manual scrolling.
+                    DispatchQueue.main.async {
+                        guard !hasFocusedInitialLevel,
+                              let number = Self.initialFocusLevel(
+                                in: gameModel.currentLevelRecords,
+                                unlockAll: settingModel.unlockAllLevels
+                              ) else { return }
+                        hasFocusedInitialLevel = true
+                        proxy.scrollTo(number, anchor: .center)
+                    }
+                }
                 .safeAreaInset(edge: .top, spacing: 0) {
                     if !dynamicTypeSize.isAccessibilitySize {
                         LivesHeaderView(tint: theme.accent)

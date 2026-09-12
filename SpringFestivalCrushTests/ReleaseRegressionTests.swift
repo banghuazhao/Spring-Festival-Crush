@@ -23,6 +23,101 @@ final class ReleaseRegressionTests: XCTestCase {
         return game
     }
 
+    func testLevelMapFocusUsesLatestUnlockedLevel() {
+        let zodiac = ZodiacRecord(zodiacType: .rat, isUnlocked: true)
+        let records = (1...30).reversed().map {
+            LevelRecord(number: $0, isUnlocked: $0 <= 19, zodiacRecord: zodiac)
+        }
+        XCTAssertEqual(SelectLevelView.initialFocusLevel(in: records, unlockAll: false), 19)
+        records.forEach { $0.isComplete = $0.isUnlocked }
+        XCTAssertEqual(SelectLevelView.initialFocusLevel(in: records, unlockAll: false), 19)
+        XCTAssertEqual(SelectLevelView.initialFocusLevel(in: records, unlockAll: true), 30)
+        XCTAssertNil(SelectLevelView.initialFocusLevel(in: [], unlockAll: false))
+        records.forEach { $0.isUnlocked = $0.number == 1 }
+        XCTAssertEqual(SelectLevelView.initialFocusLevel(in: records, unlockAll: false), 1)
+    }
+
+    func testHomeMapKeepsLandmarksInsetOnTallPhones() {
+        for screen in [CGSize(width: 375, height: 812), CGSize(width: 402, height: 874),
+                       CGSize(width: 440, height: 956), CGSize(width: 768, height: 1024),
+                       CGSize(width: 874, height: 402)] {
+            let map = SelectChineseZodiacView.mapSize(for: screen)
+            XCTAssertGreaterThanOrEqual(map.width, screen.width)
+            XCTAssertGreaterThanOrEqual(map.height, screen.height)
+            XCTAssertEqual(map.height / map.width, 1881.0 / 836.0, accuracy: 0.001)
+            let nodeSize = min(max(screen.width * 0.19, 48), 84)
+            // Include the current-node halo, which extends beyond the button.
+            let edgeClearance = screen.width / 2 - map.width * 0.2 - (nodeSize + 12) * 1.16 / 2
+            XCTAssertGreaterThanOrEqual(edgeClearance, 32)
+        }
+    }
+
+    func testMapsRenderAtLatestProgressOnIPhone17() async throws {
+        let game = makeGame()
+        game.zodiacRecords = ChineseZodiac.allCases.map {
+            ZodiacRecord(zodiacType: $0, isUnlocked: $0 == .rat)
+        }
+        let zodiac = ZodiacRecord(zodiacType: .rat, isUnlocked: true)
+        game.currentLevelRecords = (1...30).map {
+            let record = LevelRecord(number: $0, isUnlocked: $0 <= 19, zodiacRecord: zodiac)
+            record.isComplete = $0 < 19
+            record.stars = $0 < 19 ? 3 : 0
+            return record
+        }
+        let settings = SettingModel()
+        settings.unlockAllLevels = false
+        for accessible in [false, true] {
+            try await snapshot(name: "Map-progress-19-\(accessible)", size: CGSize(width: 402, height: 874)) { ready in
+                NavigationStack { SelectLevelView() }
+                    .environmentObject(game)
+                    .environmentObject(settings)
+                    .environment(\.gameReducedEffects, true)
+                    .environment(\.dynamicTypeSize, accessible ? .accessibility3 : .large)
+                    .onAppear { DispatchQueue.main.async(execute: ready) }
+            }
+        }
+        try await snapshot(name: "Home-map-iPhone17", size: CGSize(width: 402, height: 874)) { ready in
+            NavigationStack { SelectChineseZodiacView() }
+                .environmentObject(game)
+                .environmentObject(settings)
+                .environment(\.gameReducedEffects, true)
+                .onAppear { DispatchQueue.main.async(execute: ready) }
+        }
+    }
+
+    func testLaunchArtworkFillsPhoneAndTablet() throws {
+        let artwork = try XCTUnwrap(UIImage(named: "LaunchFestival"))
+        XCTAssertEqual(artwork.size.width / artwork.size.height, 0.5, accuracy: 0.01)
+        let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.first as? UIWindowScene)
+        let previousWindow = scene.keyWindow
+        for size in [CGSize(width: 375, height: 812), CGSize(width: 402, height: 874),
+                     CGSize(width: 768, height: 1024), CGSize(width: 1024, height: 768)] {
+            let controller = try XCTUnwrap(UIStoryboard(name: "LaunchScreen", bundle: .main).instantiateInitialViewController())
+            let window = UIWindow(windowScene: scene)
+            window.frame = CGRect(origin: .zero, size: size)
+            window.rootViewController = controller
+            window.makeKeyAndVisible()
+            defer {
+                window.isHidden = true
+                previousWindow?.makeKeyAndVisible()
+            }
+            window.layoutIfNeeded()
+            controller.view.layoutIfNeeded()
+            let imageView = try XCTUnwrap(controller.view.subviews.first as? UIImageView)
+            XCTAssertNotNil(imageView.image)
+            XCTAssertEqual(imageView.frame, controller.view.bounds)
+            XCTAssertEqual(imageView.contentMode, .scaleAspectFill)
+            XCTAssertTrue(imageView.clipsToBounds)
+            let image = UIGraphicsImageRenderer(bounds: window.bounds).image { _ in
+                window.drawHierarchy(in: window.bounds, afterScreenUpdates: true)
+            }
+            let attachment = XCTAttachment(image: image)
+            attachment.name = "Launch-\(Int(size.width))-\(Int(size.height))"
+            attachment.lifetime = .keepAlways
+            add(attachment)
+        }
+    }
+
     func testShufflePreservesLivePiecesAndFrozenPositions() throws {
         let level = try XCTUnwrap(Level(filename: "Rat_Level_1"))
         let original = Array(level.shuffle())
@@ -935,6 +1030,14 @@ final class ReleaseRegressionTests: XCTestCase {
         attachment.name = name
         attachment.lifetime = .keepAlways
         add(attachment)
+        if name.hasPrefix("Map-progress-19-") {
+            func findScroll(in view: UIView) -> UIScrollView? {
+                if let scroll = view as? UIScrollView { return scroll }
+                return view.subviews.lazy.compactMap { findScroll(in: $0) }.first
+            }
+            let scroll = try XCTUnwrap(findScroll(in: host.view))
+            XCTAssertGreaterThan(scroll.contentOffset.y, 2000, "Map must open near level 19, not level 1")
+        }
         if name.hasPrefix("Defeat-") || name.hasPrefix("New-Victory-") {
             func scrollViews(in view: UIView) -> [UIScrollView] {
                 (view as? UIScrollView).map { [$0] } ?? view.subviews.flatMap { scrollViews(in: $0) }

@@ -53,14 +53,17 @@ struct SelectChineseZodiacView: View {
     /// Preserve the expanded artwork's proportions (836x1881).
     private static let mapAspect: CGFloat = 1881.0 / 836.0
 
-    /// Keep the previous landmark scale. The new margins add scrollable height
-    /// instead of shrinking the entire journey to fit the taller image.
-    private static let landmarkScaleAspect: CGFloat = 1536.0 / 1024.0
-
     /// How far past a screen-filling scale the map is drawn. Anything above 1 leaves the map
     /// bigger than the screen on both axes, which is what there is to pan around; higher
     /// values show less of it at once. This is the dial to turn if the balance feels wrong.
     private static let mapZoom: CGFloat = 1.35
+
+    /// Use the actual expanded image aspect, not the old short map. On tall phones
+    /// the old aspect enlarged both columns until their buttons touched the edges.
+    static func mapSize(for screen: CGSize) -> CGSize {
+        let width = max(screen.width * mapZoom, screen.height / mapAspect)
+        return CGSize(width: width, height: width * mapAspect)
+    }
 
     var body: some View {
         GeometryReader { geometry in
@@ -77,8 +80,9 @@ struct SelectChineseZodiacView: View {
             // Cover the screen at minimum, then zoom past it, so the map overflows on both
             // axes and can be panned either way. Deriving the height from the width keeps the
             // artwork undistorted.
-            let mapWidth = max(screen.width, screen.height / Self.landmarkScaleAspect) * Self.mapZoom
-            let mapHeight = mapWidth * Self.mapAspect
+            let mapSize = Self.mapSize(for: screen)
+            let mapWidth = mapSize.width
+            let mapHeight = mapSize.height
             let nodeSize = min(max(screen.width * 0.19, 48), 84)
             let rowHeight = nodeSize + 26 // circle plus its name plate
 
