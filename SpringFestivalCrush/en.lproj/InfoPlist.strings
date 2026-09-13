@@ -7,4 +7,4 @@
 */
 
 "CFBundleDisplayName" = "Spring Festival";
-"NSUserTrackingUsageDescription" = "This identifier will be used to deliver personalized ads to you.";
+"NSUserTrackingUsageDescription" = "Allow tracking so our ad partner Google AdMob can use your device's advertising identifier to choose the ads you see in this game, for example ads for other puzzle and casual games instead of unrelated apps. If you don't allow it, you'll still see ads, but they'll be less relevant.";

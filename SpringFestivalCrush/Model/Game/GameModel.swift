@@ -12,6 +12,8 @@ class GameModel: ObservableObject {
     @AppStorage("firstLaunch") var firstLaunch = true
     @AppStorage("hasSeenTutorial") var hasSeenTutorial = false
     @Published var isTutorialHintActive: Bool = false
+    @Published private(set) var bossStatus: BossEncounter?
+    private var bossTurnPending = false
     private var modelContext: ModelContext?
 
     // MARK: - Lives / energy
@@ -269,7 +271,7 @@ class GameModel: ObservableObject {
         // Let the board be the focal point, while reserving room for the HUD/dock.
         let size: CGFloat = Constants.isIPhone ? 48 : 64
         let playgroundWidth = screenSize.width - 20 * 2
-        let playgroundHeight = max(120, screenSize.height - 360)
+        let playgroundHeight = max(120, screenSize.height - (level.boss == nil ? 360 : 390))
         let minSymbolWidth = playgroundWidth / CGFloat(numColumns)
         let minSymbolHeight = playgroundHeight / CGFloat(numRows)
         let minSymbolSize = min(minSymbolWidth, minSymbolHeight)
@@ -327,6 +329,8 @@ class GameModel: ObservableObject {
         pendingExtraMoves = 0
         score = 0
         secondsLeft = level.timeLimit
+        bossStatus = level.boss
+        bossTurnPending = false
         invokeCommand?(.setupLayers)
         invokeCommand?(.setupTiles)
         let newSymbols = level.shuffle()
@@ -539,6 +543,7 @@ class GameModel: ObservableObject {
         }
         if level.isPossibleSwap(swap) {
             decreaseMove()
+            bossTurnPending = true
             level.performSwap(swap)
             await invokeCommandAsync?(.onValidSwap(swap))
             guard isCurrentAttempt(attempt) else { return }
@@ -583,27 +588,11 @@ class GameModel: ObservableObject {
             // Bonus cleanup keeps a quiet base cue, without pretending it is a player cascade.
             invokeCommand?(.onCascade(gameState == .inProgress ? cascadeDepth : 1))
         }
-        var allChains = chains
-        async let onMatchedSymbols: Void? = invokeCommandAsync?(.onMatchedSymbols(chains))
-
         let explodeChains = level.explodeSpecialSymbols(for: chains)
-        allChains = allChains.union(explodeChains)
-        async let onSpecialSymbolExplode: Void? = invokeCommandAsync?(.onMatchedSymbols(explodeChains))
-
-        await _ = [onMatchedSymbols, onSpecialSymbolExplode]
+        let allChains = chains.union(explodeChains)
+        // One presentation batch owns conversions, simultaneous blasts, and their reactions.
+        await invokeCommandAsync?(.onMatchedSymbols(allChains))
         guard isCurrentAttempt(attempt) else { return }
-
-        var nextExplodeChains = explodeChains
-        while true {
-            if nextExplodeChains.contains(where: { $0.chainType == .enhanced }) {
-                nextExplodeChains = level.explodeSpecialSymbols(for: nextExplodeChains)
-                allChains = allChains.union(nextExplodeChains)
-                await invokeCommandAsync?(.onMatchedSymbols(nextExplodeChains))
-                guard isCurrentAttempt(attempt) else { return }
-            } else {
-                break
-            }
-        }
 
         let specialSymbols = level.createSpecialSymbols(for: chains)
         await invokeCommandAsync?(.onCreatingSpecialSymbols(specialSymbols))
@@ -611,6 +600,10 @@ class GameModel: ObservableObject {
 
         updateScores(from: allChains)
         level.updateLevelTarget(by: allChains)
+        if gameState == .inProgress {
+            level.boss?.receive(chains: allChains, cascadeDepth: cascadeDepth)
+            bossStatus = level.boss
+        }
         invokeCommand?(.onGoalProgress(GoalProgress.changes(
             before: goalsBefore, after: createLevelTargetDatas(), symbols: allChains.flatMap(\.clearedSymbols)
         )))
@@ -650,6 +643,8 @@ class GameModel: ObservableObject {
         let attempt = attemptID
         level.finishArmorTurn()
         invokeCommand?(.refreshOverlays)
+        let advancesBoss = bossTurnPending
+        bossTurnPending = false
         if hasGameWin() {
             await handleGameWin()
         } else if secondsLeft == 0 {
@@ -657,6 +652,11 @@ class GameModel: ObservableObject {
         } else if hasGameLose() {
             await handleGameLose()
         } else {
+            if advancesBoss {
+                level.advanceBossTurn()
+                bossStatus = level.boss
+                invokeCommand?(.refreshOverlays)
+            }
             if let spread = level.spreadChocolateIfNeeded() {
                 invokeCommand?(.onChocolateSpread(spread))
             }

@@ -9,6 +9,11 @@ class Level {
     var possibleSymbols: [String]?
     var bgMusic: String?
     let timeLimit: Int?
+    let hasSnow: Bool
+    let mechanicHint: String?
+    let difficulty: Int
+    let armorGrid: [[Int]]?
+    var boss: BossEncounter?
 
     var levelGoal: LevelGoal
     var noShuffle: Bool = false
@@ -40,6 +45,11 @@ class Level {
         maximumMoves = levelData.moves
         possibleSymbols = levelData.possibleSymbols
         timeLimit = levelData.timeLimit
+        hasSnow = levelData.snow ?? false
+        mechanicHint = levelData.mechanicHint
+        difficulty = levelData.difficulty ?? 1
+        armorGrid = levelData.armor
+        boss = levelData.boss.map(BossEncounter.init)
         if let bgMusic = levelData.bgMusic {
             self.bgMusic = bgMusic
         } else {
@@ -135,6 +145,9 @@ class Level {
                 symbol.row = position.row
                 symbols[position.column, position.row] = symbol
             }
+            // With few colors a random permutation almost always lines up three, so repair
+            // the permutation instead of relying on 200 lucky draws.
+            guard repairExistingMatches(using: movable) else { continue }
             detectPossibleSwaps()
             if !possibleSwaps.isEmpty && !hasAnyExistingMatch() {
                 lastSwappedSymbols = nil
@@ -158,6 +171,57 @@ class Level {
     // before the player ever gets to see or trigger it deliberately.
     private func hasAnyExistingMatch() -> Bool {
         !detectHorizontalMatches().isEmpty || !detectVerticalMatches().isEmpty
+    }
+
+    /// Breaks every existing match by swapping a matched piece with a differently colored
+    /// movable piece, accepting a swap only when neither cell is left in a match.
+    private func repairExistingMatches(using movable: [Symbol]) -> Bool {
+        for _ in 0..<(movable.count * 4) {
+            let chains = detectHorizontalMatches().union(detectVerticalMatches())
+            guard let chain = chains.first else { return true }
+            let offender = chain.symbols[chain.symbols.count / 2]
+            var repaired = false
+            for partner in movable.shuffled() where !partner.type.isMatchableTo(offender.type) {
+                exchangePositions(offender, partner)
+                if !isPartOfMatch(atColumn: offender.column, row: offender.row),
+                   !isPartOfMatch(atColumn: partner.column, row: partner.row) {
+                    repaired = true
+                    break
+                }
+                exchangePositions(offender, partner)
+            }
+            if !repaired { return false }
+        }
+        return !hasAnyExistingMatch()
+    }
+
+    private func exchangePositions(_ first: Symbol, _ second: Symbol) {
+        let (column, row) = (first.column, first.row)
+        first.column = second.column
+        first.row = second.row
+        second.column = column
+        second.row = row
+        symbols[first.column, first.row] = first
+        symbols[second.column, second.row] = second
+    }
+
+    private func isPartOfMatch(atColumn column: Int, row: Int) -> Bool {
+        guard let symbol = symbols[column, row], symbol.isMatchable() else { return false }
+        func matches(_ column: Int, _ row: Int) -> Bool {
+            guard isPositionInside(column: column, row: row), let other = symbols[column, row] else { return false }
+            return other.isMatchable() && other.type.isMatchableTo(symbol.type)
+        }
+        var horizontal = 1
+        var step = column - 1
+        while matches(step, row) { horizontal += 1; step -= 1 }
+        step = column + 1
+        while matches(step, row) { horizontal += 1; step += 1 }
+        var vertical = 1
+        step = row - 1
+        while matches(column, step) { vertical += 1; step -= 1 }
+        step = row + 1
+        while matches(column, step) { vertical += 1; step += 1 }
+        return horizontal >= 3 || vertical >= 3
     }
 
     private func createInitialSymbols() -> Set<Symbol> {
@@ -205,6 +269,9 @@ class Level {
                 // Ice only ever wraps a normal randomly-spawned symbol, never a lock/special.
                 if isPlainRandomTile, let iceLayers = iceGrid[column, row], iceLayers > 0 {
                     symbol.iceLayer = iceLayers
+                }
+                if isPlainRandomTile, let armorGrid {
+                    symbol.armorLayers = armorGrid[numRows - row - 1][column]
                 }
                 symbols[column, row] = symbol
 
@@ -361,6 +428,12 @@ class Level {
               abs(swap.symbolA.column - swap.symbolB.column) + abs(swap.symbolA.row - swap.symbolB.row) == 1 else { return nil }
         if let combination = PowerUpCombination(swap.symbolA.type, swap.symbolB.type) {
             let chain = makeCombinationChain(combination, for: swap)
+            if let type = chain.transformationType {
+                for symbol in chain.transformedSymbols {
+                    symbol.convertedFromType = symbol.type
+                    symbol.type = type
+                }
+            }
             if combination == .fiveFive {
                 // The rare double Five explicitly clears every protection layer.
                 for symbol in chain.symbols {
@@ -388,6 +461,8 @@ class Level {
         let targetType   = targetSymbol.type
 
         let chain = Chain(chainType: .fiveEffect)
+        chain.sourceType = targetType
+        chain.activatedSpecials = [fiveSymbol]
         chain.add(symbol: fiveSymbol)
         for c in 0 ..< numColumns {
             for r in 0 ..< numRows {
@@ -421,6 +496,12 @@ class Level {
         if !rowChain.symbols.isEmpty { chains.insert(rowChain) }
         if !colChain.symbols.isEmpty { chains.insert(colChain) }
 
+        let sourceType = swap.symbolA === ls ? swap.symbolB.type : swap.symbolA.type
+        for chain in chains {
+            chain.sourceType = sourceType.isNormalMatchable || sourceType.isEnhanced
+                ? sourceType : dominantSourceType(in: symbols.nonNilElements())
+            chain.activatedSpecials = [ls]
+        }
         removeSymbols(in: chains)
         for chain in chains { chain.score = 150 * chain.clearedSymbols.count }
         return chains
@@ -521,27 +602,58 @@ class Level {
         return set
     }
 
+    /// Resolve the entire connected reaction against one snapshot. A special fires once,
+    /// while every newly reached piece belongs to only one scoring/removal batch.
     func explodeSpecialSymbols(for chains: Set<Chain>) -> Set<Chain> {
-        var newChains = Set<Chain>()
-        let symbols = allSymbolsFor(for: chains)
-        let combinedSources = Set(chains.flatMap(\.combinationSources).map(ObjectIdentifier.init))
-        var enhancedTriggerCount = 0
-        for symbol in symbols {
-            if symbol.type.isEnhanced && !combinedSources.contains(ObjectIdentifier(symbol)) {
-                newChains = newChains.union(detectSpecialElimination(for: symbol))
-                enhancedTriggerCount += 1
+        let roots = chains.filter { !$0.specialsResolved }.sorted {
+            let a = $0.symbols.first, b = $1.symbols.first
+            return (a?.row ?? -1, a?.column ?? -1) < (b?.row ?? -1, b?.column ?? -1)
+        }
+        guard !roots.isEmpty else { return [] }
+        roots.forEach { $0.specialsResolved = true }
+        if roots.contains(where: { $0.combination == .fiveFive }) { return [] }
+        let remaining = symbols.nonNilElements().sorted { ($0.row, $0.column) < ($1.row, $1.column) }
+        let removed = roots.flatMap(\.clearedSymbols)
+        let universe = Array(Set(remaining + removed)).sorted { ($0.row, $0.column) < ($1.row, $1.column) }
+        var activated = Set(roots.flatMap(\.activatedSpecials).map(ObjectIdentifier.init))
+        var claimed = Set(removed.map(ObjectIdentifier.init))
+        var queue: [(Symbol, SymbolType)] = []
+        func enqueue(_ symbol: Symbol, source: SymbolType) {
+            guard symbol.type.isEnhanced || symbol.isSpecialPowerUp,
+                  activated.insert(ObjectIdentifier(symbol)).inserted else { return }
+            queue.append((symbol, source))
+        }
+        for chain in roots {
+            let source = chain.sourceType
+                ?? chain.symbols.first(where: { $0.type.isNormalMatchable || $0.type.isEnhanced })?.type
+                ?? dominantSourceType(in: universe)
+            for symbol in chain.clearedSymbols { enqueue(symbol, source: source) }
+        }
+        let reaction = Chain(chainType: .single)
+        reaction.specialsResolved = true
+        reaction.reactionDelay = roots.contains { $0.combination != nil } ? 0.52 : 0.12
+        var index = 0
+        while index < queue.count {
+            let (source, color) = queue[index]
+            index += 1
+            let targets = universe.filter { target in
+                if source.type == .five { return target.collectionType.isMatchableTo(color) }
+                if source.type == .lightning { return target.row == source.row || target.column == source.column }
+                return abs(target.row - source.row) <= 1 && abs(target.column - source.column) <= 1
+            }
+            reaction.detonations.append(PowerUpDetonation(symbol: source, type: source.type,
+                                                         sourceType: color, targets: targets))
+            for target in targets {
+                guard claimed.insert(ObjectIdentifier(target)).inserted else { continue }
+                reaction.add(symbol: target)
+                // A protected tile absorbs this hit, so its power does not fire yet.
+                if target.armorLayers == 0 && !target.armorHitThisTurn { enqueue(target, source: color) }
             }
         }
-        newChains.subtract(chains)
-        removeSymbols(in: newChains)
-        calculateScores(for: newChains)
-        // This is the one place every enhanced-tile explosion is actually triggered — whether
-        // set off by a normal match consuming it or a chain reaction from a neighboring
-        // enhanced tile — so it's the correct single source of truth for the combo objective.
-        if enhancedTriggerCount > 0, let count = levelGoal.levelTarget.enhancedCombos {
-            levelGoal.levelTarget.enhancedCombos = max(0, count - enhancedTriggerCount)
-        }
-        return newChains
+        guard !reaction.detonations.isEmpty else { return [] }
+        removeSymbols(in: [reaction])
+        reaction.score = reaction.clearedSymbols.reduce(0) { $0 + ($1.type.isEnhanced ? 100 : 20) }
+        return [reaction]
     }
 
     func detectSpecialElimination(for symbol: Symbol) -> Set<Chain> {
@@ -701,6 +813,36 @@ class Level {
         for symbol in symbols.nonNilElements() { symbol.armorHitThisTurn = false }
     }
 
+    /// Boss hazards never replace goals, gifts, specials or existing protected tiles.
+    /// Limit protected pieces to keep a usable board, even after a long battle.
+    func advanceBossTurn() {
+        guard var encounter = boss, encounter.health > 0 else { return }
+        let attacks = encounter.advanceTurn()
+        boss = encounter
+        guard attacks else { return }
+        let all = symbols.nonNilElements()
+        let budget = max(0, 12 - all.filter { $0.isFrozen || $0.armorLayers > 0 }.count)
+        let candidates = all.filter {
+            $0.type.isNormalMatchable && !$0.isFrozen && $0.armorLayers == 0
+        }.sorted { ($0.row, $0.column) < ($1.row, $1.column) }
+        let targets: [Symbol]
+        switch encounter.configuration.kind {
+        case .rat:
+            targets = candidates.filter { $0.type == .redPocket || $0.type == .dumpling }
+        case .ox:
+            targets = candidates.sorted {
+                let lane = encounter.attackLane % numColumns
+                return abs($0.column - lane) < abs($1.column - lane)
+            }
+        case .tiger:
+            targets = candidates.filter { $0.row == encounter.attackLane % numRows }
+        }
+        for target in targets.prefix(min(budget, encounter.configuration.kind == .ox ? 3 : 2)) {
+            if encounter.configuration.kind == .tiger { target.iceLayer = 1 }
+            else { target.armorLayers = 1 }
+        }
+    }
+
     // Booster: instantly clears a single tile without requiring a match, at no move cost.
     func useHammer(atColumn column: Int, row: Int) -> Chain? {
         guard isPositionInside(column: column, row: row),
@@ -737,7 +879,7 @@ class Level {
                 let adj = adjacentPositions(column: column, row: row)
                 let hasAdjacentCleared = adj.contains {
                     let c = $0[0]; let r = $0[1]
-                    return isPositionInside(column: c, row: r) && symbols[c, r] == nil
+                    return isPositionInside(column: c, row: r) && tiles[c, r] != nil && symbols[c, r] == nil
                 }
                 guard hasAdjacentCleared else { continue }
 
@@ -762,7 +904,7 @@ class Level {
                 let adj = adjacentPositions(column: column, row: row)
                 let hasAdjacentCleared = adj.contains {
                     let c = $0[0]; let r = $0[1]
-                    return isPositionInside(column: c, row: r) && symbols[c, r] == nil
+                    return isPositionInside(column: c, row: r) && tiles[c, r] != nil && symbols[c, r] == nil
                 }
                 if hasAdjacentCleared {
                     symbol.iceLayer -= 1
@@ -1034,7 +1176,8 @@ class Level {
     }
 
     func doesReachLevelTarget() -> Bool {
-        levelGoal.levelTarget.firecracker ?? 0 <= 0
+        (boss?.health ?? 0) <= 0
+            && levelGoal.levelTarget.firecracker ?? 0 <= 0
             && levelGoal.levelTarget.redPocket ?? 0 <= 0
             && levelGoal.levelTarget.dumpling ?? 0 <= 0
             && levelGoal.levelTarget.bowl ?? 0 <= 0
@@ -1051,7 +1194,7 @@ class Level {
     func updateLevelTarget(by chains: Set<Chain>) {
         let allSymbols = allSymbolsFor(for: chains)
         for symbol in allSymbols {
-            switch symbol.type {
+            switch symbol.collectionType {
             case .firecracker, .firecrackerEnhanced:
                 if let firecracker = levelGoal.levelTarget.firecracker {
                     levelGoal.levelTarget.firecracker = firecracker - 1
@@ -1105,9 +1248,24 @@ class Level {
             }
         }
 
-        // Combo objectives: each chain of the matching special type counts once,
-        // regardless of how many symbols it cleared.
+        // Credit activations once even when one Lightning is represented by two lanes.
+        var creditedDirect = Set<ObjectIdentifier>()
         for chain in chains {
+            // Converted pieces and recursively hit powers each represent a real activation.
+            // The initiating pair is credited separately below.
+            let converted = chain.transformedSymbols.filter { symbol in
+                !chain.combinationSources.contains { $0 === symbol }
+            }
+            let extraTypes = converted.map(\.type) + chain.detonations.map(\.type)
+            if let count = levelGoal.levelTarget.enhancedCombos {
+                levelGoal.levelTarget.enhancedCombos = max(0, count - extraTypes.filter(\.isEnhanced).count)
+            }
+            if let count = levelGoal.levelTarget.lightningCombos {
+                levelGoal.levelTarget.lightningCombos = max(0, count - extraTypes.filter { $0 == .lightning }.count)
+            }
+            if let count = levelGoal.levelTarget.fiveCombos {
+                levelGoal.levelTarget.fiveCombos = max(0, count - extraTypes.filter { $0 == .five }.count)
+            }
             if let combination = chain.combination {
                 if let count = levelGoal.levelTarget.fiveCombos {
                     levelGoal.levelTarget.fiveCombos = max(0, count - combination.fiveCount)
@@ -1120,6 +1278,10 @@ class Level {
                 }
                 continue
             }
+            if !chain.activatedSpecials.isEmpty {
+                let fresh = chain.activatedSpecials.filter { creditedDirect.insert(ObjectIdentifier($0)).inserted }
+                if fresh.isEmpty { continue }
+            }
             switch chain.chainType {
             case .lightning:
                 if let count = levelGoal.levelTarget.lightningCombos {
@@ -1129,10 +1291,6 @@ class Level {
                 if let count = levelGoal.levelTarget.fiveCombos {
                     levelGoal.levelTarget.fiveCombos = max(0, count - 1)
                 }
-            // enhancedCombos is tracked in explodeSpecialSymbols() instead — that's the actual
-            // trigger point for every enhanced-tile explosion, whereas a chain with
-            // chainType == .enhanced here would only exist for cascade side effects and
-            // double-count activations already caught there.
             default:
                 break
             }

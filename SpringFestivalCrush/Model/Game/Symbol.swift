@@ -155,6 +155,9 @@ class Symbol: CustomStringConvertible, Hashable {
     var row: Int
     var type: SymbolType
     var sprite: SKSpriteNode?
+    // Conversion changes the power, but collecting it still credits its original color.
+    var convertedFromType: SymbolType?
+    var collectionType: SymbolType { convertedFromType ?? type }
     // Ice wraps any matchable symbol without changing its type. It moves with the symbol
     // through swaps/falls (unlike jelly, which stays pinned to a board cell) and is cleared
     // one layer at a time whenever an adjacent cell is cleared, same trigger as locks.

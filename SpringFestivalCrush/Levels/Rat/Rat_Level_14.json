@@ -1,14 +1,16 @@
 {
-  "tiles": [ [1, 1, 0, 1, 1, 1, 0, 1, 1],
-             [1, 1, 0, 1, 1, 1, 0, 1, 1],
-             [1, 1, 1, 1, 1, 1, 1, 1, 1],
-             [3, 3, 1, 1, 1, 1, 1, 3, 3],
-             [1, 1, 1, 1, 4, 1, 1, 1, 1],
-             [3, 3, 1, 1, 1, 1, 1, 3, 3],
-             [1, 1, 1, 1, 1, 1, 1, 1, 1],
-             [1, 1, 0, 1, 1, 1, 0, 1, 1],
-             [1, 1, 0, 1, 1, 1, 0, 1, 1] ],
-  "moves": 28,
+  "tiles": [
+    [1, 1, 0, 1, 1, 1, 0, 1, 1],
+    [1, 1, 0, 1, 1, 1, 0, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [3, 3, 1, 1, 1, 1, 1, 3, 3],
+    [1, 1, 1, 1, 4, 1, 1, 1, 1],
+    [3, 3, 1, 1, 1, 1, 1, 3, 3],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 0, 1, 1, 1, 0, 1, 1],
+    [1, 1, 0, 1, 1, 1, 0, 1, 1]
+  ],
+  "moves": 31,
   "levelGoal": {
     "firstStarScore": 800,
     "secondStarScore": 1400,
@@ -19,5 +21,38 @@
       "firecracker": 15
     }
   },
-  "bgMusic": "Colorful.mp3"
+  "bgMusic": "Colorful.mp3",
+  "difficulty": 5,
+  "possibleSymbols": [
+    "firecracker",
+    "redPocket",
+    "dumpling",
+    "zodiac",
+    "bowl",
+    "lantern"
+  ],
+  "snow": true,
+  "armor": [
+    [0, 0, 0, 0, 1, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 1, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 1, 0, 0, 0],
+    [0, 0, 0, 1, 0, 0, 0, 0, 1],
+    [0, 1, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0]
+  ],
+  "ice": [
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 1, 0, 0, 0, 0, 1, 0, 0],
+    [0, 0, 0, 0, 1, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 1, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0]
+  ],
+  "mechanicHint": "Gold frame · 2 hits: match once to crack the shell, then clear the tile on a later move. Blasts and hammers also crack one layer. Ice: clear a neighboring tile to thaw it before matching. Chain reactions open tight spaces. Match 4 or 5 to make special tiles. Auspicious snow welcomes a plentiful year."
 }

@@ -1,22 +1,45 @@
 {
-  "tiles" : [ [1, 1, 1, 1, 1, 1, 1, 1, 1 ],
-              [1, 1, 1, 0, 0, 0, 1, 1, 1 ],
-              [1, 1, 1, 0, 0, 0, 1, 1, 1 ],
-              [1, 1, 1, 1, 1, 1, 1, 1, 1 ],
-              [1, 1, 1, 1, 6, 1, 1, 1, 1 ],
-              [1, 1, 1, 1, 1, 1, 1, 1, 1 ],
-              [1, 1, 1, 0, 0, 0, 1, 1, 1 ],
-              [1, 1, 1, 0, 0, 0, 1, 1, 1 ],
-              [1, 1, 1, 1, 1, 1, 1, 1, 1 ] ],
-
-  "moves" : 25,
+  "tiles": [
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 0, 0, 0, 1, 1, 1],
+    [1, 1, 1, 0, 0, 0, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 6, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 0, 0, 0, 1, 1, 1],
+    [1, 1, 1, 0, 0, 0, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1]
+  ],
+  "moves": 26,
   "levelGoal": {
-      "firstStarScore": 800,
-      "secondStarScore": 1500,
-      "thirdStarScore": 2000,
-      "levelTarget": {
-          "zodiac": 18,
-          "redPocket": 15
-      }
-  }
+    "firstStarScore": 800,
+    "secondStarScore": 1500,
+    "thirdStarScore": 2000,
+    "levelTarget": {
+      "zodiac": 18,
+      "redPocket": 15
+    }
+  },
+  "difficulty": 2,
+  "possibleSymbols": [
+    "firecracker",
+    "redPocket",
+    "dumpling",
+    "zodiac",
+    "bowl",
+    "lantern"
+  ],
+  "snow": true,
+  "armor": [
+    [0, 0, 0, 1, 0, 0, 0, 0, 0],
+    [0, 1, 0, 0, 0, 0, 1, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 1, 0, 0, 0, 0, 0]
+  ],
+  "mechanicHint": "Gold frame · 2 hits: match once to crack the shell, then clear the tile on a later move. Blasts and hammers also crack one layer. Auspicious snow welcomes a plentiful year."
 }

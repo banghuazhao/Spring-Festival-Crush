@@ -20,6 +20,8 @@ struct Constants {
     static let fourGreatClassicalNovelsAppID = "1526758926"
     static let novelsHubAppID = "1528820845"
 
+    static let privacyPolicyURL = URL(string: "https://apps-bay.github.io/Apps-Bay-Website/privacy/")!
+
     struct UserDefaultsKeys {
         static let OPEN_COUNT = "OPEN_COUNT"
     }

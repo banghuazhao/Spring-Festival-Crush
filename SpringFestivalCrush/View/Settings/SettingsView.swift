@@ -4,8 +4,13 @@ struct SettingsView: View {
     @EnvironmentObject private var settingModel: SettingModel
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var moreAppsExpanded = false
+    #if DEBUG
     @State private var tapCount = 0
     @State private var showUnlockLevelsToggle = false
+    #endif
+    #if !targetEnvironment(macCatalyst)
+    @ObservedObject private var consent = ConsentManager.shared
+    #endif
 
     var body: some View {
         ScrollView {
@@ -58,11 +63,41 @@ struct SettingsView: View {
                     Label("Hammer clears one tile. Shuffle rearranges the board. Neither spends a move.", systemImage: "info.circle").font(.subheadline)
                 }
 
+                SettingsCard(title: "Privacy", icon: "hand.raised.fill") {
+                    Link(destination: Constants.privacyPolicyURL) {
+                        HStack {
+                            Text("Privacy Policy")
+                            Spacer()
+                            Image(systemName: "arrow.up.right")
+                        }
+                        .frame(minHeight: 44)
+                    }
+                    #if !targetEnvironment(macCatalyst)
+                    if consent.isPrivacyOptionsRequired {
+                        Divider()
+                        Button {
+                            Task { await consent.presentPrivacyOptions() }
+                        } label: {
+                            HStack {
+                                Text("Privacy Settings")
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                            }
+                            .frame(minHeight: 44)
+                        }
+                        Text("Review or change how ads may use your data.")
+                            .font(.footnote).foregroundStyle(AppTheme.ink.opacity(0.7))
+                    }
+                    #endif
+                }
+
                 SettingsCard(title: "Discover", icon: "square.grid.2x2.fill") {
                     Button {
                         moreAppsExpanded.toggle()
+                        #if DEBUG
                         tapCount += 1
                         if tapCount == 5 { showUnlockLevelsToggle = true }
+                        #endif
                     } label: {
                         HStack {
                             Text("More Apps")
@@ -95,9 +130,11 @@ struct SettingsView: View {
                             }
                         }
                     }
+                    #if DEBUG
                     if showUnlockLevelsToggle {
                         Toggle("Unlock All Levels", isOn: $settingModel.unlockAllLevels)
                     }
+                    #endif
                 }
             }
             .frame(maxWidth: 560)

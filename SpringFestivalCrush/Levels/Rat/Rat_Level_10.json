@@ -1,24 +1,45 @@
 {
-    "tiles" : 
-      [ [1, 1, 1, 1, 1, 1, 1, 1, 1],
-        [1, 1, 1, 1, 1, 1, 1, 1, 1],
-        [1, 1, 1, 1, 1, 1, 1, 1, 1],
-        [1, 2, 2, 1, 1, 1, 2, 2, 1],
-        [1, 2, 2, 1, 1, 1, 2, 2, 1],
-        [1, 2, 2, 1, 1, 1, 2, 2, 1],
-        [1, 1, 1, 1, 1, 1, 1, 1, 1],
-        [1, 1, 1, 1, 1, 1, 1, 1, 1],
-        [1, 1, 1, 1, 1, 1, 1, 1, 1] ],
-
-  "moves" : 23,
+  "tiles": [
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 2, 2, 1, 1, 1, 2, 2, 1],
+    [1, 2, 2, 1, 1, 1, 2, 2, 1],
+    [1, 2, 2, 1, 1, 1, 2, 2, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1]
+  ],
+  "moves": 24,
   "levelGoal": {
-      "firstStarScore": 700,
-      "secondStarScore": 1200,
-      "thirdStarScore": 1800,
-      "levelTarget": {
-          "dumpling": 15,
-          "bowl": 10
-          
-      }
-  }
+    "firstStarScore": 700,
+    "secondStarScore": 1200,
+    "thirdStarScore": 1800,
+    "levelTarget": {
+      "dumpling": 15,
+      "bowl": 10
+    }
+  },
+  "difficulty": 4,
+  "possibleSymbols": [
+    "firecracker",
+    "redPocket",
+    "dumpling",
+    "zodiac",
+    "bowl",
+    "lantern"
+  ],
+  "snow": false,
+  "armor": [
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 1, 0, 0, 0, 0],
+    [0, 0, 1, 0, 0, 0, 0, 1, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 1, 0, 0, 0, 0, 0, 0, 0]
+  ],
+  "mechanicHint": "Gold frame · 2 hits: match once to crack the shell, then clear the tile on a later move. Blasts and hammers also crack one layer. Chain reactions open tight spaces. Match 4 or 5 to make special tiles."
 }

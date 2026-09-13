@@ -1,14 +1,23 @@
 {
-  "tiles": [ [1, 1, 1, 1, 1, 1, 1, 1],
-             [1, 3, 1, 1, 1, 1, 3, 1],
-             [1, 1, 1, 1, 1, 1, 1, 1],
-             [1, 1, 1, 1, 1, 1, 1, 1],
-             [1, 1, 1, 5, 1, 1, 1, 1],
-             [1, 1, 1, 1, 1, 1, 1, 1],
-             [1, 3, 1, 1, 1, 1, 3, 1],
-             [1, 1, 1, 1, 1, 1, 1, 1] ],
-  "moves": 25,
-  "possibleSymbols": ["firecracker", "redPocket", "dumpling", "bowl", "zodiac"],
+  "tiles": [
+    [1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 3, 1, 1, 1, 1, 3, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 5, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 3, 1, 1, 1, 1, 3, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1]
+  ],
+  "moves": 26,
+  "possibleSymbols": [
+    "firecracker",
+    "redPocket",
+    "dumpling",
+    "zodiac",
+    "bowl",
+    "lantern"
+  ],
   "levelGoal": {
     "firstStarScore": 600,
     "secondStarScore": 1000,
@@ -18,5 +27,18 @@
       "zodiac": 12
     }
   },
-  "bgMusic": "Colorful.mp3"
+  "bgMusic": "Colorful.mp3",
+  "difficulty": 4,
+  "snow": false,
+  "armor": [
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 1, 0, 0, 0, 0, 0],
+    [1, 0, 0, 0, 0, 1, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 1, 0, 0, 0, 0, 1, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0]
+  ],
+  "mechanicHint": "Gold frame · 2 hits: match once to crack the shell, then clear the tile on a later move. Blasts and hammers also crack one layer. Chain reactions open tight spaces. Match 4 or 5 to make special tiles."
 }

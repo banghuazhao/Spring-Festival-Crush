@@ -1,24 +1,57 @@
 {
-  "tiles" : [ [1, 1, 1, 1, 4, 1, 1, 1, 1 ],
-              [1, 1, 1, 2, 1, 2, 1, 1, 1 ],
-              [1, 1, 1, 2, 1, 2, 1, 1, 1 ],
-              [1, 0, 0, 2, 1, 2, 0, 0, 1 ],
-              [1, 0, 0, 2, 1, 2, 0, 0, 1 ],
-              [1, 0, 0, 2, 1, 2, 0, 0, 1 ],
-              [1, 1, 1, 2, 1, 2, 1, 1, 1 ],
-              [1, 1, 1, 2, 1, 2, 1, 1, 1 ],
-              [1, 1, 1, 1, 1, 1, 1, 1, 1 ] ],
-
-  "moves" : 25,
+  "tiles": [
+    [1, 1, 1, 1, 4, 1, 1, 1, 1],
+    [1, 1, 1, 2, 1, 2, 1, 1, 1],
+    [1, 1, 1, 2, 1, 2, 1, 1, 1],
+    [1, 0, 0, 2, 1, 2, 0, 0, 1],
+    [1, 0, 0, 2, 1, 2, 0, 0, 1],
+    [1, 0, 0, 2, 1, 2, 0, 0, 1],
+    [1, 1, 1, 2, 1, 2, 1, 1, 1],
+    [1, 1, 1, 2, 1, 2, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1]
+  ],
+  "moves": 28,
   "levelGoal": {
-      "firstStarScore": 900,
-      "secondStarScore": 1600,
-      "thirdStarScore": 2100,
-      "levelTarget": {
-          "redPocket": 15,
-          "dumpling": 18,
-          "bowl": 15
-          
-      }
-  }
+    "firstStarScore": 900,
+    "secondStarScore": 1600,
+    "thirdStarScore": 2100,
+    "levelTarget": {
+      "redPocket": 15,
+      "dumpling": 18,
+      "bowl": 15
+    }
+  },
+  "difficulty": 3,
+  "possibleSymbols": [
+    "firecracker",
+    "redPocket",
+    "dumpling",
+    "zodiac",
+    "bowl",
+    "lantern"
+  ],
+  "snow": true,
+  "armor": [
+    [0, 0, 1, 0, 0, 0, 0, 0, 0],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 1, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [0, 0, 1, 0, 0, 0, 0, 0, 0]
+  ],
+  "ice": [
+    [0, 0, 0, 0, 0, 0, 0, 1, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 1, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 1, 0]
+  ],
+  "mechanicHint": "Gold frame · 2 hits: match once to crack the shell, then clear the tile on a later move. Blasts and hammers also crack one layer. Ice: clear a neighboring tile to thaw it before matching. Auspicious snow welcomes a plentiful year."
 }

@@ -7,47 +7,14 @@
 //
 
 #if !targetEnvironment(macCatalyst)
-    import AdSupport
-    import AppTrackingTransparency
     import GoogleMobileAds
     import SwiftUI
 
     class AdManager {
-        static let isTestingAds = true
-        static var isAuthorized = false
-
         struct GoogleAdsID {
             static let bannerAdUnitID = Bundle.main.object(forInfoDictionaryKey: "BannerAdUnitID") as? String ?? ""
             static let interstitialAdID = Bundle.main.object(forInfoDictionaryKey: "InterstitialAdID") as? String ?? ""
             static let appOpenAdID = Bundle.main.object(forInfoDictionaryKey: "AppOpenAdID") as? String ?? ""
-        }
-
-        static func requestATTPermission(with time: TimeInterval = 0) {
-            guard !isAuthorized else { return }
-            DispatchQueue.main.asyncAfter(deadline: .now() + time) {
-                ATTrackingManager.requestTrackingAuthorization { status in
-                    switch status {
-                    case .authorized:
-                        // Tracking authorization dialog was shown
-                        // and we are authorized
-                        print("Authorized")
-                        isAuthorized = true
-                        // Now that we are authorized we can get the IDFA
-                        print(ASIdentifierManager.shared().advertisingIdentifier)
-                    case .denied:
-                        // Tracking authorization dialog was
-                        // shown and permission is denied
-                        print("Denied")
-                    case .notDetermined:
-                        // Tracking authorization dialog has not been shown
-                        print("Not Determined")
-                    case .restricted:
-                        print("Restricted")
-                    @unknown default:
-                        print("Unknown")
-                    }
-                }
-            }
         }
     }
 
@@ -58,10 +25,8 @@
         var bypassAdThisTime = false
 
         func requestAppOpenAd() {
-            print("bannerAdUnitID: \(AdManager.GoogleAdsID.bannerAdUnitID)")
-            print("InterstitialAdID: \(AdManager.GoogleAdsID.interstitialAdID)")
-            print("appOpenAdID: \(AdManager.GoogleAdsID.appOpenAdID)")
-            let request = GADRequest()
+            guard ConsentManager.shared.canRequestAds else { return }
+            let request = ConsentManager.shared.makeRequest()
             request.scene = UIApplication.shared.connectedScenes.first as? UIWindowScene
             GADAppOpenAd.load(
                 withAdUnitID: AdManager.GoogleAdsID.appOpenAdID,
@@ -134,10 +99,10 @@
         }
 
         func updateUIViewController(_ uiViewController: UIViewControllerType, context: Context) {
-            guard viewWidth != .zero else { return }
+            guard viewWidth != .zero, ConsentManager.shared.canRequestAds else { return }
 
             bannerView.adSize = GADCurrentOrientationAnchoredAdaptiveBannerAdSizeWithWidth(viewWidth)
-            let request = GADRequest()
+            let request = ConsentManager.shared.makeRequest()
             request.scene = UIApplication.shared.connectedScenes.first as? UIWindowScene
             bannerView.load(request)
         }

@@ -7,4 +7,4 @@
 */
 
 "CFBundleDisplayName" = "春节消消乐";
-"NSUserTrackingUsageDescription" = "该标识符将用于向您投放个性化广告。";
+"NSUserTrackingUsageDescription" = "允许跟踪后，我们的广告合作伙伴 Google AdMob 可以使用您设备的广告标识符，挑选您在本游戏中看到的广告，例如向您展示其他益智和休闲游戏的广告，而不是无关应用的广告。如果不允许，您仍会看到广告，但相关性会降低。";

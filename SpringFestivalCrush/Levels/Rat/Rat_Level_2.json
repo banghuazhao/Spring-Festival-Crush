@@ -1,20 +1,30 @@
 {
-  "tiles" : [ [1, 1, 1, 1, 1, 1, 1],
-              [1, 1, 1, 1, 1, 1, 1],
-              [1, 1, 1, 1, 1, 1, 1],
-              [2, 1, 1, 5, 1, 1, 2],
-              [2, 2, 1, 1, 1, 2, 2],
-              [2, 1, 1, 1, 1, 1, 2],
-              [1, 1, 1, 1, 1, 1, 1]],
-
-  "moves" : 20,
+  "tiles": [
+    [1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1],
+    [2, 1, 1, 5, 1, 1, 2],
+    [2, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1]
+  ],
+  "moves": 20,
   "levelGoal": {
-      "firstStarScore": 700,
-      "secondStarScore": 1200,
-      "thirdStarScore": 1800,
-      "levelTarget": {
-          "redPocket": 15
-      }
+    "firstStarScore": 700,
+    "secondStarScore": 1200,
+    "thirdStarScore": 1800,
+    "levelTarget": {
+      "redPocket": 15
+    }
   },
-  "bgMusic": "Colorful.mp3"
+  "bgMusic": "Colorful.mp3",
+  "difficulty": 1,
+  "possibleSymbols": [
+    "firecracker",
+    "redPocket",
+    "dumpling",
+    "zodiac"
+  ],
+  "snow": false,
+  "mechanicHint": "Match 3 to collect. Match beside a lock to break it."
 }

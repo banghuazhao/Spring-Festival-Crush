@@ -137,6 +137,20 @@ final class ReleaseRegressionTests: XCTestCase {
         XCTAssertFalse(level.possibleSwaps.isEmpty)
     }
 
+    func testReshuffleAlwaysFindsPlayableBoardOnEveryLevel() throws {
+        let levels = [("Rat", 15), ("Ox", 15), ("Tiger", 10)]
+            .flatMap { name, count in (1...count).map { "\(name)_Level_\($0)" } }
+        for filename in levels {
+            let level = try XCTUnwrap(Level(filename: filename), filename)
+            _ = level.shuffle()
+            for attempt in 0..<30 {
+                XCTAssertNotNil(level.reshuffleExistingSymbols(), "\(filename) attempt \(attempt)")
+                XCTAssertFalse(level.possibleSwaps.isEmpty, "\(filename) attempt \(attempt)")
+                XCTAssertTrue(level.removeMatches().isEmpty, "\(filename) attempt \(attempt)")
+            }
+        }
+    }
+
     func testImpossibleShuffleDoesNotRebuildBoard() throws {
         let level = try XCTUnwrap(Level(filename: "Rat_Level_1"))
         let original = level.shuffle()
@@ -739,6 +753,7 @@ final class ReleaseRegressionTests: XCTestCase {
             let planned = level.makeCombinationChain(kind, for: swap)
             let protected = try XCTUnwrap(planned.symbols.first { piece in
                 !planned.combinationSources.contains { $0 === piece }
+                    && !planned.transformedSymbols.contains { $0 === piece }
             })
             protected.armorLayers = 1
             let chains = try XCTUnwrap(level.tryActivateSpecialSwap(swap))
@@ -748,9 +763,145 @@ final class ReleaseRegressionTests: XCTestCase {
             XCTAssertTrue(level.explodeSpecialSymbols(for: chains).isEmpty, "Combined enhanced source cannot explode twice")
             level.updateLevelTarget(by: chains)
             XCTAssertEqual(level.levelGoal.levelTarget.fiveCombos, 10 - kind.fiveCount)
-            XCTAssertEqual(level.levelGoal.levelTarget.lightningCombos, 10 - kind.lightningCount)
-            XCTAssertEqual(level.levelGoal.levelTarget.enhancedCombos, 10 - kind.enhancedCount)
+            let converted = chains.first!.transformedSymbols.filter { symbol in
+                !chains.first!.combinationSources.contains { $0 === symbol }
+            }
+            XCTAssertEqual(level.levelGoal.levelTarget.lightningCombos,
+                           max(0, 10 - kind.lightningCount - converted.filter { $0.type == .lightning }.count))
+            XCTAssertEqual(level.levelGoal.levelTarget.enhancedCombos,
+                           max(0, 10 - kind.enhancedCount - converted.filter { $0.type.isEnhanced }.count))
         }
+    }
+
+    func testConversionsTransformMatchingTilesAndKeepTheirColorCredit() throws {
+        for kind in [PowerUpCombination.enhancedFive, .fiveLightning] {
+            for reversed in [false, true] {
+                let (level, swap) = try combinationFixture(kind, reversed: reversed)
+                let pieces = (0..<level.numRows).flatMap { row in
+                    (0..<level.numColumns).compactMap { level.symbol(atColumn: $0, row: row) }
+                }
+                let original = Dictionary(uniqueKeysWithValues: pieces.map { (ObjectIdentifier($0), $0.type) })
+                let plan = level.makeCombinationChain(kind, for: swap)
+                let color = try XCTUnwrap(plan.sourceType)
+                let protected = try XCTUnwrap(plan.transformedSymbols.first { piece in
+                    !plan.combinationSources.contains { $0 === piece }
+                })
+                protected.armorLayers = 1
+                let expected = pieces.filter { $0.type.isMatchableTo(color) && $0.armorLayers == 0 }
+                level.levelGoal.levelTarget = LevelTarget(firecracker: 100, redPocket: 100, dumpling: 100,
+                                                          bowl: 100, lantern: 100, zodiac: 100)
+                let chains = try XCTUnwrap(level.tryActivateSpecialSwap(swap))
+                let chain = try XCTUnwrap(chains.first)
+                XCTAssertEqual(Set(chain.transformedSymbols.map(ObjectIdentifier.init)), Set(expected.map(ObjectIdentifier.init)))
+                XCTAssertFalse(chain.transformedSymbols.isEmpty)
+                for piece in expected {
+                    XCTAssertEqual(piece.type, kind == .fiveLightning ? .lightning : color.enhancedType)
+                    XCTAssertEqual(piece.collectionType, original[ObjectIdentifier(piece)])
+                }
+                XCTAssertNil(protected.convertedFromType)
+                XCTAssertEqual(protected.type, original[ObjectIdentifier(protected)])
+                // This also checks the exact ordinary 3x3 / row+column union, without an extra wide cross.
+                let expectedFootprint = pieces.filter { piece in
+                    if chain.combinationSources.contains(where: { $0 === piece }) { return true }
+                    if kind == .enhancedFive {
+                        return expected.contains { abs(piece.column - $0.column) <= 1 && abs(piece.row - $0.row) <= 1 }
+                    }
+                    let bolts = expected + chain.combinationSources.filter { $0.type == .lightning }
+                    return bolts.contains { piece.column == $0.column || piece.row == $0.row }
+                }
+                XCTAssertEqual(Set(chain.symbols.map(ObjectIdentifier.init)), Set(expectedFootprint.map(ObjectIdentifier.init)))
+                level.updateLevelTarget(by: chains)
+                let clearedColors = chain.clearedSymbols.compactMap { original[ObjectIdentifier($0)] }
+                let goals = level.levelGoal.levelTarget
+                for (type, count) in [(SymbolType.firecracker, goals.firecracker), (.redPocket, goals.redPocket),
+                                      (.dumpling, goals.dumpling), (.bowl, goals.bowl), (.lantern, goals.lantern), (.zodiac, goals.zodiac)] {
+                    XCTAssertEqual(count, 100 - clearedColors.filter { $0.isMatchableTo(type) }.count)
+                }
+            }
+        }
+    }
+
+    func testRecursiveBlastsTriggerEveryPowerOnceAndCarrySourceColor() throws {
+        let (level, _) = try combinationFixture(.enhancedFive)
+        for row in 0..<level.numRows {
+            for column in 0..<level.numColumns { level.symbol(atColumn: column, row: row)?.type = .bowl }
+        }
+        func piece(_ column: Int, _ row: Int, _ type: SymbolType) throws -> Symbol {
+            let symbol = try XCTUnwrap(level.symbol(atColumn: column, row: row))
+            symbol.type = type
+            return symbol
+        }
+        let first = try piece(1, 1, .redPocketEnhanced)
+        let bolt = try piece(2, 1, .lightning)
+        let five = try piece(2, 5, .five)
+        let remoteColor = try piece(7, 7, .redPocket)
+        let remoteBlast = try piece(7, 6, .redPocketEnhanced)
+        let secondBolt = try piece(6, 6, .lightning)
+        let lastTarget = try piece(6, 0, .lantern)
+        let untouched = try piece(0, 7, .lantern)
+        let protected = try piece(6, 1, .five)
+        protected.armorLayers = 2
+        level.levelGoal.levelTarget = LevelTarget(lightningCombos: 10, fiveCombos: 10, enhancedCombos: 10)
+        let initial = try XCTUnwrap(level.useHammer(atColumn: first.column, row: first.row))
+        let reactions = level.explodeSpecialSymbols(for: [initial])
+        let activations = reactions.flatMap(\.detonations)
+        XCTAssertEqual(Set(activations.map { ObjectIdentifier($0.symbol) }),
+                       Set([first, bolt, five, remoteBlast, secondBolt].map(ObjectIdentifier.init)))
+        XCTAssertEqual(activations.count, 5, "Overlapping and returning blasts must not fire a power twice")
+        XCTAssertTrue(activations.allSatisfy { $0.sourceType.isMatchableTo(.redPocket) })
+        let fiveActivation = try XCTUnwrap(activations.first { $0.type == .five })
+        XCTAssertTrue(fiveActivation.targets.contains { $0 === remoteColor })
+        XCTAssertTrue(fiveActivation.targets.allSatisfy { $0.collectionType.isMatchableTo(.redPocket) })
+        XCTAssertNil(level.symbol(atColumn: lastTarget.column, row: lastTarget.row))
+        XCTAssertTrue(level.symbol(atColumn: untouched.column, row: untouched.row) === untouched)
+        XCTAssertTrue(level.symbol(atColumn: protected.column, row: protected.row) === protected)
+        XCTAssertEqual(protected.armorLayers, 1, "Overlapping blasts hit armor once per turn")
+        XCTAssertFalse(activations.contains { $0.symbol === protected })
+        let all = reactions.union([initial])
+        let cleared = all.flatMap(\.clearedSymbols)
+        XCTAssertEqual(cleared.count, Set(cleared.map(ObjectIdentifier.init)).count)
+        level.updateLevelTarget(by: all)
+        XCTAssertEqual(level.levelGoal.levelTarget.lightningCombos, 8)
+        XCTAssertEqual(level.levelGoal.levelTarget.fiveCombos, 9)
+        XCTAssertEqual(level.levelGoal.levelTarget.enhancedCombos, 8)
+        XCTAssertTrue(level.explodeSpecialSymbols(for: all).isEmpty)
+    }
+
+    func testLightningAndConversionsTriggerHitSpecialsWithInheritedColor() throws {
+        for kind in [PowerUpCombination.enhancedFive, .fiveLightning] {
+            let (level, swap) = try combinationFixture(kind)
+            let plan = level.makeCombinationChain(kind, for: swap)
+            let candidates = plan.symbols.filter { piece in
+                !plan.combinationSources.contains { $0 === piece }
+                    && !plan.transformedSymbols.contains { $0 === piece }
+            }
+            XCTAssertGreaterThanOrEqual(candidates.count, 3)
+            candidates[0].type = .lightning
+            candidates[1].type = .five
+            candidates[2].type = candidates[2].type.enhancedType
+            let chains = try XCTUnwrap(level.tryActivateSpecialSwap(swap))
+            let reaction = level.explodeSpecialSymbols(for: chains)
+            let activations = reaction.flatMap(\.detonations)
+            for hit in candidates.prefix(3) {
+                XCTAssertEqual(activations.filter { $0.symbol === hit }.count, 1)
+            }
+            let source = try XCTUnwrap(chains.first?.sourceType)
+            XCTAssertTrue(activations.allSatisfy { $0.sourceType == source })
+            let five = try XCTUnwrap(activations.first { $0.type == .five })
+            XCTAssertTrue(five.targets.allSatisfy { $0.collectionType.isMatchableTo(source) })
+        }
+        // A regular Lightning swap also starts the same recursive resolver.
+        let (level, swap) = try combinationFixture(.fiveLightning)
+        swap.symbolA.type = .redPocket
+        swap.symbolB.type = .lightning
+        let hit = try XCTUnwrap(level.symbol(atColumn: swap.symbolB.column, row: 0))
+        hit.type = .five
+        let chains = try XCTUnwrap(level.tryActivateSpecialSwap(swap))
+        let reactions = level.explodeSpecialSymbols(for: chains)
+        XCTAssertTrue(reactions.flatMap(\.detonations).contains { $0.symbol === hit && $0.sourceType == .redPocket })
+        level.levelGoal.levelTarget = LevelTarget(lightningCombos: 10, fiveCombos: 10)
+        level.updateLevelTarget(by: chains.union(reactions))
+        XCTAssertEqual(level.levelGoal.levelTarget.lightningCombos, 9, "A row and column are one activation")
     }
 
     func testCombinationDemosPreservePairOnRestart() async throws {
@@ -773,6 +924,15 @@ final class ReleaseRegressionTests: XCTestCase {
                 let game = makeGame()
                 await game.setupNewGame()
                 let (level, swap) = try combinationFixture(kind)
+                if kind == .fiveLightning || kind == .enhancedFive {
+                    let plan = level.makeCombinationChain(kind, for: swap)
+                    let hits = plan.symbols.filter { symbol in
+                        !plan.combinationSources.contains { $0 === symbol }
+                            && !plan.transformedSymbols.contains { $0 === symbol }
+                    }
+                    hits.first?.type = .lightning
+                    hits.dropFirst().first?.type = .five
+                }
                 game.level = level
                 let settings = SettingModel()
                 settings.playSoundEffect = false
@@ -793,12 +953,30 @@ final class ReleaseRegressionTests: XCTestCase {
                     let aura = try XCTUnwrap(symbol.sprite?.childNode(withName: "powerAura"))
                     XCTAssertEqual(hasActions(aura), !reduced)
                 }
-                let chains = try XCTUnwrap(level.tryActivateSpecialSwap(swap))
+                let initial = try XCTUnwrap(level.tryActivateSpecialSwap(swap))
+                let chains = initial.union(level.explodeSpecialSymbols(for: initial))
                 var captured = false
+                var capturedRelease = false
                 if !reduced {
-                    scene.run(.customAction(withDuration: 0.8) { _, elapsed in
+                    scene.run(.customAction(withDuration: 1.08) { _, elapsed in
+                        if elapsed > 0.86, !capturedRelease {
+                            capturedRelease = true
+                            if let texture = view.texture(from: scene, crop: CGRect(x: -187.5, y: -406, width: 375, height: 812)) {
+                                let attachment = XCTAttachment(image: UIImage(cgImage: texture.cgImage()))
+                                attachment.name = "Combination-release-\(kind.rawValue)"
+                                attachment.lifetime = .keepAlways
+                                self.add(attachment)
+                            }
+                        }
                         guard elapsed > 0.40, !captured else { return }
                         captured = true
+                        for chain in chains where chain.transformationType != nil {
+                            for symbol in chain.transformedSymbols {
+                                XCTAssertNotNil(symbol.sprite?.parent, "Conversion must remain visible before release")
+                                XCTAssertTrue(symbol.sprite?.texture === TileArtwork.texture(for: symbol.type, zodiac: game.zodiac))
+                                XCTAssertEqual(scene.combinationDelay(for: symbol, chain: chain), 0.52)
+                            }
+                        }
                         if let texture = view.texture(from: scene, crop: CGRect(x: -187.5, y: -406, width: 375, height: 812)) {
                             let attachment = XCTAttachment(image: UIImage(cgImage: texture.cgImage()))
                             attachment.name = "Combination-\(kind.rawValue)"
@@ -1190,6 +1368,50 @@ final class ReleaseRegressionTests: XCTestCase {
                 if let symbol = game.level.symbol(atColumn: column, row: row) {
                     XCTAssertTrue(symbol.sprite?.parent === scene.symbolsLayer)
                     XCTAssertEqual(symbol.sprite?.alpha, 1)
+                }
+            }
+        }
+    }
+
+    func testRestartDuringConversionDiscardsOldBlasts() async throws {
+        for kind in [PowerUpCombination.enhancedFive, .fiveLightning] {
+            let game = makeGame()
+            game.debugLaunchCombinationDemo(kind)
+            await game.setupNewGame()
+            let settings = SettingModel()
+            settings.playSoundEffect = false
+            settings.screenShakeEnabled = false
+            settings.idleHintsEnabled = false
+            let scene = GameScene(size: CGSize(width: 375, height: 812), gameModel: game,
+                                  themeModel: ThemeModel(), settingModel: settings, feedback: GameFeedback())
+            scene.setupLayerPosition()
+            scene.addTiles()
+            scene.gameLayer.isHidden = false
+            _ = try presentTestScene(scene)
+            let level = try XCTUnwrap(game.level)
+            let pieces = (0..<level.numRows).flatMap { row in
+                (0..<level.numColumns).compactMap { level.symbol(atColumn: $0, row: row) }
+            }
+            await scene.addSymbols(for: Set(pieces), shouldAnimate: false)
+            let a = try XCTUnwrap(level.symbol(atColumn: level.numColumns / 2 - 1, row: level.numRows / 2))
+            let b = try XCTUnwrap(level.symbol(atColumn: level.numColumns / 2, row: level.numRows / 2))
+            let initial = try XCTUnwrap(level.tryActivateSpecialSwap(Swap(symbolA: a, symbolB: b)))
+            let chains = initial.union(level.explodeSpecialSymbols(for: initial))
+            async let clearing: Void = scene.animateMatchedSymbols(for: chains)
+            await scene.run(.wait(forDuration: 0.30))
+            await game.onTapRestartLevel()
+            await clearing
+            XCTAssertEqual(game.gameState, .inProgress)
+            XCTAssertEqual(game.score, 0)
+            XCTAssertTrue(scene.effectsLayer.children.isEmpty)
+            XCTAssertTrue(scene.removingSprites.isEmpty)
+            for row in 0..<game.numRows {
+                for column in 0..<game.numColumns {
+                    if let symbol = game.level.symbol(atColumn: column, row: row) {
+                        XCTAssertNil(symbol.convertedFromType)
+                        XCTAssertTrue(symbol.sprite?.parent === scene.symbolsLayer)
+                        XCTAssertEqual(symbol.sprite?.alpha, 1)
+                    }
                 }
             }
         }

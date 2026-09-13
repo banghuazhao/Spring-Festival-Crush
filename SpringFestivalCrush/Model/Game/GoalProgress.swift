@@ -20,7 +20,7 @@ struct GoalProgress {
                 case "lightningCombos": symbol.type == .lightning
                 case "fiveCombos": symbol.type == .five
                 case "enhancedCombos": symbol.type.isEnhanced
-                default: symbol.type.spriteName == target.id
+                default: symbol.collectionType.spriteName == target.id
                 }
             } ?? sources.first
             guard let source else { return nil }

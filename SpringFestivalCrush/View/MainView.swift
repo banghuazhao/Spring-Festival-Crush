@@ -52,9 +52,9 @@ struct MainView: View {
                 .onAppear {
                     gameModel.initializeRecords(modelContext: modelContext)
                 }
-            #if !targetEnvironment(macCatalyst) && !targetEnvironment(simulator)
-                .onAppear {
-                    AdManager.requestATTPermission(with: 1)
+            #if !targetEnvironment(macCatalyst)
+                .task {
+                    await ConsentManager.shared.gatherConsent()
                 }
             #endif
                 .task {

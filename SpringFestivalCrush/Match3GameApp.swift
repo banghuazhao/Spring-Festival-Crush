@@ -8,10 +8,6 @@ import SpriteKit
 import SwiftData
 import SwiftUI
 
-#if !targetEnvironment(macCatalyst) && !targetEnvironment(simulator)
-    import GoogleMobileAds
-#endif
-
 @main
 struct Match3GameApp: App {
     @Environment(\.scenePhase) private var scenePhase
@@ -31,10 +27,7 @@ struct Match3GameApp: App {
         _gameModel = StateObject(wrappedValue: GameModel())
         _settingModel = StateObject(wrappedValue: SettingModel())
         _themeModel = StateObject(wrappedValue: ThemeModel())
-
-        #if !targetEnvironment(macCatalyst) && !targetEnvironment(simulator)
-            GADMobileAds.sharedInstance().start()
-        #endif
+        // The ads SDK starts from ConsentManager once UMP consent allows ad requests.
     }
 
     var body: some Scene {

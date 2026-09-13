@@ -1,22 +1,45 @@
 {
-  "tiles" : [ [1, 1, 1, 1, 1, 1, 1, 1, 1 ],
-              [1, 1, 1, 1, 1, 1, 1, 1, 1 ],
-              [1, 0, 0, 0, 1, 0, 0, 0, 1 ],
-              [1, 1, 1, 1, 1, 1, 1, 1, 1 ],
-              [1, 1, 1, 1, 1, 1, 1, 1, 1 ],
-              [1, 1, 1, 1, 1, 1, 1, 1, 1 ],
-              [1, 0, 0, 0, 1, 0, 0, 0, 1 ],
-              [1, 1, 1, 1, 1, 1, 1, 1, 1 ],
-              [1, 1, 1, 1, 1, 1, 1, 1, 1 ] ],
-
-  "moves" : 25,
+  "tiles": [
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 0, 0, 1, 0, 0, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 0, 0, 1, 0, 0, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1]
+  ],
+  "moves": 26,
   "levelGoal": {
-      "firstStarScore": 900,
-      "secondStarScore": 1600,
-      "thirdStarScore": 2100,
-      "levelTarget": {
-          "zodiac": 21,
-          "firecracker": 21
-      }
-  }
+    "firstStarScore": 900,
+    "secondStarScore": 1600,
+    "thirdStarScore": 2100,
+    "levelTarget": {
+      "zodiac": 21,
+      "firecracker": 21
+    }
+  },
+  "difficulty": 3,
+  "possibleSymbols": [
+    "firecracker",
+    "redPocket",
+    "dumpling",
+    "zodiac",
+    "bowl",
+    "lantern"
+  ],
+  "snow": false,
+  "armor": [
+    [0, 0, 1, 0, 0, 0, 0, 1, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 1, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 1, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 1, 0]
+  ],
+  "mechanicHint": "Gold frame · 2 hits: match once to crack the shell, then clear the tile on a later move. Blasts and hammers also crack one layer."
 }

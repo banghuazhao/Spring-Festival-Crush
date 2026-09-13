@@ -7,6 +7,28 @@ struct LevelBriefingView: View {
 
     var body: some View {
         VStack(spacing: 12) {
+            HStack {
+                Text(level.boss == nil ? "CHALLENGE \(level.difficulty) / 5" : "ZODIAC BOSS")
+                Spacer()
+                if level.hasSnow { Label("瑞雪兆丰年", systemImage: "snowflake") }
+            }
+            .font(.caption.weight(.heavy))
+            .foregroundStyle(theme.accent)
+
+            if let boss = level.boss {
+                Text(boss.configuration.kind.title).font(.headline)
+                Text(boss.configuration.kind.instructions)
+                    .font(.subheadline)
+                    .fixedSize(horizontal: false, vertical: true)
+                Text("Defeat the guardian AND complete every goal.")
+                    .font(.caption.bold())
+            }
+            if let hint = level.mechanicHint {
+                Text(hint)
+                    .font(.subheadline)
+                    .foregroundStyle(AppTheme.ink)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             ViewThatFits(in: .horizontal) {
                 HStack(spacing: 14) {
                     Label("\(level.maximumMoves) moves", systemImage: "arrow.left.arrow.right")

@@ -7,4 +7,4 @@
 */
 
 "CFBundleDisplayName" = "Spring Festival";
-"NSUserTrackingUsageDescription" = "該標識符將用於向您投放個性化廣告。";
+"NSUserTrackingUsageDescription" = "允許追蹤後，我們的廣告合作夥伴 Google AdMob 可以使用您裝置的廣告識別碼，挑選您在本遊戲中看到的廣告，例如向您顯示其他益智和休閒遊戲的廣告，而不是無關 App 的廣告。如果不允許，您仍會看到廣告，但相關性會降低。";

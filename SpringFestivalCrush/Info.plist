@@ -23,15 +23,15 @@
 	<key>CFBundlePackageType</key>
 	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
 	<key>CFBundleShortVersionString</key>
-	<string>3.1.0</string>
+	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
-	<string>2607030949</string>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>GADApplicationIdentifier</key>
 	<string>$(GADApplicationIdentifier)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSUserTrackingUsageDescription</key>
-	<string>This identifier will be used to deliver personalized ads to you.</string>
+	<string>Allow tracking so our ad partner Google AdMob can use your device's advertising identifier to choose the ads you see in this game, for example ads for other puzzle and casual games instead of unrelated apps. If you don't allow it, you'll still see ads, but they'll be less relevant.</string>
 	<key>SKAdNetworkItems</key>
 	<array>
 		<dict>

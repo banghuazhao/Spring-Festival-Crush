@@ -10,6 +10,7 @@ extension GameScene {
 
     func combinationDelay(for symbol: Symbol, chain: Chain) -> TimeInterval {
         guard !reduceMotion, let combination = chain.combination else { return 0 }
+        if combination == .enhancedFive || combination == .fiveLightning { return 0.52 }
         if chain.combinationSources.contains(where: { $0 === symbol }) { return 0 }
         let position = symbol.sprite?.position ?? pointFor(column: symbol.column, row: symbol.row)
         let center = combinationCenter(chain)
@@ -59,7 +60,8 @@ extension GameScene {
                                           .fadeOut(withDuration: 0.18)]), .removeFromParent()]))
         }
 
-        effect.run(.sequence([.wait(forDuration: 0.26), .run { [weak self, weak effect] in
+        let release: TimeInterval = chain.transformationType == nil ? 0.26 : 0.52
+        effect.run(.sequence([.wait(forDuration: release), .run { [weak self, weak effect] in
             guard let self, let effect, effect.parent?.parent != nil, !self.reduceMotion else { return }
             HapticManager.explosion()
             self.playSound(.match, volume: 0.9, rate: combination == .fiveFive ? 0.8 : 1.2)
@@ -81,15 +83,21 @@ extension GameScene {
                 combinationBeam(from: center, to: end, color: gold, width: 1.8, delay: 0.34, jagged: false, parent: effect)
             }
         case .fiveLightning:
-            // A constellation of charged colors ignites rows and columns across the board.
-            for (index, seed) in chain.blastCenters.prefix(10).enumerated() {
-                let point = pointFor(column: seed.column, row: seed.row)
-                let delay = 0.22 + Double(index) * 0.025
-                combinationBeam(from: center, to: point, color: red, width: 1.6, delay: 0.15, jagged: true, parent: effect)
-                combinationBeam(from: CGPoint(x: 0, y: point.y), to: CGPoint(x: width, y: point.y),
-                                color: gold, width: 2.2, delay: delay, jagged: true, parent: effect)
-                combinationBeam(from: CGPoint(x: point.x, y: 0), to: CGPoint(x: point.x, y: height),
-                                color: gold, width: 2.2, delay: delay, jagged: true, parent: effect)
+            // Every converted charm is visible before all rows and columns fire together.
+            for seed in chain.blastCenters {
+                combinationBeam(from: center, to: pointFor(column: seed.column, row: seed.row),
+                                color: red, width: 1.6, delay: 0.10, jagged: true, parent: effect)
+            }
+            let bolts = chain.blastCenters + chain.combinationSources.filter { $0.type == .lightning }
+            for row in Set(bolts.map(\.row)).sorted() {
+                let y = pointFor(column: 0, row: row).y
+                combinationBeam(from: CGPoint(x: 0, y: y), to: CGPoint(x: width, y: y),
+                                color: gold, width: 2.2, delay: release, jagged: true, parent: effect)
+            }
+            for column in Set(bolts.map(\.column)).sorted() {
+                let x = pointFor(column: column, row: 0).x
+                combinationBeam(from: CGPoint(x: x, y: 0), to: CGPoint(x: x, y: height),
+                                color: gold, width: 2.2, delay: release, jagged: true, parent: effect)
             }
         case .lightningLightning:
             // Broad crossing lanes and diagonal forks form an eight-way thunder sigil.
@@ -117,13 +125,39 @@ extension GameScene {
                                 color: gold, width: tile * 0.12, delay: delay, jagged: false, parent: effect)
             }
         case .enhancedFive:
-            // Lucky-star rockets bloom into overlapping red-and-gold blast flowers.
-            for (index, seed) in chain.blastCenters.prefix(12).enumerated() {
+            // The conversion lands first; every three-by-three blast blooms on one beat.
+            for seed in chain.blastCenters {
                 let point = pointFor(column: seed.column, row: seed.row)
-                let delay = 0.22 + Double(index % 4) * 0.055
-                combinationBeam(from: center, to: point, color: red, width: 2, delay: 0.15, jagged: false, parent: effect)
-                combinationRing(at: point, radius: tile * 0.25, reach: tile * 2.6, color: gold, delay: delay, to: effect)
-                addClearSparks(at: point, color: red, count: 5, delay: delay, to: effect)
+                combinationBeam(from: center, to: point, color: red, width: 2, delay: 0.10, jagged: false, parent: effect)
+                combinationRing(at: point, radius: tile * 0.25, reach: tile * 1.5,
+                                color: gold, delay: release, to: effect)
+            }
+        }
+    }
+
+    func addReactionCelebration(for chain: Chain, to batch: SKNode) {
+        let tile = gameModel.tileSize.width
+        let width = tile * CGFloat(gameModel.numColumns)
+        let height = gameModel.tileSize.height * CGFloat(gameModel.numRows)
+        let gold = UIColor(hex: 0xFFE294)
+        for activation in chain.detonations {
+            let point = pointFor(column: activation.symbol.column, row: activation.symbol.row)
+            if activation.type == .lightning {
+                combinationBeam(from: CGPoint(x: 0, y: point.y), to: CGPoint(x: width, y: point.y),
+                                color: gold, width: 2.2, delay: chain.reactionDelay, jagged: true, parent: batch)
+                combinationBeam(from: CGPoint(x: point.x, y: 0), to: CGPoint(x: point.x, y: height),
+                                color: gold, width: 2.2, delay: chain.reactionDelay, jagged: true, parent: batch)
+            } else {
+                combinationRing(at: point, radius: tile * 0.25,
+                                reach: tile * (activation.type == .five ? 2.5 : 1.5),
+                                color: gold, delay: chain.reactionDelay, to: batch)
+                if activation.type == .five {
+                    for target in activation.targets.prefix(24) {
+                        combinationBeam(from: point, to: pointFor(column: target.column, row: target.row),
+                                        color: gold, width: 1.5, delay: chain.reactionDelay,
+                                        jagged: false, parent: batch)
+                    }
+                }
             }
         }
     }

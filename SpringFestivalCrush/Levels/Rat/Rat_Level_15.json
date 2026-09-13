@@ -1,23 +1,50 @@
 {
-  "tiles": [ [3, 1, 1, 1, 1, 1, 1, 1, 3],
-             [1, 1, 1, 1, 1, 1, 1, 1, 1],
-             [1, 1, 3, 1, 2, 1, 3, 1, 1],
-             [1, 1, 1, 1, 1, 1, 1, 1, 1],
-             [1, 1, 2, 1, 3, 1, 2, 1, 1],
-             [1, 1, 1, 1, 1, 1, 1, 1, 1],
-             [1, 1, 3, 1, 2, 1, 3, 1, 1],
-             [1, 1, 1, 1, 1, 1, 1, 1, 1],
-             [3, 1, 1, 1, 1, 1, 1, 1, 3] ],
-  "moves": 30,
+  "tiles": [
+    [3, 1, 1, 1, 1, 1, 1, 1, 3],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 3, 1, 2, 1, 3, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 2, 1, 3, 1, 2, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 3, 1, 2, 1, 3, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [3, 1, 1, 1, 1, 1, 1, 1, 3]
+  ],
+  "moves": 34,
   "levelGoal": {
     "firstStarScore": 900,
     "secondStarScore": 1500,
     "thirdStarScore": 2200,
     "levelTarget": {
       "lock": 13,
-      "zodiac": 15,
-      "lantern": 12
+      "zodiac": 15
     }
   },
-  "bgMusic": "glitter-blast.mp3"
+  "bgMusic": "glitter-blast.mp3",
+  "difficulty": 5,
+  "possibleSymbols": [
+    "firecracker",
+    "redPocket",
+    "dumpling",
+    "zodiac",
+    "bowl",
+    "lantern"
+  ],
+  "snow": false,
+  "armor": [
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 1, 0, 0, 0, 0, 1, 0],
+    [1, 0, 0, 0, 0, 1, 0, 0, 0],
+    [0, 0, 0, 1, 0, 0, 0, 0, 1],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 1, 0, 0, 0, 0]
+  ],
+  "mechanicHint": "Gold frame · 2 hits: match once to crack the shell, then clear the tile on a later move. Blasts and hammers also crack one layer. Chain reactions open tight spaces. Match 4 or 5 to make special tiles.",
+  "boss": {
+    "kind": "rat",
+    "health": 24
+  }
 }

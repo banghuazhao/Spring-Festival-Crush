@@ -8,7 +8,7 @@ extension GameScene {
         effectsLayer.addChild(batch)
         defer { batch.removeFromParent() }
         let ordered = chains.sorted { clearPriority($0) > clearPriority($1) }
-        let enhanced = Set(chains.filter { $0.combination == nil }.flatMap(\.clearedSymbols).filter { $0.type.isEnhanced })
+        let enhanced = Set(chains.filter { $0.combination == nil && $0.detonations.isEmpty }.flatMap(\.clearedSymbols).filter { $0.type.isEnhanced })
         let origins = enhanced.compactMap { $0.sprite?.position }
         if !reduceMotion {
             // Cap overlapping area rings when a whole board of bonus tiles detonates.
@@ -21,8 +21,11 @@ extension GameScene {
         var claimed = Set<ObjectIdentifier>()
         var sparkleBudget = 64
         await withTaskGroup(of: Void.self) { group in
-            if !reduceMotion, let duration = ordered.compactMap({ $0.combination?.duration }).max() {
-                group.addTask { @MainActor in await self.run(.wait(forDuration: duration)) }
+            let lifetime = ordered.map { chain in
+                max(chain.combination?.duration ?? 0, chain.detonations.isEmpty ? 0 : chain.reactionDelay + 0.56)
+            }.max() ?? 0
+            if !reduceMotion, lifetime > 0 {
+                group.addTask { @MainActor in await self.run(.wait(forDuration: lifetime)) }
             }
             if !reduceMotion, ordered.contains(where: { $0.chainType == .fiveEffect }) {
                 // Keep the visual batch alive through its final ribbon and tile pulse.
@@ -33,6 +36,7 @@ extension GameScene {
                 let center = chain.combination == nil ? (source?.sprite?.position ?? .zero) : combinationCenter(chain)
                 if !reduceMotion {
                     if chain.combination != nil { addCombinationCelebration(for: chain, to: batch) }
+                    if !chain.detonations.isEmpty { addReactionCelebration(for: chain, to: batch) }
                     if chain.chainType == .lightning { addLightningTrail(for: chain, to: batch) }
                     if chain.chainType == .fiveEffect {
                         addFiveCelebration(for: chain, to: batch)
@@ -47,9 +51,9 @@ extension GameScene {
                     let color = isStar ? UIColor(hex: 0xFFD979) : UIColor(hex: 0xFFE5A1)
                     let distance = origins.map { hypot(sprite.position.x - $0.x, sprite.position.y - $0.y) }.min() ?? 0
                     let delay = chain.combination != nil ? combinationDelay(for: symbol, chain: chain)
-                        : (reduceMotion ? 0 : (isLightning ? min(0.12, Double(index) * 0.016)
+                        : (reduceMotion ? 0 : (!chain.detonations.isEmpty ? chain.reactionDelay : (isLightning ? min(0.12, Double(index) * 0.016)
                         : (isStar ? (symbol === source ? 0 : fiveClearDelay(at: sprite.position, origin: center))
-                           : (isBlast ? min(0.08, Double(distance / max(1, gameModel.tileSize.width)) * 0.035) : 0))))
+                           : (isBlast ? min(0.08, Double(distance / max(1, gameModel.tileSize.width)) * 0.035) : 0)))))
                     if !reduceMotion && sparkleBudget > 0 {
                         let count = min(sparkleBudget, isBlast || isStar ? 4 : 2)
                         sparkleBudget -= count
@@ -57,7 +61,10 @@ extension GameScene {
                                        delay: delay, to: batch)
                     }
                     let action: SKAction
+                    let converts = chain.transformedSymbols.contains { $0 === symbol }
+                    let conversionTexture = converts ? TileArtwork.texture(for: symbol.type, zodiac: gameModel.zodiac) : nil
                     if reduceMotion {
+                        if let conversionTexture { sprite.texture = conversionTexture }
                         action = .sequence([.fadeOut(withDuration: 0.16), .removeFromParent()])
                     } else {
                         let isFiveSource = isStar && symbol === source
@@ -75,7 +82,13 @@ extension GameScene {
                             travel.timingMode = .easeIn
                             release.append(travel)
                         }
-                        action = .sequence([.wait(forDuration: delay), anticipation,
+                        var charge: [SKAction] = [.wait(forDuration: delay)]
+                        if let conversionTexture {
+                            charge = [.wait(forDuration: 0.18), .setTexture(conversionTexture),
+                                      .scale(to: 1.16, duration: 0.10), .scale(to: 1, duration: 0.10),
+                                      .wait(forDuration: max(0, delay - 0.38))]
+                        }
+                        action = .sequence(charge + [anticipation,
                                             .wait(forDuration: isFiveSource ? 0.26 : 0),
                                             .group(release), .removeFromParent()])
                     }

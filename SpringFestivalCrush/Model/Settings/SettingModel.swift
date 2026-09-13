@@ -7,10 +7,16 @@ final class SettingModel: ObservableObject {
         ? true : UserDefaults.standard.bool(forKey: "isPlayBackgroundMusic") {
         didSet { UserDefaults.standard.set(isPlayBackgroundMusic, forKey: "isPlayBackgroundMusic") }
     }
+    #if DEBUG
     @Published var unlockAllLevels: Bool = UserDefaults.standard.object(forKey: "unlockAllLevels") == nil
         ? false : UserDefaults.standard.bool(forKey: "unlockAllLevels") {
         didSet { UserDefaults.standard.set(unlockAllLevels, forKey: "unlockAllLevels") }
     }
+    #else
+    /// Unlocking every level is a debug tool; release builds always follow progression,
+    /// even if an earlier version left the stored flag on.
+    let unlockAllLevels = false
+    #endif
     @Published var playSoundEffect: Bool = UserDefaults.standard.object(forKey: "playSoundEffect") == nil
         ? true : UserDefaults.standard.bool(forKey: "playSoundEffect") {
         didSet { UserDefaults.standard.set(playSoundEffect, forKey: "playSoundEffect") }

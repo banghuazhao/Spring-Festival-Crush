@@ -13,6 +13,7 @@ extension GameScene {
     }
 
     func applyMotionPreferences() {
+        refreshSeason()
         if reduceMotion {
             if gameLayer.action(forKey: "screenShake") != nil {
                 gameLayer.removeAction(forKey: "screenShake")

@@ -4,6 +4,13 @@ class Chain: Hashable, CustomStringConvertible {
     var combination: PowerUpCombination?
     var combinationSources: [Symbol] = []
     var blastCenters: [Symbol] = []
+    var sourceType: SymbolType?
+    var transformationType: SymbolType?
+    var transformedSymbols: [Symbol] = []
+    var activatedSpecials: [Symbol] = []
+    var detonations: [PowerUpDetonation] = []
+    var specialsResolved = false
+    var reactionDelay: Double = 0
     // Keep the original match geometry for special creation; only cleared pieces score goals.
     var resistedSymbols = Set<ObjectIdentifier>()
     var clearedSymbols: [Symbol] {
@@ -85,4 +92,12 @@ class Chain: Hashable, CustomStringConvertible {
     static func == (lhs: Chain, rhs: Chain) -> Bool {
         lhs.symbols == rhs.symbols && lhs.chainType == rhs.chainType && lhs.combination == rhs.combination
     }
+}
+
+/// Immutable activation context survives removal and carries the initiating color through a blast.
+struct PowerUpDetonation {
+    let symbol: Symbol
+    let type: SymbolType
+    let sourceType: SymbolType
+    let targets: [Symbol]
 }

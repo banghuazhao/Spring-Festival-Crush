@@ -66,3 +66,12 @@ Resource/
 
 fastlane/.env
 fastlane/*.p8
+
+# Commit resolved SwiftPM pins so release builds are reproducible.
+!SpringFestivalCrush.xcodeproj/project.xcworkspace/
+SpringFestivalCrush.xcodeproj/project.xcworkspace/*
+!SpringFestivalCrush.xcodeproj/project.xcworkspace/xcshareddata/
+SpringFestivalCrush.xcodeproj/project.xcworkspace/xcshareddata/*
+!SpringFestivalCrush.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
+SpringFestivalCrush.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/*
+!SpringFestivalCrush.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved

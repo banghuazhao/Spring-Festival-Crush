@@ -38,11 +38,11 @@ enum PowerUpCombination: String, CaseIterable, Identifiable {
 
     var detail: String {
         switch self {
-        case .fiveLightning: "Lightning strikes the rows and columns of the most common color, plus a wide central cross."
+        case .fiveLightning: "Turns the most common color into Lightning, then fires every bolt together."
         case .fiveFive: "Clears the entire board, including armor, ice, locks, and every jelly layer."
         case .lightningLightning: "Sweeps a three-wide cross through both pieces, with diagonal lightning."
         case .enhancedLightning: "Sweeps a five-wide cross and a 5 × 5 explosion around the enhanced piece."
-        case .enhancedFive: "Triggers a 5 × 5 blast around every tile of the enhanced piece’s color."
+        case .enhancedFive: "Turns matching colors into Enhanced Four, then detonates them together."
         }
     }
 
@@ -59,5 +59,8 @@ enum PowerUpCombination: String, CaseIterable, Identifiable {
     var fiveCount: Int { self == .fiveFive ? 2 : (self == .fiveLightning || self == .enhancedFive ? 1 : 0) }
     var lightningCount: Int { self == .lightningLightning ? 2 : (self == .fiveLightning || self == .enhancedLightning ? 1 : 0) }
     var enhancedCount: Int { self == .enhancedFive || self == .enhancedLightning ? 1 : 0 }
-    var duration: Double { self == .fiveFive ? 1.12 : 0.96 }
+    var duration: Double {
+        if self == .enhancedFive || self == .fiveLightning { return 1.16 }
+        return self == .fiveFive ? 1.12 : 0.96
+    }
 }

@@ -27,8 +27,12 @@ final class ToolRewardAdManager: NSObject, ObservableObject, GADFullScreenConten
         isLoading = true
         message = nil
         defer { isLoading = false }
+        guard await ConsentManager.shared.gatherConsent() else {
+            message = "Ads are unavailable until your privacy choices allow them."
+            return
+        }
         do {
-            let loadedAd = try await GADRewardedAd.load(withAdUnitID: unitID, request: GADRequest())
+            let loadedAd = try await GADRewardedAd.load(withAdUnitID: unitID, request: ConsentManager.shared.makeRequest())
             guard !Task.isCancelled else { return }
             ad = loadedAd
             ad?.fullScreenContentDelegate = self

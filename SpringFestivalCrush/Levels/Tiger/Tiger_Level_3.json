@@ -1,14 +1,16 @@
 {
-  "tiles": [ [0, 1, 1, 0, 1, 0, 1, 1, 0],
-             [0, 1, 1, 0, 1, 0, 1, 1, 0],
-             [1, 1, 1, 1, 1, 1, 1, 1, 1],
-             [1, 1, 1, 1, 1, 1, 1, 1, 1],
-             [1, 0, 1, 1, 6, 1, 1, 0, 1],
-             [1, 1, 1, 1, 1, 1, 1, 1, 1],
-             [1, 1, 1, 1, 1, 1, 1, 1, 1],
-             [1, 1, 0, 1, 1, 1, 0, 1, 1],
-             [1, 1, 1, 0, 1, 0, 1, 1, 1] ],
-  "moves": 27,
+  "tiles": [
+    [0, 1, 1, 0, 1, 0, 1, 1, 0],
+    [0, 1, 1, 0, 1, 0, 1, 1, 0],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 1, 1, 6, 1, 1, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 0, 1, 1, 1, 0, 1, 1],
+    [1, 1, 1, 0, 1, 0, 1, 1, 1]
+  ],
+  "moves": 28,
   "levelGoal": {
     "firstStarScore": 900,
     "secondStarScore": 1500,
@@ -18,5 +20,27 @@
       "lantern": 18
     }
   },
-  "bgMusic": "glitter-blast.mp3"
+  "bgMusic": "glitter-blast.mp3",
+  "difficulty": 2,
+  "possibleSymbols": [
+    "firecracker",
+    "redPocket",
+    "dumpling",
+    "zodiac",
+    "bowl",
+    "lantern"
+  ],
+  "snow": true,
+  "armor": [
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 1, 0, 0, 0, 0, 0, 0],
+    [1, 0, 0, 0, 0, 1, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0]
+  ],
+  "mechanicHint": "Gold frame · 2 hits: match once to crack the shell, then clear the tile on a later move. Blasts and hammers also crack one layer. Auspicious snow welcomes a plentiful year."
 }

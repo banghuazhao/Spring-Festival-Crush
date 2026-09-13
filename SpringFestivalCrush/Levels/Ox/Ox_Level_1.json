@@ -1,21 +1,33 @@
 {
-  "tiles" : [ [2, 2, 1, 1, 1, 1, 1, 2, 2 ],
-              [2, 2, 1, 1, 1, 1, 1, 2, 2 ],
-              [2, 2, 1, 1, 1, 1, 1, 2, 2 ],
-              [1, 1, 1, 1, 1, 1, 1, 1, 1 ],
-              [1, 1, 1, 1, 5, 1, 1, 1, 1 ],
-              [1, 1, 1, 1, 1, 1, 1, 1, 1 ],
-              [2, 2, 1, 1, 1, 1, 1, 2, 2 ],
-              [2, 2, 1, 1, 1, 1, 1, 2, 2 ],
-              [2, 2, 1, 1, 1, 1, 1, 2, 2 ] ],
-
-  "moves" : 23,
+  "tiles": [
+    [2, 2, 1, 1, 1, 1, 1, 2, 2],
+    [2, 2, 1, 1, 1, 1, 1, 2, 2],
+    [2, 2, 1, 1, 1, 1, 1, 2, 2],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 5, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [2, 2, 1, 1, 1, 1, 1, 2, 2],
+    [2, 2, 1, 1, 1, 1, 1, 2, 2],
+    [2, 2, 1, 1, 1, 1, 1, 2, 2]
+  ],
+  "moves": 23,
   "levelGoal": {
-      "firstStarScore": 700,
-      "secondStarScore": 1200,
-      "thirdStarScore": 1800,
-      "levelTarget": {
-          "redPocket": 20
-      }
-  }
+    "firstStarScore": 700,
+    "secondStarScore": 1200,
+    "thirdStarScore": 1800,
+    "levelTarget": {
+      "redPocket": 20
+    }
+  },
+  "difficulty": 1,
+  "possibleSymbols": [
+    "firecracker",
+    "redPocket",
+    "dumpling",
+    "zodiac",
+    "bowl",
+    "lantern"
+  ],
+  "snow": false,
+  "mechanicHint": "Plan your swaps around the goals; save special tiles for crowded areas."
 }

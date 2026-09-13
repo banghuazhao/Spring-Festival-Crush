@@ -7,6 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C260913F0000000000000001 = {isa = PBXBuildFile; fileRef = C260913E0000000000000001; };
+		C260913D0000000000000001 = {isa = PBXBuildFile; fileRef = C260913C0000000000000001; };
+		C260913B0000000000000003 = {isa = PBXBuildFile; fileRef = C260913A0000000000000003; };
+		C260913B0000000000000002 = {isa = PBXBuildFile; fileRef = C260913A0000000000000002; };
+		C260913B0000000000000001 = {isa = PBXBuildFile; fileRef = C260913A0000000000000001; };
+		C260913B0000000000000000 = {isa = PBXBuildFile; fileRef = C260913A0000000000000000; };
 		C202609230000000000000020 /* CelebrationBurstView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C202609230000000000000010; };
 		C202609220000000000000020 /* StarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C202609220000000000000010; };
 		C202609210000000000000020 /* LockTileAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = C202609210000000000000010; };
@@ -38,6 +44,8 @@
 		C20260914000000000000001 /* ReleaseRegressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260914000000000000002; };
 		C20260913000000000000001 /* GameTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260913000000000000101 /* GameTool.swift */; };
 		C20260913000000000000002 /* ToolRewardAdManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260913000000000000102 /* ToolRewardAdManager.swift */; };
+		C26091311380000000000A02 /* ConsentManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C26091311380000000000A01 /* ConsentManager.swift */; };
+		C26091311380000000000A04 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = C26091311380000000000A03 /* PrivacyInfo.xcprivacy */; };
 		C20260913000000000000003 /* ToolRefillView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260913000000000000103 /* ToolRefillView.swift */; };
 		C20260912000000000000001 /* PauseMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260912000000000000002 /* PauseMenuView.swift */; };
 		C20260911000000000000001 /* MapScrollBoundary.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260911000000000000002 /* MapScrollBoundary.swift */; };
@@ -48,9 +56,7 @@
 		C20260910000000000000004 /* ZodiacLevelTrail.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260910000000000000104 /* ZodiacLevelTrail.swift */; };
 		C20260910000000000000005 /* ZodiacChapterDock.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260910000000000000105 /* ZodiacChapterDock.swift */; };
 		C20260910000000000000006 /* LivesHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260910000000000000106 /* LivesHeaderView.swift */; };
-		C20260910000000000000007 /* LevelBriefingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260910000000000000107 /* LevelBriefingView.swift */; };
-		992A79922C81E3A50053159D /* EasyToast in Frameworks */ = {isa = PBXBuildFile; productRef = 992A79912C81E3A50053159D /* EasyToast */; };
-		994625932C71CC9000FC2C6A /* Localize_Swift in Frameworks */ = {isa = PBXBuildFile; productRef = 994625922C71CC9000FC2C6A /* Localize_Swift */; };
+		C20260910000000000000007 /* LevelBriefingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260910000000000000107 /* LevelBriefingView.swift */; };		994625932C71CC9000FC2C6A /* Localize_Swift in Frameworks */ = {isa = PBXBuildFile; productRef = 994625922C71CC9000FC2C6A /* Localize_Swift */; };
 		994625962C71CC9A00FC2C6A /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 994625952C71CC9A00FC2C6A /* GoogleMobileAds */; };
 		994625A32C720A2800FC2C6A /* Match3GameApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 994625A22C720A2800FC2C6A /* Match3GameApp.swift */; };
 		994625A52C720A6C00FC2C6A /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 994625A42C720A6C00FC2C6A /* MainView.swift */; };
@@ -106,9 +112,7 @@
 		9955DBE523D7FE1B007786D5 /* Rat_Level_7.json in Resources */ = {isa = PBXBuildFile; fileRef = 9955DBE423D7FE07007786D5 /* Rat_Level_7.json */; };
 		9955DBE723D805F8007786D5 /* swap.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 9955DBE623D805F8007786D5 /* swap.mp3 */; };
 		9955DBE823D80648007786D5 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 9955DBEA23D80648007786D5 /* Localizable.strings */; };
-		9955DBEE23D823F9007786D5 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 9955DBF023D823F9007786D5 /* InfoPlist.strings */; };
-		9967C2B12C818ECC008263AE /* EasyToast in Frameworks */ = {isa = PBXBuildFile; productRef = 9967C2B02C818ECC008263AE /* EasyToast */; };
-		996C6F0F2431E85700C54425 /* Ox_Level_6.json in Resources */ = {isa = PBXBuildFile; fileRef = 996C6F0A2431E85600C54425 /* Ox_Level_6.json */; };
+		9955DBEE23D823F9007786D5 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 9955DBF023D823F9007786D5 /* InfoPlist.strings */; };		996C6F0F2431E85700C54425 /* Ox_Level_6.json in Resources */ = {isa = PBXBuildFile; fileRef = 996C6F0A2431E85600C54425 /* Ox_Level_6.json */; };
 		996C6F102431E85700C54425 /* Ox_Level_8.json in Resources */ = {isa = PBXBuildFile; fileRef = 996C6F0B2431E85600C54425 /* Ox_Level_8.json */; };
 		996C6F112431E85700C54425 /* Ox_Level_10.json in Resources */ = {isa = PBXBuildFile; fileRef = 996C6F0C2431E85700C54425 /* Ox_Level_10.json */; };
 		996C6F122431E85700C54425 /* Ox_Level_9.json in Resources */ = {isa = PBXBuildFile; fileRef = 996C6F0D2431E85700C54425 /* Ox_Level_9.json */; };
@@ -157,6 +161,12 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		C260913E0000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringFestivalCrush/View/GameStatusView.swift; sourceTree = SOURCE_ROOT; };
+		C260913C0000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringFestivalCrushTests/ProgressionTests.swift; sourceTree = SOURCE_ROOT; };
+		C260913A0000000000000003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SpringFestivalCrush/Scene/GameScene+Season.swift"; sourceTree = SOURCE_ROOT; };
+		C260913A0000000000000002 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringFestivalCrush/View/BossEncounterView.swift; sourceTree = SOURCE_ROOT; };
+		C260913A0000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringFestivalCrush/Model/Level/BossEncounter.swift; sourceTree = SOURCE_ROOT; };
+		C260913A0000000000000000 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringFestivalCrush/Model/Level/BossConfiguration.swift; sourceTree = SOURCE_ROOT; };
 		C202609230000000000000010 /* CelebrationBurstView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View/Components/CelebrationBurstView.swift"; sourceTree = "<group>"; };
 		C202609220000000000000010 /* StarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View/Components/StarView.swift"; sourceTree = "<group>"; };
 		C202609210000000000000010 /* LockTileAppearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Scene/LockTileAppearance.swift"; sourceTree = "<group>"; };
@@ -189,6 +199,8 @@
 		C20260914000000000000003 = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; path = SpringFestivalCrushTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C20260913000000000000101 /* GameTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameTool.swift; sourceTree = "<group>"; };
 		C20260913000000000000102 /* ToolRewardAdManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolRewardAdManager.swift; sourceTree = "<group>"; };
+		C26091311380000000000A01 /* ConsentManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsentManager.swift; sourceTree = "<group>"; };
+		C26091311380000000000A03 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		C20260913000000000000103 /* ToolRefillView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolRefillView.swift; sourceTree = "<group>"; };
 		C20260912000000000000002 /* PauseMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PauseMenuView.swift; sourceTree = "<group>"; };
 		C20260911000000000000002 /* MapScrollBoundary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapScrollBoundary.swift; sourceTree = "<group>"; };
@@ -316,10 +328,7 @@
 		9955DB8423D7E420007786D5 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
-			files = (
-				992A79922C81E3A50053159D /* EasyToast in Frameworks */,
-				9967C2B12C818ECC008263AE /* EasyToast in Frameworks */,
-				994625962C71CC9A00FC2C6A /* GoogleMobileAds in Frameworks */,
+			files = (				994625962C71CC9A00FC2C6A /* GoogleMobileAds in Frameworks */,
 				994625932C71CC9000FC2C6A /* Localize_Swift in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -417,6 +426,7 @@
 			children = (
 				9955DB8923D7E420007786D5 /* SpringFestivalCrush */,
 				C20260914000000000000002 /* ReleaseRegressionTests.swift */,
+				C260913C0000000000000001,
 				9955DB8823D7E420007786D5 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -478,6 +488,7 @@
 				9955DBBD23D7E680007786D5 /* Sprites.atlas */,
 				9955DB9923D7E424007786D5 /* LaunchScreen.storyboard */,
 				9955DB9C23D7E424007786D5 /* Info.plist */,
+				C26091311380000000000A03 /* PrivacyInfo.xcprivacy */,
 				9955DBF023D823F9007786D5 /* InfoPlist.strings */,
 				9955DBEA23D80648007786D5 /* Localizable.strings */,
 			);
@@ -492,6 +503,7 @@
 				9955DBE023D7F84D007786D5 /* Color+Extension.swift */,
 				9971C95225FC6705008CFCF9 /* AdManager.swift */,
 				C20260913000000000000102 /* ToolRewardAdManager.swift */,
+				C26091311380000000000A01 /* ConsentManager.swift */,
 				9971C95025FC6705008CFCF9 /* UIButtonLargerArea.swift */,
 				9971C95125FC6705008CFCF9 /* UIFont+Extension.swift */,
 				994625BC2C76092000FC2C6A /* SKSpriteNode+Entension.swift */,
@@ -595,6 +607,11 @@
 				C20260910000000000000105 /* ZodiacChapterDock.swift */,
 				C20260910000000000000106 /* LivesHeaderView.swift */,
 				C20260910000000000000107 /* LevelBriefingView.swift */,
+				C260913E0000000000000001,
+				C260913A0000000000000003,
+				C260913A0000000000000002,
+				C260913A0000000000000001,
+				C260913A0000000000000000,
 				B2C3D4E501234567AABBCC17 /* RewardedAdButton.swift */,
 				B2C3D4E501234567AABBCC23 /* HUDComponents.swift */,
 			);
@@ -670,10 +687,7 @@
 			name = SpringFestivalCrush;
 			packageProductDependencies = (
 				994625922C71CC9000FC2C6A /* Localize_Swift */,
-				994625952C71CC9A00FC2C6A /* GoogleMobileAds */,
-				9967C2B02C818ECC008263AE /* EasyToast */,
-				992A79912C81E3A50053159D /* EasyToast */,
-			);
+				994625952C71CC9A00FC2C6A /* GoogleMobileAds */,			);
 			productName = "Spring Festival Crush";
 			productReference = 9955DB8723D7E420007786D5 /* SpringFestivalCrush.app */;
 			productType = "com.apple.product-type.application";
@@ -714,9 +728,7 @@
 			mainGroup = 9955DB7E23D7E420007786D5;
 			packageReferences = (
 				994625912C71CC9000FC2C6A /* XCRemoteSwiftPackageReference "Localize-Swift" */,
-				994625942C71CC9A00FC2C6A /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
-				992A79902C81E3A50053159D /* XCRemoteSwiftPackageReference "EasyToast" */,
-			);
+				994625942C71CC9A00FC2C6A /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,			);
 			productRefGroup = 9955DB8823D7E420007786D5 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -733,6 +745,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				99AA8BF923D99946001EBD04 /* glitter-blast.mp3 in Resources */,
+				C26091311380000000000A04 /* PrivacyInfo.xcprivacy in Resources */,
 				9955DBDB23D7E8D1007786D5 /* Rat_Level_2.json in Resources */,
 				99CDEC3823F5216C0066B308 /* Ox_Level_4.json in Resources */,
 				A1B2C3D401234567AABBCC02 /* Debug_Special.json in Resources */,
@@ -793,7 +806,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		C20260914000000000000005 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (C20260914000000000000001); runOnlyForDeploymentPostprocessing = 0; };
+		C20260914000000000000005 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (C20260914000000000000001, C260913D0000000000000001); runOnlyForDeploymentPostprocessing = 0; };
 		9955DB8323D7E420007786D5 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -850,6 +863,11 @@
 				C20260910000000000000005 /* ZodiacChapterDock.swift in Sources */,
 				C20260910000000000000006 /* LivesHeaderView.swift in Sources */,
 				C20260910000000000000007 /* LevelBriefingView.swift in Sources */,
+				C260913F0000000000000001,
+				C260913B0000000000000003,
+				C260913B0000000000000002,
+				C260913B0000000000000001,
+				C260913B0000000000000000,
 				B2C3D4E501234567AABBCC16 /* RewardedAdButton.swift in Sources */,
 				B2C3D4E501234567AABBCC22 /* HUDComponents.swift in Sources */,
 				994625A32C720A2800FC2C6A /* Match3GameApp.swift in Sources */,
@@ -878,6 +896,7 @@
 				994625A92C720AE900FC2C6A /* GameView.swift in Sources */,
 				C20260913000000000000001 /* GameTool.swift in Sources */,
 				C20260913000000000000002 /* ToolRewardAdManager.swift in Sources */,
+				C26091311380000000000A02 /* ConsentManager.swift in Sources */,
 				C20260913000000000000003 /* ToolRefillView.swift in Sources */,
 				C20260912000000000000001 /* PauseMenuView.swift in Sources */,
 				994625B22C7493ED00FC2C6A /* LevelCompleteView.swift in Sources */,
@@ -1051,7 +1070,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2607030949;
+				CURRENT_PROJECT_VERSION = 2609131138;
 				DEVELOPMENT_TEAM = F694X76A5X;
 				INFOPLIST_FILE = SpringFestivalCrush/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -1059,7 +1078,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.0;
+				MARKETING_VERSION = 3.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.Banghua-Zhao.Spring-Festival-Crush";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -1072,7 +1091,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2607030949;
+				CURRENT_PROJECT_VERSION = 2609131138;
 				DEVELOPMENT_TEAM = F694X76A5X;
 				INFOPLIST_FILE = SpringFestivalCrush/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -1080,7 +1099,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.0;
+				MARKETING_VERSION = 3.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.Banghua-Zhao.Spring-Festival-Crush";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -1112,16 +1131,7 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCRemoteSwiftPackageReference section */
-		992A79902C81E3A50053159D /* XCRemoteSwiftPackageReference "EasyToast" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/banghuazhao/EasyToast";
-			requirement = {
-				branch = main;
-				kind = branch;
-			};
-		};
-		994625912C71CC9000FC2C6A /* XCRemoteSwiftPackageReference "Localize-Swift" */ = {
+/* Begin XCRemoteSwiftPackageReference section */		994625912C71CC9000FC2C6A /* XCRemoteSwiftPackageReference "Localize-Swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/marmelroy/Localize-Swift.git";
 			requirement = {
@@ -1139,13 +1149,7 @@
 		};
 /* End XCRemoteSwiftPackageReference section */
 
-/* Begin XCSwiftPackageProductDependency section */
-		992A79912C81E3A50053159D /* EasyToast */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 992A79902C81E3A50053159D /* XCRemoteSwiftPackageReference "EasyToast" */;
-			productName = EasyToast;
-		};
-		994625922C71CC9000FC2C6A /* Localize_Swift */ = {
+/* Begin XCSwiftPackageProductDependency section */		994625922C71CC9000FC2C6A /* Localize_Swift */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 994625912C71CC9000FC2C6A /* XCRemoteSwiftPackageReference "Localize-Swift" */;
 			productName = Localize_Swift;
@@ -1154,12 +1158,7 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 994625942C71CC9A00FC2C6A /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
 			productName = GoogleMobileAds;
-		};
-		9967C2B02C818ECC008263AE /* EasyToast */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = EasyToast;
-		};
-/* End XCSwiftPackageProductDependency section */
+		};/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 9955DB7F23D7E420007786D5 /* Project object */;
 }

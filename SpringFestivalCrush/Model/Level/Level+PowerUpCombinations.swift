@@ -10,18 +10,13 @@ extension Level {
         let sources = [swap.symbolA, swap.symbolB].sorted { ($0.row, $0.column) < ($1.row, $1.column) }
         let enhanced = sources.first { $0.type.isEnhanced }
         let lightning = sources.first { $0.type == .lightning }
-        let normalTypes: [SymbolType] = [.firecracker, .redPocket, .dumpling, .bowl, .lantern, .zodiac]
-        let dominant = normalTypes.sorted { a, b in
-            let countA = all.filter { $0.type.isMatchableTo(a) }.count
-            let countB = all.filter { $0.type.isMatchableTo(b) }.count
-            return countA == countB ? a.spriteName < b.spriteName : countA > countB
-        }.first!
+        let dominant = dominantSourceType(in: all)
         let centers: [Symbol]
         switch combination {
         case .fiveLightning:
-            centers = all.filter { $0.type.isMatchableTo(dominant) }
+            centers = all.filter { $0.type.isMatchableTo(dominant) && canConvert($0) }
         case .enhancedFive:
-            centers = all.filter { $0.type.isMatchableTo(enhanced!.type) }
+            centers = all.filter { $0.type.isMatchableTo(enhanced!.type) && canConvert($0) }
         default:
             centers = sources
         }
@@ -37,7 +32,7 @@ extension Level {
             case .fiveFive: return true
             case .fiveLightning:
                 return centers.contains { cross(target, around: $0, radius: 0) }
-                    || sources.contains { cross(target, around: $0, radius: 1) }
+                    || cross(target, around: lightning!, radius: 0)
             case .lightningLightning:
                 return sources.contains {
                     cross(target, around: $0, radius: 1)
@@ -47,15 +42,35 @@ extension Level {
                 return cross(target, around: lightning!, radius: 2)
                     || square(target, around: enhanced!, radius: 2)
             case .enhancedFive:
-                return centers.contains { square(target, around: $0, radius: 2) }
+                return centers.contains { square(target, around: $0, radius: 1) }
             }
         }
         let chain = Chain(chainType: .combination)
         chain.combination = combination
         chain.combinationSources = sources
         chain.blastCenters = centers
+        chain.sourceType = enhanced?.type ?? dominant
+        chain.activatedSpecials = sources
+        if combination == .fiveLightning || combination == .enhancedFive {
+            chain.transformedSymbols = centers
+            chain.transformationType = combination == .fiveLightning ? .lightning : enhanced!.type
+            chain.activatedSpecials += centers
+        }
         chain.add(symbols: affected)
         return chain
+    }
+
+    private func canConvert(_ symbol: Symbol) -> Bool {
+        !symbol.isFrozen && symbol.armorLayers == 0 && !symbol.armorHitThisTurn
+    }
+
+    func dominantSourceType(in pieces: [Symbol]) -> SymbolType {
+        let types: [SymbolType] = [.firecracker, .redPocket, .dumpling, .bowl, .lantern, .zodiac]
+        return types.sorted { a, b in
+            let countA = pieces.filter { $0.type.isMatchableTo(a) }.count
+            let countB = pieces.filter { $0.type.isMatchableTo(b) }.count
+            return countA == countB ? a.spriteName < b.spriteName : countA > countB
+        }.first!
     }
 
     #if DEBUG

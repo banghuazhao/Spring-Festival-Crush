@@ -67,6 +67,7 @@ class GameScene: SKScene {
         addChild(background)
 
         addChild(gameLayer)
+        gameLayer.zPosition = 1
         gameLayer.isHidden = true
         cropLayer.maskNode = maskLayer
         gameLayer.addChild(tilesLayer)
@@ -107,6 +108,7 @@ class GameScene: SKScene {
         case .setupLayers:
             setupLayerPosition()
         case .setupTiles:
+            refreshSeason()
             removeAllTiles()
             addTiles()
         case let .setUserInteraction(shouldEnable):
@@ -168,9 +170,12 @@ class GameScene: SKScene {
     }
 
     func setupLayerPosition() {
+        let boardHeight = gameModel.tileSize.height * CGFloat(gameModel.numRows)
+        // Boss instructions need a predictable clear area above the board, including on SE.
+        let bossOffset = gameModel.level.boss == nil ? 0 : min(0, size.height / 2 - boardHeight / 2 - 280)
         let layerPosition = CGPoint(
             x: -gameModel.tileSize.width * CGFloat(gameModel.numColumns) / 2,
-            y: -gameModel.tileSize.height * CGFloat(gameModel.numRows) / 2)
+            y: -boardHeight / 2 + bossOffset)
         tilesLayer.position = layerPosition
         maskLayer.position = layerPosition
         symbolsLayer.position = layerPosition
@@ -628,6 +633,18 @@ class GameScene: SKScene {
     /// of clears since either could have changed anywhere — board sizes here (<=9x9) make a
     /// full-board pass cheap enough that a more surgical diff isn't worth the complexity.
     private func refreshOverlays() {
+        overlayLayer.childNode(withName: "bossThreat")?.removeFromParent()
+        if let boss = gameModel.level.boss, boss.health > 0, boss.configuration.kind == .tiger {
+            let marker = SKShapeNode(rectOf: CGSize(width: gameModel.tileSize.width * CGFloat(gameModel.numColumns), height: gameModel.tileSize.height - 2), cornerRadius: 5)
+            marker.name = "bossThreat"
+            marker.position = CGPoint(x: gameModel.tileSize.width * CGFloat(gameModel.numColumns) / 2,
+                                      y: gameModel.tileSize.height * (CGFloat(boss.nextAttackLane % gameModel.numRows) + 0.5))
+            marker.strokeColor = boss.movesUntilAttack == 1 ? .systemOrange : .cyan
+            marker.fillColor = .cyan.withAlphaComponent(0.08)
+            marker.lineWidth = 2
+            marker.zPosition = 10
+            overlayLayer.addChild(marker)
+        }
         for column in 0 ..< gameModel.numColumns {
             for row in 0 ..< gameModel.numRows {
                 let jellyCount = gameModel.level.tileAt(column: column, row: row)?.jellyCount ?? 0
@@ -642,6 +659,7 @@ class GameScene: SKScene {
 
                 if let symbol = gameModel.level.symbol(atColumn: column, row: row), let sprite = symbol.sprite {
                     sprite.texture = TileArtwork.texture(for: symbol.type, zodiac: gameModel.zodiac)
+                    refreshArmor(on: symbol, sprite: sprite)
                     sprite.colorBlendFactor = symbol.isFrozen ? 0.55 : 0
                     if symbol.isFrozen {
                         sprite.color = UIColor.cyan

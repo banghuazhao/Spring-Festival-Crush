@@ -1,20 +1,29 @@
 {
-  "tiles" : [ [1, 1, 1, 1, 1, 1, 1 ],
-              [1, 1, 1, 1, 1, 1, 1 ],
-              [1, 1, 1, 1, 1, 1, 1 ],
-              [1, 1, 1, 1, 1, 1, 1 ],
-              [1, 1, 1, 1, 1, 1, 1 ],
-              [1, 1, 1, 1, 1, 1, 1 ],
-              [1, 1, 1, 1, 1, 1, 1 ] ],
-
-  "moves" : 20,
-  "possibleSymbols": ["firecracker", "redPocket", "dumpling", "bowl", "zodiac"],
+  "tiles": [
+    [1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1]
+  ],
+  "moves": 20,
+  "possibleSymbols": [
+    "firecracker",
+    "redPocket",
+    "dumpling",
+    "zodiac"
+  ],
   "levelGoal": {
-      "firstStarScore": 500,
-      "secondStarScore": 800,
-      "thirdStarScore": 1200,
-      "levelTarget": {
-          "zodiac": 15
-      }
-  }
+    "firstStarScore": 500,
+    "secondStarScore": 800,
+    "thirdStarScore": 1200,
+    "levelTarget": {
+      "zodiac": 15
+    }
+  },
+  "difficulty": 1,
+  "snow": false,
+  "mechanicHint": "Swap neighbors to match 3. Match 4 for a blast tile, 5 for a star."
 }
