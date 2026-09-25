@@ -22,7 +22,7 @@ struct ZodiacChapterDock: View {
             .accessibilityHint("Scrolls to the recommended level")
 
             Button(action: play) {
-                Label(isComplete ? "Replay Level \(levelNumber)" : "Play Level \(levelNumber)", systemImage: "play.fill")
+                Label(isComplete ? String(localized: "Replay Level \(levelNumber)") : String(localized: "Play Level \(levelNumber)"), systemImage: "play.fill")
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.gamePrimary(gradient: theme.gradient))

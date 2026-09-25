@@ -118,9 +118,14 @@ extension GameScene {
         } else if enhanced {
             HapticManager.explosion()
             screenShake(magnitude: 3, duration: 0.20)
-        } else if chain.chainType == .lightning || chain.length >= 4 {
+            hitStop(0.045)
+        } else if chain.chainType == .lightning {
+            // Lightning bolts are strings of firecrackers: crackle in sound and in the hand.
+            HapticManager.firecracker()
+            playSound(.firecracker, volume: 0.55)
+            screenShake(magnitude: 2, duration: 0.16)
+        } else if chain.length >= 4 {
             HapticManager.bigMatch()
-            if chain.chainType == .lightning { screenShake(magnitude: 2, duration: 0.16) }
         } else if chain.chainType != .locks && chain.chainType != .single {
             HapticManager.match()
         }
@@ -187,6 +192,10 @@ extension GameScene {
         // Restart detaches old sprites. Await the scene clock so an old clear still
         // completes and releases its task group even after its sprite leaves the board.
         await run(.wait(forDuration: action.duration))
+        // A hit-stop froze the board but not the scene clock; give the clear its frames back.
+        if sprite.parent != nil, sprite.action(forKey: "tileRemoval") != nil {
+            await run(.wait(forDuration: Self.maxHitStop))
+        }
         sprite.removeFromParent()
     }
 }

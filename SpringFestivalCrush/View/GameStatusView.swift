@@ -50,7 +50,7 @@ struct GameStatusView: View {
             }
 
             if let encounter = gameModel.bossStatus {
-                BossEncounterView(encounter: encounter)
+                BossEncounterView(encounter: encounter, event: gameModel.bossEvent)
             } else if gameModel.level.hasSnow {
                 Label("Auspicious Snow · 瑞雪兆丰年", systemImage: "snowflake")
                     .font(.caption.weight(.semibold))
@@ -107,9 +107,9 @@ private struct HUDLevelMedallion: View {
         VStack(spacing: -2) {
             // Levels below 1 aren't file-backed levels (the DEBUG demos use -1), so the
             // medallion names them instead of rendering a nonsense "LEVEL -1".
-            Text(level >= 1 ? "LEVEL" : "SPRING")
+            Text(level >= 1 ? "LEVEL" : "SPRING" as LocalizedStringKey)
                 .font(.system(size: 8, weight: .black, design: .rounded))
-            Text(level >= 1 ? "\(level)" : "DEMO")
+            Text(level >= 1 ? "\(level)" : "DEMO" as LocalizedStringKey)
                 .font(.system(size: level >= 1 ? 22 : 13, weight: .black, design: .rounded))
                 .contentTransition(.numericText())
         }
@@ -131,7 +131,7 @@ private struct HUDStatTile: View {
         VStack(spacing: 0) {
             HStack(spacing: 3) {
                 Image(systemName: icon)
-                Text(title)
+                Text(LocalizedStringKey(title))
             }
             .font(.system(size: 8, weight: .black, design: .rounded))
             .opacity(0.78)

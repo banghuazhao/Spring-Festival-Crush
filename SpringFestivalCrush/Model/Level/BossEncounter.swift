@@ -17,11 +17,14 @@ struct BossEncounter {
     var tribute: SymbolType { (turns / configuration.attackInterval).isMultiple(of: 2) ? .redPocket : .dumpling }
     var nextAttackLane: Int { (turns / configuration.attackInterval * 2 + 2) % 9 }
     var cue: String {
-        guard health > 0 else { return "Guardian defeated!" }
+        guard health > 0 else { return String(localized: "Guardian defeated!") }
         switch configuration.kind {
-        case .rat: return "Match \(tribute == .redPocket ? "red envelopes" : "dumplings") · raid in \(movesUntilAttack) moves"
-        case .ox: return "Break armor / trigger specials · charge in \(movesUntilAttack) moves"
-        case .tiger: return "Firecrackers + cascades · row \(9 - nextAttackLane) freezes in \(movesUntilAttack) moves"
+        case .rat:
+            return tribute == .redPocket
+                ? String(localized: "Match red envelopes · raid in \(movesUntilAttack) moves")
+                : String(localized: "Match dumplings · raid in \(movesUntilAttack) moves")
+        case .ox: return String(localized: "Break armor / trigger specials · charge in \(movesUntilAttack) moves")
+        case .tiger: return String(localized: "Firecrackers + cascades · row \(9 - nextAttackLane) freezes in \(movesUntilAttack) moves")
         }
     }
 

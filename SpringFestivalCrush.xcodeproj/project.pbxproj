@@ -7,6 +7,33 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C2609250B1B1000000000000 /* ContinueOffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2609250A1A1000000000000 /* ContinueOffer.swift */; };
+		C2609250B1B1000000000001 /* RewardBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2609250A1A1000000000001 /* RewardBundle.swift */; };
+		C2609250B1B1000000000002 /* DailyEnvelope.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2609250A1A1000000000002 /* DailyEnvelope.swift */; };
+		C2609250B1B1000000000003 /* StarChest.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2609250A1A1000000000003 /* StarChest.swift */; };
+		C2609250B1B1000000000004 /* BossEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2609250A1A1000000000004 /* BossEvent.swift */; };
+		C2609250B1B1000000000005 /* GameScene+Festival.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2609250A1A1000000000005 /* GameScene+Festival.swift */; };
+		C2609250B1B1000000000006 /* ReviewPrompt.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2609250A1A1000000000006 /* ReviewPrompt.swift */; };
+		C2609250B1B1000000000007 /* UISoundPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2609250A1A1000000000007 /* UISoundPlayer.swift */; };
+		C2609250B1B1000000000008 /* ContinueOfferView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2609250A1A1000000000008 /* ContinueOfferView.swift */; };
+		C2609250B1B1000000000009 /* DailyEnvelopeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2609250A1A1000000000009 /* DailyEnvelopeView.swift */; };
+		C2609250B1B100000000000A /* StarChestTrackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2609250A1A100000000000A /* StarChestTrackView.swift */; };
+		C2609250B1B100000000000B /* FestivalRewardArt.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2609250A1A100000000000B /* FestivalRewardArt.swift */; };
+		C2609250B2B2000000000000 /* Pluck1.wav in Resources */ = {isa = PBXBuildFile; fileRef = C2609250A2A2000000000000 /* Pluck1.wav */; };
+		C2609250B2B2000000000001 /* Pluck2.wav in Resources */ = {isa = PBXBuildFile; fileRef = C2609250A2A2000000000001 /* Pluck2.wav */; };
+		C2609250B2B2000000000002 /* Pluck3.wav in Resources */ = {isa = PBXBuildFile; fileRef = C2609250A2A2000000000002 /* Pluck3.wav */; };
+		C2609250B2B2000000000003 /* Pluck4.wav in Resources */ = {isa = PBXBuildFile; fileRef = C2609250A2A2000000000003 /* Pluck4.wav */; };
+		C2609250B2B2000000000004 /* Pluck5.wav in Resources */ = {isa = PBXBuildFile; fileRef = C2609250A2A2000000000004 /* Pluck5.wav */; };
+		C2609250B2B2000000000005 /* Pluck6.wav in Resources */ = {isa = PBXBuildFile; fileRef = C2609250A2A2000000000005 /* Pluck6.wav */; };
+		C2609250B2B2000000000006 /* Pluck7.wav in Resources */ = {isa = PBXBuildFile; fileRef = C2609250A2A2000000000006 /* Pluck7.wav */; };
+		C2609250B2B2000000000007 /* Pluck8.wav in Resources */ = {isa = PBXBuildFile; fileRef = C2609250A2A2000000000007 /* Pluck8.wav */; };
+		C2609250B2B2000000000008 /* Glissando.wav in Resources */ = {isa = PBXBuildFile; fileRef = C2609250A2A2000000000008 /* Glissando.wav */; };
+		C2609250B2B2000000000009 /* Gong.wav in Resources */ = {isa = PBXBuildFile; fileRef = C2609250A2A2000000000009 /* Gong.wav */; };
+		C2609250B2B200000000000A /* Drum.wav in Resources */ = {isa = PBXBuildFile; fileRef = C2609250A2A200000000000A /* Drum.wav */; };
+		C2609250B2B200000000000B /* Firecracker.wav in Resources */ = {isa = PBXBuildFile; fileRef = C2609250A2A200000000000B /* Firecracker.wav */; };
+		C2609250B2B200000000000C /* Firework.wav in Resources */ = {isa = PBXBuildFile; fileRef = C2609250A2A200000000000C /* Firework.wav */; };
+		C2609250B2B200000000000D /* Chime.wav in Resources */ = {isa = PBXBuildFile; fileRef = C2609250A2A200000000000D /* Chime.wav */; };
+		C2609250B3B3000000000000 /* FestivalFeaturesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2609250A3A3000000000000 /* FestivalFeaturesTests.swift */; };
 		C260913F0000000000000001 = {isa = PBXBuildFile; fileRef = C260913E0000000000000001; };
 		C260913D0000000000000001 = {isa = PBXBuildFile; fileRef = C260913C0000000000000001; };
 		C260913B0000000000000003 = {isa = PBXBuildFile; fileRef = C260913A0000000000000003; };
@@ -161,6 +188,33 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		C2609250A1A1000000000000 /* ContinueOffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringFestivalCrush/Model/Game/ContinueOffer.swift; sourceTree = SOURCE_ROOT; };
+		C2609250A1A1000000000001 /* RewardBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringFestivalCrush/Model/Rewards/RewardBundle.swift; sourceTree = SOURCE_ROOT; };
+		C2609250A1A1000000000002 /* DailyEnvelope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringFestivalCrush/Model/Rewards/DailyEnvelope.swift; sourceTree = SOURCE_ROOT; };
+		C2609250A1A1000000000003 /* StarChest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringFestivalCrush/Model/Rewards/StarChest.swift; sourceTree = SOURCE_ROOT; };
+		C2609250A1A1000000000004 /* BossEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringFestivalCrush/Model/Level/BossEvent.swift; sourceTree = SOURCE_ROOT; };
+		C2609250A1A1000000000005 /* GameScene+Festival.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SpringFestivalCrush/Scene/GameScene+Festival.swift"; sourceTree = SOURCE_ROOT; };
+		C2609250A1A1000000000006 /* ReviewPrompt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringFestivalCrush/Util/ReviewPrompt.swift; sourceTree = SOURCE_ROOT; };
+		C2609250A1A1000000000007 /* UISoundPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringFestivalCrush/Util/UISoundPlayer.swift; sourceTree = SOURCE_ROOT; };
+		C2609250A1A1000000000008 /* ContinueOfferView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringFestivalCrush/View/ContinueOfferView.swift; sourceTree = SOURCE_ROOT; };
+		C2609250A1A1000000000009 /* DailyEnvelopeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringFestivalCrush/View/DailyEnvelopeView.swift; sourceTree = SOURCE_ROOT; };
+		C2609250A1A100000000000A /* StarChestTrackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringFestivalCrush/View/StarChestTrackView.swift; sourceTree = SOURCE_ROOT; };
+		C2609250A1A100000000000B /* FestivalRewardArt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringFestivalCrush/View/Components/FestivalRewardArt.swift; sourceTree = SOURCE_ROOT; };
+		C2609250A2A2000000000000 /* Pluck1.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = Pluck1.wav; sourceTree = "<group>"; };
+		C2609250A2A2000000000001 /* Pluck2.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = Pluck2.wav; sourceTree = "<group>"; };
+		C2609250A2A2000000000002 /* Pluck3.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = Pluck3.wav; sourceTree = "<group>"; };
+		C2609250A2A2000000000003 /* Pluck4.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = Pluck4.wav; sourceTree = "<group>"; };
+		C2609250A2A2000000000004 /* Pluck5.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = Pluck5.wav; sourceTree = "<group>"; };
+		C2609250A2A2000000000005 /* Pluck6.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = Pluck6.wav; sourceTree = "<group>"; };
+		C2609250A2A2000000000006 /* Pluck7.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = Pluck7.wav; sourceTree = "<group>"; };
+		C2609250A2A2000000000007 /* Pluck8.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = Pluck8.wav; sourceTree = "<group>"; };
+		C2609250A2A2000000000008 /* Glissando.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = Glissando.wav; sourceTree = "<group>"; };
+		C2609250A2A2000000000009 /* Gong.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = Gong.wav; sourceTree = "<group>"; };
+		C2609250A2A200000000000A /* Drum.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = Drum.wav; sourceTree = "<group>"; };
+		C2609250A2A200000000000B /* Firecracker.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = Firecracker.wav; sourceTree = "<group>"; };
+		C2609250A2A200000000000C /* Firework.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = Firework.wav; sourceTree = "<group>"; };
+		C2609250A2A200000000000D /* Chime.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = Chime.wav; sourceTree = "<group>"; };
+		C2609250A3A3000000000000 /* FestivalFeaturesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringFestivalCrushTests/FestivalFeaturesTests.swift; sourceTree = SOURCE_ROOT; };
 		C260913E0000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringFestivalCrush/View/GameStatusView.swift; sourceTree = SOURCE_ROOT; };
 		C260913C0000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringFestivalCrushTests/ProgressionTests.swift; sourceTree = SOURCE_ROOT; };
 		C260913A0000000000000003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SpringFestivalCrush/Scene/GameScene+Season.swift"; sourceTree = SOURCE_ROOT; };
@@ -427,6 +481,7 @@
 				9955DB8923D7E420007786D5 /* SpringFestivalCrush */,
 				C20260914000000000000002 /* ReleaseRegressionTests.swift */,
 				C260913C0000000000000001,
+				C2609250A3A3000000000000 /* FestivalFeaturesTests.swift */,
 				9955DB8823D7E420007786D5 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -544,6 +599,20 @@
 				9955DBC623D7E852007786D5 /* Chomp.wav */,
 				9955DBC723D7E852007786D5 /* Error.wav */,
 				9955DBE623D805F8007786D5 /* swap.mp3 */,
+				C2609250A2A2000000000000 /* Pluck1.wav */,
+				C2609250A2A2000000000001 /* Pluck2.wav */,
+				C2609250A2A2000000000002 /* Pluck3.wav */,
+				C2609250A2A2000000000003 /* Pluck4.wav */,
+				C2609250A2A2000000000004 /* Pluck5.wav */,
+				C2609250A2A2000000000005 /* Pluck6.wav */,
+				C2609250A2A2000000000006 /* Pluck7.wav */,
+				C2609250A2A2000000000007 /* Pluck8.wav */,
+				C2609250A2A2000000000008 /* Glissando.wav */,
+				C2609250A2A2000000000009 /* Gong.wav */,
+				C2609250A2A200000000000A /* Drum.wav */,
+				C2609250A2A200000000000B /* Firecracker.wav */,
+				C2609250A2A200000000000C /* Firework.wav */,
+				C2609250A2A200000000000D /* Chime.wav */,
 			);
 			path = Sounds;
 			sourceTree = "<group>";
@@ -612,6 +681,18 @@
 				C260913A0000000000000002,
 				C260913A0000000000000001,
 				C260913A0000000000000000,
+				C2609250A1A1000000000000 /* ContinueOffer.swift */,
+				C2609250A1A1000000000001 /* RewardBundle.swift */,
+				C2609250A1A1000000000002 /* DailyEnvelope.swift */,
+				C2609250A1A1000000000003 /* StarChest.swift */,
+				C2609250A1A1000000000004 /* BossEvent.swift */,
+				C2609250A1A1000000000005 /* GameScene+Festival.swift */,
+				C2609250A1A1000000000006 /* ReviewPrompt.swift */,
+				C2609250A1A1000000000007 /* UISoundPlayer.swift */,
+				C2609250A1A1000000000008 /* ContinueOfferView.swift */,
+				C2609250A1A1000000000009 /* DailyEnvelopeView.swift */,
+				C2609250A1A100000000000A /* StarChestTrackView.swift */,
+				C2609250A1A100000000000B /* FestivalRewardArt.swift */,
 				B2C3D4E501234567AABBCC17 /* RewardedAdButton.swift */,
 				B2C3D4E501234567AABBCC23 /* HUDComponents.swift */,
 			);
@@ -753,6 +834,20 @@
 				9955DBDA23D7E8D1007786D5 /* Rat_Level_1.json in Resources */,
 				9955DBD723D7E8D1007786D5 /* Rat_Level_3.json in Resources */,
 				9955DBCD23D7E852007786D5 /* Drip.wav in Resources */,
+				C2609250B2B2000000000000 /* Pluck1.wav in Resources */,
+				C2609250B2B2000000000001 /* Pluck2.wav in Resources */,
+				C2609250B2B2000000000002 /* Pluck3.wav in Resources */,
+				C2609250B2B2000000000003 /* Pluck4.wav in Resources */,
+				C2609250B2B2000000000004 /* Pluck5.wav in Resources */,
+				C2609250B2B2000000000005 /* Pluck6.wav in Resources */,
+				C2609250B2B2000000000006 /* Pluck7.wav in Resources */,
+				C2609250B2B2000000000007 /* Pluck8.wav in Resources */,
+				C2609250B2B2000000000008 /* Glissando.wav in Resources */,
+				C2609250B2B2000000000009 /* Gong.wav in Resources */,
+				C2609250B2B200000000000A /* Drum.wav in Resources */,
+				C2609250B2B200000000000B /* Firecracker.wav in Resources */,
+				C2609250B2B200000000000C /* Firework.wav in Resources */,
+				C2609250B2B200000000000D /* Chime.wav in Resources */,
 				9955DBCF23D7E852007786D5 /* Error.wav in Resources */,
 				9955DBD023D7E852007786D5 /* Chinatown.mp3 in Resources */,
 				99AA8BF523D95DDA001EBD04 /* Rat_Level_5.json in Resources */,
@@ -806,7 +901,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		C20260914000000000000005 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (C20260914000000000000001, C260913D0000000000000001); runOnlyForDeploymentPostprocessing = 0; };
+		C20260914000000000000005 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (C20260914000000000000001, C260913D0000000000000001, C2609250B3B3000000000000); runOnlyForDeploymentPostprocessing = 0; };
 		9955DB8323D7E420007786D5 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -868,6 +963,18 @@
 				C260913B0000000000000002,
 				C260913B0000000000000001,
 				C260913B0000000000000000,
+				C2609250B1B1000000000000 /* ContinueOffer.swift in Sources */,
+				C2609250B1B1000000000001 /* RewardBundle.swift in Sources */,
+				C2609250B1B1000000000002 /* DailyEnvelope.swift in Sources */,
+				C2609250B1B1000000000003 /* StarChest.swift in Sources */,
+				C2609250B1B1000000000004 /* BossEvent.swift in Sources */,
+				C2609250B1B1000000000005 /* GameScene+Festival.swift in Sources */,
+				C2609250B1B1000000000006 /* ReviewPrompt.swift in Sources */,
+				C2609250B1B1000000000007 /* UISoundPlayer.swift in Sources */,
+				C2609250B1B1000000000008 /* ContinueOfferView.swift in Sources */,
+				C2609250B1B1000000000009 /* DailyEnvelopeView.swift in Sources */,
+				C2609250B1B100000000000A /* StarChestTrackView.swift in Sources */,
+				C2609250B1B100000000000B /* FestivalRewardArt.swift in Sources */,
 				B2C3D4E501234567AABBCC16 /* RewardedAdButton.swift in Sources */,
 				B2C3D4E501234567AABBCC22 /* HUDComponents.swift in Sources */,
 				994625A32C720A2800FC2C6A /* Match3GameApp.swift in Sources */,

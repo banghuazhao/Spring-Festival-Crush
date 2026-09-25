@@ -7,7 +7,7 @@ struct SettingsCard<Content: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Label(title, systemImage: icon)
+            Label(LocalizedStringKey(title), systemImage: icon)
                 .font(.title3.bold())
                 .foregroundStyle(AppTheme.festivalRed)
                 .accessibilityAddTraits(.isHeader)

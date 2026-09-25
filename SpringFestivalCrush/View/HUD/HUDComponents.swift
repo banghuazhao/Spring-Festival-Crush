@@ -30,7 +30,7 @@ struct HUDBannerView: View {
             if let icon = banner.icon {
                 Image(systemName: icon)
             }
-            Text(banner.text)
+            Text(LocalizedStringKey(banner.text))
                 .multilineTextAlignment(.center)
         }
         .font(.system(size: 15, weight: .bold, design: .rounded))
@@ -66,7 +66,8 @@ struct BoosterTrayView: View {
     let boosters: [BoosterItem]
 
     var body: some View {
-        HStack(spacing: 10) {
+        // Three tools must fit a 320pt-wide iPhone SE, so each pill stays compact.
+        HStack(spacing: 8) {
             ForEach(boosters) { booster in
                 HStack(spacing: 0) {
                     Button {
@@ -78,7 +79,7 @@ struct BoosterTrayView: View {
                                 Image(imageName)
                                     .resizable()
                                     .scaledToFit()
-                                    .frame(width: 36, height: 36)
+                                    .frame(width: 32, height: 32)
                             } else {
                                 Image(systemName: booster.icon)
                             }
@@ -88,28 +89,28 @@ struct BoosterTrayView: View {
                                 .lineLimit(1)
                                 .minimumScaleFactor(0.7)
                         }
-                        .padding(.leading, 10)
-                        .padding(.trailing, 6)
-                        .frame(minWidth: 68, minHeight: 52)
+                        .padding(.leading, 8)
+                        .padding(.trailing, 2)
+                        .frame(minWidth: 52, minHeight: 52)
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.gameIcon)
-                    .accessibilityLabel(booster.title)
-                    .accessibilityValue("\(booster.count) remaining")
+                    .accessibilityLabel(Text(booster.title))
+                    .accessibilityValue(Text("\(booster.count) remaining"))
                     .accessibilityAddTraits(booster.isActive ? .isSelected : [])
-                    .accessibilityHint(booster.count == 0 ? "Open ad refill" : "Use one charge without spending a move")
+                    .accessibilityHint(booster.count == 0 ? Text("Open ad refill") : Text("Use one charge without spending a move"))
 
                     Button {
                         HapticManager.buttonTap()
                         booster.onRefill()
                     } label: {
                         Image(systemName: "plus.circle.fill")
-                            .font(.title3.weight(.bold))
-                            .frame(width: 44, height: 52)
+                            .font(.body.weight(.bold))
+                            .frame(width: 32, height: 52)
                             .contentShape(Rectangle())
                     }
                     .buttonStyle(.gameIcon)
-                    .accessibilityLabel("Add \(booster.title)")
+                    .accessibilityLabel(Text("Add \(booster.title)"))
                     .accessibilityHint("Watch an optional ad for one charge")
                 }
                 .foregroundStyle(.white)

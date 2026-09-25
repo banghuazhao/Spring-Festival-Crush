@@ -11,6 +11,6 @@ struct StarView: View {
             .saturation(earned ? 1 : 0)
             .opacity(earned ? 1 : 0.28)
             .shadow(color: earned ? AppTheme.festivalGold.opacity(0.3) : .clear, radius: 5, y: 3)
-            .accessibilityLabel(earned ? "Star earned" : "Star not earned")
+            .accessibilityLabel(earned ? Text("Star earned") : Text("Star not earned"))
     }
 }

@@ -46,6 +46,6 @@ struct GoalTargetPill: View {
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(target.id.replacingOccurrences(of: "Combos", with: " combos"))
-        .accessibilityValue(remaining > 0 ? "\(remaining) remaining" : "Complete")
+        .accessibilityValue(remaining > 0 ? Text("\(remaining) remaining") : Text("Complete"))
     }
 }

@@ -17,6 +17,8 @@ struct SelectLevelView: View {
     @State private var celebration: VictorySummary?
     @State private var revealProgress: CGFloat = 1
     @State private var hasFocusedInitialLevel = false
+    @State private var claimedChests = Set<Int>()
+    @State private var openedChest: StarChestTrack.Chest?
 
     /// Progression wins over array order, including a fully completed chapter.
     static func initialFocusLevel(in records: [LevelRecord], unlockAll: Bool) -> Int? {
@@ -42,6 +44,14 @@ struct SelectLevelView: View {
         gameModel.currentLevelRecords.filter(\.isComplete).count
     }
 
+    private var chapterStars: Int {
+        gameModel.currentLevelRecords.reduce(0) { $0 + $1.stars }
+    }
+
+    private var chestTrack: StarChestTrack {
+        StarChestTrack(levelCount: gameModel.currentLevelRecords.count)
+    }
+
     var body: some View {
         ZStack {
             ZodiacChapterScenery(theme: theme).ignoresSafeArea()
@@ -58,8 +68,18 @@ struct SelectLevelView: View {
                             theme: theme,
                             completed: completedCount,
                             total: gameModel.currentLevelRecords.count,
-                            stars: gameModel.currentLevelRecords.reduce(0) { $0 + $1.stars }
+                            stars: chapterStars
                         )
+
+                        if !gameModel.currentLevelRecords.isEmpty {
+                            StarChestTrackView(
+                                theme: theme,
+                                track: chestTrack,
+                                stars: chapterStars,
+                                claimed: claimedChests,
+                                open: openChest
+                            )
+                        }
 
                         if gameModel.currentLevelRecords.isEmpty {
                             ContentUnavailableView("The trail is being built", systemImage: "sparkles", description: Text("New levels are on their way to \(theme.name)."))
@@ -80,9 +100,9 @@ struct SelectLevelView: View {
                             VStack(spacing: 8) {
                                 Image(systemName: completedCount == gameModel.currentLevelRecords.count ? "checkmark.seal.fill" : "flag.checkered")
                                     .font(.largeTitle)
-                                Text(completedCount == gameModel.currentLevelRecords.count ? "Chapter complete!" : "A little closer to good fortune")
+                                Text(completedCount == gameModel.currentLevelRecords.count ? "Chapter complete!" : "A little closer to good fortune" as LocalizedStringKey)
                                     .font(.headline)
-                                Text(completedCount == gameModel.currentLevelRecords.count ? "Replay your favorite levels and collect every star." : "Clear the trail, one level at a time.")
+                                Text(completedCount == gameModel.currentLevelRecords.count ? "Replay your favorite levels and collect every star." : "Clear the trail, one level at a time." as LocalizedStringKey)
                                     .font(.subheadline)
                                 if completedCount == gameModel.currentLevelRecords.count {
                                     Button("Back to Zodiac Map", systemImage: "map", action: { dismiss() })
@@ -138,6 +158,15 @@ struct SelectLevelView: View {
                 }
             }
         }
+        .overlay {
+            if let openedChest {
+                StarChestRewardView(chest: openedChest) {
+                    withAnimation(.easeOut(duration: 0.2)) { self.openedChest = nil }
+                }
+                .transition(.opacity)
+                .zIndex(20)
+            }
+        }
         .fullScreenCover(isPresented: $gameModel.shouldPresentGame, onDismiss: {
             gameDismissalCount += 1
         }) {
@@ -149,14 +178,28 @@ struct SelectLevelView: View {
                 levelToStart = record.number
             }
         }
-        .navigationTitle(theme.zodiac.title)
+        .navigationTitle(theme.zodiac.localizedTitle)
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(theme.sky, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
         .tint(theme.accent)
         .gameNotice(isPresented: $presentLevelIsLocked, message: "Complete the previous level to unlock this one.", icon: "lock.fill", tint: theme.accent)
         .gameNotice(isPresented: $presentOutOfLives, message: "Out of lives. A new heart is on the way!", icon: "heart.slash.fill", tint: AppTheme.festivalRed)
-        .onAppear { gameModel.refreshLives() }
+        .onAppear {
+            gameModel.refreshLives()
+            claimedChests = StarChestStore.claimed(for: theme.zodiac)
+        }
+    }
+
+    /// Grants the chest once; the store refuses a second claim for the same chest.
+    private func openChest(_ chest: StarChestTrack.Chest) {
+        guard chapterStars >= chest.threshold,
+              StarChestStore.markClaimed(chest.index, for: theme.zodiac) else { return }
+        gameModel.grant(chest.reward)
+        claimedChests = StarChestStore.claimed(for: theme.zodiac)
+        withAnimation(reduceMotion ? nil : .spring(response: 0.35, dampingFraction: 0.75)) {
+            openedChest = chest
+        }
     }
 
     private func selectLevel(_ record: LevelRecord) {

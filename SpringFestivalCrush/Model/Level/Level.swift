@@ -815,11 +815,13 @@ class Level {
 
     /// Boss hazards never replace goals, gifts, specials or existing protected tiles.
     /// Limit protected pieces to keep a usable board, even after a long battle.
-    func advanceBossTurn() {
-        guard var encounter = boss, encounter.health > 0 else { return }
+    /// Returns true when the guardian attacked on this turn.
+    @discardableResult
+    func advanceBossTurn() -> Bool {
+        guard var encounter = boss, encounter.health > 0 else { return false }
         let attacks = encounter.advanceTurn()
         boss = encounter
-        guard attacks else { return }
+        guard attacks else { return false }
         let all = symbols.nonNilElements()
         let budget = max(0, 12 - all.filter { $0.isFrozen || $0.armorLayers > 0 }.count)
         let candidates = all.filter {
@@ -841,6 +843,7 @@ class Level {
             if encounter.configuration.kind == .tiger { target.iceLayer = 1 }
             else { target.armorLayers = 1 }
         }
+        return true
     }
 
     // Booster: instantly clears a single tile without requiring a match, at no move cost.

@@ -42,23 +42,26 @@ struct GameView: View {
     private let timerTicker = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     private var isShowingResult: Bool {
-        gameModel.gameState == .lose || gameModel.gameState == .win
+        gameModel.gameState == .lose || gameModel.gameState == .win || gameModel.gameState == .offeringContinue
     }
 
     // Only one hint is ever shown — hammer mode (an active state needing the player's
     // attention) takes priority over the one-time tutorial hint.
     private var activeBanner: HUDBanner? {
         if gameModel.gameState == .finishing {
-            return HUDBanner(id: "finishing", text: "Level cleared! Counting your bonus…", icon: "star.fill", tint: .orange)
+            return HUDBanner(id: "finishing", text: String(localized: "Festival Finale! Every move left becomes fireworks…"), icon: "sparkles", tint: .orange)
         }
         if let notice = gameModel.toolNotice {
             return HUDBanner(id: notice, text: notice, icon: "shuffle", tint: .black)
         }
         if gameModel.hammerModeActive {
-            return HUDBanner(id: "hammer", text: "Tap a tile to clear it", icon: "hammer.fill", tint: .orange)
+            return HUDBanner(id: "hammer", text: String(localized: "Tap a tile to clear it"), icon: "hammer.fill", tint: .orange)
+        }
+        if gameModel.swapModeActive {
+            return HUDBanner(id: "swap", text: String(localized: "Swipe any two tiles to swap them — no match needed"), icon: "arrow.left.arrow.right", tint: AppTheme.festivalGoldDark)
         }
         if gameModel.isTutorialHintActive {
-            return HUDBanner(id: "tutorial", text: "Swipe two tiles to match 3 or more!", icon: nil, tint: .black)
+            return HUDBanner(id: "tutorial", text: String(localized: "Swipe two tiles to match 3 or more!"), icon: nil, tint: .black)
         }
         return nil
     }
@@ -67,7 +70,7 @@ struct GameView: View {
         return [
             BoosterItem(
                 id: "shuffle", icon: "shuffle", imageName: "ShuffleBoosterIcon",
-                title: "Shuffle", count: gameModel.shuffleCharges, isActive: false,
+                title: String(localized: "Shuffle"), count: gameModel.shuffleCharges, isActive: false,
                 activeGradient: AppTheme.accentGradient, idleGradient: AppTheme.accentGradient,
                 action: {
                     if gameModel.shuffleCharges > 0 { gameModel.onTapShuffle() }
@@ -79,7 +82,7 @@ struct GameView: View {
                 id: "hammer",
                 icon: "hammer.fill",
                 imageName: "HammerBoosterIcon",
-                title: "Festival Hammer",
+                title: String(localized: "Festival Hammer"),
                 count: gameModel.hammerCharges,
                 isActive: gameModel.hammerModeActive,
                 activeGradient: AppTheme.dangerGradient,
@@ -89,6 +92,21 @@ struct GameView: View {
                     else { refillTool = .hammer }
                 },
                 onRefill: { refillTool = .hammer }
+            ),
+            BoosterItem(
+                id: "swap",
+                icon: "arrow.left.arrow.right",
+                imageName: "SwapBoosterIcon",
+                title: String(localized: "Ruyi Swap"),
+                count: gameModel.swapCharges,
+                isActive: gameModel.swapModeActive,
+                activeGradient: AppTheme.dangerGradient,
+                idleGradient: AppTheme.accentGradient,
+                action: {
+                    if gameModel.swapCharges > 0 { gameModel.swapModeActive.toggle() }
+                    else { refillTool = .swap }
+                },
+                onRefill: { refillTool = .swap }
             )
         ]
     }
@@ -119,6 +137,7 @@ struct GameView: View {
             .allowsHitTesting(!isShowingResult && !isGameplayPaused)
             .accessibilityHidden(isShowingResult || showingPause || refillTool != nil)
             .animation(.spring(response: 0.35, dampingFraction: 0.75), value: gameModel.hammerCharges)
+            .animation(.spring(response: 0.35, dampingFraction: 0.75), value: gameModel.swapCharges)
 
             GoalCollectionOverlay(feedback: feedback)
                 .ignoresSafeArea()
@@ -133,7 +152,10 @@ struct GameView: View {
                         .transition(.opacity)
                 }
 
-                if gameModel.gameState == .lose {
+                if gameModel.gameState == .offeringContinue, let offer = gameModel.continueOffer {
+                    ContinueOfferView(offer: offer)
+                        .transition(reduceMotion ? .opacity : .scale(scale: 0.94).combined(with: .opacity))
+                } else if gameModel.gameState == .lose {
                     LevelFailedView()
                         .transition(reduceMotion ? .opacity : .offset(y: 18).combined(with: .opacity))
                 } else if gameModel.gameState == .win {
@@ -198,6 +220,7 @@ struct GameView: View {
         }
         .onChange(of: settingModel.idleHintsEnabled) { _, _ in gameScene?.scheduleIdleHint() }
         .onChange(of: gameModel.hammerModeActive) { _, _ in gameScene?.scheduleIdleHint() }
+        .onChange(of: gameModel.swapModeActive) { _, _ in gameScene?.scheduleIdleHint() }
         .onDisappear {
             feedback.clear()
             gameScene?.cancelIdleHint()
@@ -207,6 +230,7 @@ struct GameView: View {
                 switch tool {
                 case .shuffle: gameModel.grantRewardedShuffle()
                 case .hammer: gameModel.grantRewardedHammer()
+                case .swap: gameModel.grantRewardedSwap()
                 }
             }
         }

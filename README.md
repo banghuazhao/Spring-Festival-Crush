@@ -27,6 +27,10 @@
 * ❤️ **Lives System**: Ten hearts pace your play session, regenerating over time — or refill instantly with a rewarded video.
 * 🧰 **Pre-Level Boosters**: Spend coins earned from levels on extra moves or a tile-clearing hammer before a tough level.
 * 🧩 **Rich Level Mechanics**: Multi-hit vault locks, spreading chocolate blockers, jelly overlays, ice-frozen tiles, ingredient-escort goals, and optional countdown timers.
+* 🧧 **Daily Red Envelope**: Open a 红包 every day and keep a 7-day streak going for bigger gifts.
+* 🎁 **Star Chests**: Every chapter hides three chests that open as you collect stars.
+* 🔄 **Ruyi Swap**: A new tool that swaps any two neighbouring tiles — no match needed, no move spent.
+* 🎆 **Festival Finale**: Leftover moves burst into fireworks, with guzheng notes that climb with every cascade.
 
 ## 📱 Screenshots
 
@@ -101,7 +105,8 @@ Special tiles can be swapped directly to trigger their effect at any time. Some 
 
 - Start with 10 lives; one is spent each time you fail a level, regenerating over time.
 - Out of lives? Watch a rewarded video for +1 life, or wait for the countdown.
-- Before a tough level, spend coins (earned by completing levels) on a **+5 Moves** boost or a **Hammer** that clears one tile of your choice mid-level.
+- Before a tough level, spend coins (earned by completing levels) on a **+5 Moves** boost, a **Hammer** that clears one tile of your choice mid-level, or a **Ruyi Swap** that trades any two neighbouring tiles.
+- Ran out just short of the goal? Keep going with **+5 moves** (or +20 seconds) for coins or a rewarded video, up to three times per attempt.
 
 ## 🏗️ Project Structure
 
@@ -142,7 +147,19 @@ SpringFestivalCrush/
 
 ## 📋 Release Notes
 
-### Version 3.0 (Latest)
+### Version 3.3 (In development)
+- 🔁 **Continue offer**: out of moves or time, buy +5 moves / +20 seconds instead of losing straight away
+- 🔄 **Ruyi Swap** tool: swap any two neighbouring tiles, no match needed, no move spent
+- 🧧 **Daily red envelope** with a 7-day login streak, and 🎁 **star chests** on every chapter map
+- 🎆 **Festival Finale**: fireworks and rising guzheng notes for every move left over
+- 🐯 **Guardian personality**: reactions, damage pops, wind-ups, raids and taunts
+- 🎵 New procedurally synthesized sounds (pentatonic guzheng, gong, drum, firecrackers), Core Haptics patterns and hit-stop on big impacts
+- ⭐ App Store rating prompt, shown only after 3-star clears or guardian wins
+- 🌏 Full Simplified and Traditional Chinese localization of the game UI
+
+See [docs/festival-retention-update.md](docs/festival-retention-update.md) for details.
+
+### Version 3.0
 - 🌟 New **Universal (Five)** power-up tile: match 5 in a row to earn it, then swap to clear every tile of one type
 - ⚡ New **Lightning** power-up tile: formed from L/T-shape matches, clears an entire row and column at once
 - 💥 **Double-lock** tile mechanic: heavy locks require two adjacent matches to break

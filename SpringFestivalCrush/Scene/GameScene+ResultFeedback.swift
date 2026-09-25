@@ -3,6 +3,7 @@ import SpriteKit
 extension GameScene {
     /// A loss settles the board in place, preserving context behind the retry panel.
     func animateGameOver() async {
+        cancelHitStop()
         gameLayer.removeAction(forKey: "screenShake")
         gameLayer.position = .zero
         cancelIdleHint()
@@ -12,6 +13,7 @@ extension GameScene {
 
     /// Presentation only: never award rewards or navigate from this effect.
     func playVictoryAccent() {
+        cancelHitStop()
         gameLayer.removeAction(forKey: "screenShake")
         gameLayer.position = .zero
         cancelIdleHint()

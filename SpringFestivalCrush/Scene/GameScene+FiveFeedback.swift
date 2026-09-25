@@ -33,8 +33,10 @@ extension GameScene {
             self.addClearRing(at: origin, radius: tile * 0.6, expansion: 3.1, color: red, to: batch)
             self.addClearSparks(at: origin, color: gold, count: 10, to: batch)
             HapticManager.explosion()
+            self.hitStop(0.08)
             self.screenShake(magnitude: 3.5, duration: 0.22)
             self.playSound(.match, volume: 0.85, rate: 1.35)
+            self.playSound(.glissando, volume: 0.6)
         }]), withKey: "fiveRelease")
 
         let targets = chain.clearedSymbols.compactMap(\.sprite)

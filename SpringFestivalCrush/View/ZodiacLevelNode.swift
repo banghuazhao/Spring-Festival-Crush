@@ -24,7 +24,7 @@ struct ZodiacLevelNode: View {
     var body: some View {
         Button(action: action) {
             VStack(spacing: 5) {
-                Text(isNewUnlock ? "UNLOCKED!" : (isFinal ? "BOSS" : (isCurrent ? "PLAY NEXT" : " ")))
+                Text(isNewUnlock ? "UNLOCKED!" : (isFinal ? "BOSS" : (isCurrent ? "PLAY NEXT" : " ")) as LocalizedStringKey)
                     .font(.system(size: min(badgeSize, 14), weight: .black, design: .rounded))
                     .lineLimit(1)
                     .tracking(1)
@@ -96,9 +96,11 @@ struct ZodiacLevelNode: View {
         .buttonStyle(.gameNode)
         .accessibilityElement(children: .ignore)
         .accessibilityAddTraits(.isButton)
-        .accessibilityLabel("Level \(number)\(isFinal ? ", zodiac boss" : "")")
-        .accessibilityValue(isUnlocked ? "\(isCurrent ? "Next level. " : "")\(isComplete ? "Complete. " : "")\(stars) of 3 stars" : "Locked")
-        .accessibilityHint(isUnlocked ? "Opens goals and optional boosters" : "Complete the previous level to unlock")
+        .accessibilityLabel(isFinal ? Text("Level \(number), zodiac boss") : Text("Level \(number)"))
+        .accessibilityValue(isUnlocked
+            ? Text("\(isCurrent ? String(localized: "Next level. ") : "")\(isComplete ? String(localized: "Complete. ") : "")\(String(localized: "\(stars) of 3 stars"))")
+            : Text("Locked"))
+        .accessibilityHint(isUnlocked ? Text("Opens goals and optional boosters") : Text("Complete the previous level to unlock"))
         .accessibilityIdentifier("chapter-level-\(number)")
     }
 }

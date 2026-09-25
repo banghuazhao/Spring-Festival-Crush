@@ -8,7 +8,11 @@ struct LevelBriefingView: View {
     var body: some View {
         VStack(spacing: 12) {
             HStack {
-                Text(level.boss == nil ? "CHALLENGE \(level.difficulty) / 5" : "ZODIAC BOSS")
+                if level.boss == nil {
+                    Text("CHALLENGE \(level.difficulty) / 5")
+                } else {
+                    Text("ZODIAC BOSS")
+                }
                 Spacer()
                 if level.hasSnow { Label("瑞雪兆丰年", systemImage: "snowflake") }
             }
@@ -24,7 +28,7 @@ struct LevelBriefingView: View {
                     .font(.caption.bold())
             }
             if let hint = level.mechanicHint {
-                Text(hint)
+                Text(LocalizedStringKey(hint))
                     .font(.subheadline)
                     .foregroundStyle(AppTheme.ink)
                     .fixedSize(horizontal: false, vertical: true)
@@ -78,18 +82,18 @@ struct LevelBriefingView: View {
 
     private func goalName(_ imageName: String) -> String {
         switch imageName {
-        case "firecracker": "firecrackers"
-        case "redPocket": "red envelopes"
-        case "dumpling": "dumplings"
-        case "bowl": "bowls"
-        case "lantern": "lanterns"
-        case "zodiac": "\(zodiac.zodiacType.name) tiles"
-        case "lock": "locks"
-        case "jelly": "jelly layers"
-        case "ingredient": "gifts to bring to the bottom"
-        case "lightningCombos": "lightning combos"
-        case "fiveCombos": "five-tile combos"
-        case "enhancedCombos": "enhanced combos"
+        case "firecracker": String(localized: "firecrackers")
+        case "redPocket": String(localized: "red envelopes")
+        case "dumpling": String(localized: "dumplings")
+        case "bowl": String(localized: "bowls")
+        case "lantern": String(localized: "lanterns")
+        case "zodiac": String(localized: "\(zodiac.zodiacType.localizedName) tiles")
+        case "lock": String(localized: "locks")
+        case "jelly": String(localized: "jelly layers")
+        case "ingredient": String(localized: "gifts to bring to the bottom")
+        case "lightningCombos": String(localized: "lightning combos")
+        case "fiveCombos": String(localized: "five-tile combos")
+        case "enhancedCombos": String(localized: "enhanced combos")
         default: imageName
         }
     }

@@ -275,7 +275,7 @@ private struct ZodiacMapNode: View {
                     }
                 }
 
-                Text(zodiac.name.uppercased())
+                Text(zodiac.localizedName.localizedUppercase)
                     .font(.system(size: max(10, size * 0.17), weight: .black, design: .rounded))
                     .foregroundStyle(isUnlocked ? AppTheme.ink : .white)
                     .lineLimit(1)
@@ -291,8 +291,8 @@ private struct ZodiacMapNode: View {
             }
         }
         .buttonStyle(.gameNode)
-        .accessibilityLabel("\(zodiac.name) zodiac landmark")
-        .accessibilityValue(!isUnlocked ? "Locked" : (isAvailable ? "Unlocked" : "Coming soon"))
+        .accessibilityLabel(Text("\(zodiac.localizedName) zodiac landmark"))
+        .accessibilityValue(!isUnlocked ? Text("Locked") : (isAvailable ? Text("Unlocked") : Text("Coming soon")))
         .onAppear { updateBreathing() }
         // The current landmark moves as zodiacs are unlocked, and a node already on screen
         // never gets a second onAppear — without this the pulse stays on the old landmark.
