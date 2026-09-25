@@ -46,9 +46,7 @@ struct BossEncounterView: View {
                         .transition(.scale(scale: 0.6, anchor: .leading).combined(with: .opacity))
                         .accessibilityHidden(true)
                 } else {
-                    Text(encounter.cue)
-                        .font(.caption)
-                        .fixedSize(horizontal: false, vertical: true)
+                    cue
                 }
             }
         }
@@ -73,6 +71,38 @@ struct BossEncounterView: View {
             withAnimation(reduceMotion ? nil : .easeOut(duration: 0.45).delay(0.35)) {
                 ghostFraction = fraction
             }
+        }
+    }
+
+    /// What hurts the guardian now, and how many moves until it strikes, in one short row.
+    @ViewBuilder
+    private var cue: some View {
+        if isDefeated {
+            Text(encounter.cue).font(.caption.weight(.heavy))
+        } else {
+            HStack(spacing: 4) {
+                switch kind {
+                case .rat:
+                    PictoTile(asset: encounter.tribute == .redPocket ? "redPocket" : "dumpling", size: 18)
+                case .ox:
+                    PictoTile(asset: "bowl", overlay: .armor(1), size: 18)
+                    PictoTile(asset: "LightningTile", size: 18)
+                case .tiger:
+                    PictoTile(asset: "firecracker", size: 18)
+                    Image(systemName: "chevron.compact.down").font(.system(size: 10, weight: .black))
+                }
+                Spacer(minLength: 4)
+                PictoCountdown(moves: encounter.movesUntilAttack, size: 18, tint: .white)
+                Text(verbatim: kind == .tiger ? "❄" : "💢").font(.system(size: 11))
+                if kind == .tiger {
+                    Text(verbatim: "\(9 - encounter.nextAttackLane)")
+                        .font(.caption2.weight(.black))
+                        .padding(.horizontal, 4)
+                        .background(Color.cyan.opacity(0.45), in: Capsule())
+                }
+            }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text(encounter.cue))
         }
     }
 

@@ -334,4 +334,23 @@ final class FestivalFeaturesTests: XCTestCase {
             }
         }
     }
+
+    func testEveryLevelHintIsDrawnAsPictures() {
+        var checked = 0
+        for zodiac in ["Rat", "Ox", "Tiger"] {
+            var number = 1
+            while let level = Level(filename: "\(zodiac)_Level_\(number)") {
+                if let hint = level.mechanicHint {
+                    XCTAssertFalse(MechanicTip.tips(in: hint).isEmpty, "\(zodiac) \(number): \(hint)")
+                    checked += 1
+                }
+                number += 1
+            }
+        }
+        XCTAssertGreaterThan(checked, 30)
+        XCTAssertEqual(MechanicTip.tips(in: "Swap neighbors to match 3. Match 4 for a blast tile, 5 for a star."),
+                       [.swapToMatch, .specials])
+        XCTAssertEqual(MechanicTip.tips(in: "Gold frame · 2 hits. Ice: thaw. Chain reactions. Match 4 or 5 to make special tiles."),
+                       [.armor, .ice, .cascade, .specials])
+    }
 }

@@ -74,9 +74,9 @@ struct ContinueOfferView: View {
                         .accessibilityIdentifier("continue-coins")
                         .accessibilityLabel(Text("\(grantText) for \(offer.coinCost) coins"))
 
-                        Text("Balance: \(gameModel.coins)")
-                            .font(.caption.weight(.semibold))
-                            .foregroundStyle(AppTheme.ink.opacity(0.7))
+                        CoinAmountChip(amount: "\(gameModel.coins)", size: 13)
+                            .accessibilityElement(children: .ignore)
+                            .accessibilityLabel(Text("Balance: \(gameModel.coins)"))
 
                         if offer.allowsRewardedAd {
                             RewardedAdButton(title: "Watch Ad · Free Continue", systemImage: "play.rectangle.fill") {

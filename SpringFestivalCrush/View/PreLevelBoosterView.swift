@@ -55,10 +55,6 @@ struct PreLevelBoosterView: View {
                                 .foregroundStyle(AppTheme.ink)
                         }
 
-                        Text("CHOOSE YOUR BOOSTERS")
-                            .font(.caption.weight(.black))
-                            .foregroundStyle(AppTheme.ink.opacity(0.65))
-
                         HStack(spacing: 6) {
                             Image(systemName: "circle.fill")
                                 .foregroundStyle(AppTheme.festivalGold)
@@ -66,11 +62,10 @@ struct PreLevelBoosterView: View {
                                 .font(.system(size: 22, weight: .black, design: .rounded))
                                 .contentTransition(.numericText())
                                 .animation(reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 0.7), value: coinsRemaining)
-                            Text("COINS")
-                                .font(.system(size: 10, weight: .black, design: .rounded))
-                                .foregroundStyle(AppTheme.ink.opacity(0.62))
                         }
                         .foregroundStyle(AppTheme.ink)
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel(Text("\(coinsRemaining) coins"))
                         .padding(.horizontal, 16)
                         .padding(.vertical, 8)
                         .background(Capsule().fill(AppTheme.creamHighlight))
@@ -87,7 +82,14 @@ struct PreLevelBoosterView: View {
                                 detail: "More room to make a comeback",
                                 cost: GameModel.extraMovesBoosterCost,
                                 isSelected: $buyExtraMoves
-                            )
+                            ) {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "arrow.left.arrow.right")
+                                        .font(.system(size: 12, weight: .black))
+                                        .foregroundStyle(theme.accent)
+                                    PictoTag(text: "+\(GameModel.extraMovesBoosterAmount)", tint: Color(UIColor(hex: 0x2FAE4E)), size: 12)
+                                }
+                            }
                             boosterRow(
                                 icon: "hammer.fill",
                                 imageName: "HammerBoosterIcon",
@@ -95,7 +97,13 @@ struct PreLevelBoosterView: View {
                                 detail: "Clear any one tile",
                                 cost: GameModel.hammerBoosterCost,
                                 isSelected: $buyHammer
-                            )
+                            ) {
+                                HStack(spacing: 4) {
+                                    PictoTile(asset: "dumpling", size: 22)
+                                    PictoArrow(size: 10)
+                                    PictoClear(size: 22)
+                                }
+                            }
                             boosterRow(
                                 icon: "arrow.left.arrow.right",
                                 imageName: "SwapBoosterIcon",
@@ -103,7 +111,13 @@ struct PreLevelBoosterView: View {
                                 detail: "Swap any two tiles, no match needed",
                                 cost: GameModel.swapBoosterCost,
                                 isSelected: $buySwap
-                            )
+                            ) {
+                                HStack(spacing: 3) {
+                                    PictoTile(asset: "redPocket", size: 22)
+                                    PictoArrow(systemName: "arrow.left.arrow.right", size: 10)
+                                    PictoTile(asset: "lantern", size: 22)
+                                }
+                            }
                         }
                     }
                 }
@@ -120,7 +134,6 @@ struct PreLevelBoosterView: View {
                         Text("Level \(levelNumber)").font(.headline)
                     } else {
                         Text(theme.name).font(.headline)
-                        Text("Get ready to play").font(.subheadline)
                     }
                 }
                 .foregroundStyle(AppTheme.ink)
@@ -142,11 +155,11 @@ struct PreLevelBoosterView: View {
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
             VStack(spacing: 6) {
-                if !dynamicTypeSize.isAccessibilitySize || selectedCost > 0 {
-                    Text(selectedCost > 0 ? String(localized: "Total: \(selectedCost) coins") : String(localized: "Boosters are optional. Play your way!"))
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(AppTheme.ink.opacity(0.75))
-                        .multilineTextAlignment(.center)
+                if selectedCost > 0 {
+                    CoinAmountChip(amount: "−\(selectedCost)", size: 13)
+                        .transition(.scale.combined(with: .opacity))
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel(Text("Total: \(selectedCost) coins"))
                 }
                 Button(action: startLevel) {
                     Label("Let's Play", systemImage: "play.fill")
@@ -158,6 +171,7 @@ struct PreLevelBoosterView: View {
                 .keyboardShortcut(.defaultAction)
                 .accessibilityIdentifier("level-briefing-start")
             }
+            .animation(reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 0.7), value: selectedCost > 0)
             .padding(.horizontal, 24)
             .padding(.top, 12)
             .frame(maxWidth: 420)
@@ -190,13 +204,14 @@ struct PreLevelBoosterView: View {
         dismiss()
     }
 
-    private func boosterRow(
+    private func boosterRow<Art: View>(
         icon: String,
         imageName: String? = nil,
         title: String,
         detail: String,
         cost: Int,
-        isSelected: Binding<Bool>
+        isSelected: Binding<Bool>,
+        @ViewBuilder art: () -> Art
     ) -> some View {
         // Already-selected rows stay tappable so a selection can always be undone.
         let affordable = isSelected.wrappedValue || coinsRemaining >= cost
@@ -224,12 +239,10 @@ struct PreLevelBoosterView: View {
                         .background(Circle().fill(affordable ? theme.gradient : AppTheme.neutralGradient))
                 }
 
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: 4) {
                     Text(LocalizedStringKey(title))
                         .font(.subheadline.weight(.heavy))
-                    Text(LocalizedStringKey(detail))
-                        .font(.caption.weight(.medium))
-                        .foregroundStyle(AppTheme.ink.opacity(0.58))
+                    art()
                 }
                 Spacer()
 
