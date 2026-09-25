@@ -25,15 +25,11 @@ struct DailyEnvelopeView: View {
 
     var body: some View {
         ZStack {
-            AppTheme.festivalRedDark.gradient.ignoresSafeArea()
+            Rectangle().fill(AppTheme.festivalRedDark.gradient).ignoresSafeArea()
 
             ScrollView {
                 GamePopupPanel(title: String(localized: "DAILY RED ENVELOPE"), tone: .red) {
                     VStack(spacing: 16) {
-                        Text("Day \(todayDay) of \(DailyEnvelopeRules.cycleLength) · 每日红包")
-                            .font(.subheadline.weight(.bold))
-                            .foregroundStyle(AppTheme.ink.opacity(0.75))
-
                         streakStrip
 
                         envelopeButton
@@ -41,26 +37,26 @@ struct DailyEnvelopeView: View {
                         if let openedReward {
                             RewardItemsView(reward: openedReward, revealed: isOpen)
                             if doubled {
-                                Label("Doubled!", systemImage: "checkmark.seal.fill")
-                                    .font(.headline)
-                                    .foregroundStyle(AppTheme.festivalRed)
+                                HStack(spacing: 4) {
+                                    Image(systemName: "checkmark.seal.fill")
+                                    PictoTag(text: "×2", size: 16)
+                                }
+                                .font(.title3)
+                                .foregroundStyle(AppTheme.festivalRed)
+                                .accessibilityElement(children: .ignore)
+                                .accessibilityLabel(Text("Doubled!"))
                             }
                         } else if !envelope.isReady {
                             TimelineView(.periodic(from: .now, by: 1)) { context in
-                                Text("Next envelope in \(Self.countdown(to: context.date))")
+                                let remaining = Self.countdown(to: context.date)
+                                Label(remaining, systemImage: "clock.fill")
                                     .font(.headline.monospacedDigit())
                                     .foregroundStyle(AppTheme.festivalRed)
+                                    .accessibilityLabel(Text("Next envelope in \(remaining)"))
                             }
-                        } else {
-                            Text("Tap the envelope to open it!")
-                                .font(.headline)
-                                .foregroundStyle(AppTheme.festivalRed)
                         }
 
-                        Text("Open one every day. Miss a day and the streak starts again from Day 1.")
-                            .font(.caption)
-                            .foregroundStyle(AppTheme.ink.opacity(0.65))
-                            .multilineTextAlignment(.center)
+                        streakRule
                     }
                     .foregroundStyle(AppTheme.ink)
                 }
@@ -121,15 +117,50 @@ struct DailyEnvelopeView: View {
             HapticManager.buttonTap()
             open()
         } label: {
-            RedEnvelopeArt(width: dynamicTypeSize.isAccessibilitySize ? 110 : 150, isOpen: isOpen)
+            RedEnvelopeArt(width: envelopeWidth, isOpen: isOpen)
                 .rotationEffect(.degrees(wiggle && !isOpen ? 4 : 0))
                 .scaleEffect(isOpen && !reduceMotion ? 1.04 : 1)
-                .padding(.top, isOpen ? 40 : 0)
+                .padding(.top, isOpen ? envelopeWidth * 0.62 : 0)
+                .overlay(alignment: .bottomTrailing) {
+                    if envelope.isReady && !isOpen {
+                        TapHintHand(size: 40).offset(x: 10, y: 6)
+                    }
+                }
         }
         .buttonStyle(.gameNode)
         .disabled(!envelope.isReady)
         .accessibilityLabel(envelope.isReady ? Text("Open today's red envelope") : Text("Today's red envelope is already open"))
         .accessibilityIdentifier("daily-envelope")
+    }
+
+    private var envelopeWidth: CGFloat { dynamicTypeSize.isAccessibilitySize ? 110 : 150 }
+
+    /// "Miss a day and it starts over", as a picture: two kept days, a missed one, back to 1.
+    private var streakRule: some View {
+        HStack(spacing: 6) {
+            ForEach(0 ..< 2, id: \.self) { _ in
+                RedEnvelopeArt(width: 16)
+                    .overlay(alignment: .bottomTrailing) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundStyle(.white, Color.green)
+                            .offset(x: 4, y: 3)
+                    }
+            }
+            RedEnvelopeArt(width: 16, dimmed: true)
+                .overlay {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 14, weight: .black))
+                        .foregroundStyle(AppTheme.festivalRed)
+                }
+            PictoArrow(systemName: "arrow.uturn.backward", size: 13)
+            PictoTag(text: "1", tint: AppTheme.festivalRed, size: 13)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .background(AppTheme.creamHighlight, in: Capsule())
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("Open one every day. Miss a day and the streak starts again from Day 1."))
     }
 
     private var streakStrip: some View {

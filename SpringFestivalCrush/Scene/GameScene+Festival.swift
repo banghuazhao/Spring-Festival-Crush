@@ -77,7 +77,7 @@ extension GameScene {
             ribbon.zPosition = 80
             symbolsLayer.addChild(ribbon)
             ribbon.run(.sequence([.fadeAlpha(to: 0.9, duration: 0.06), .wait(forDuration: 0.2),
-                                  .fadeOut(withDuration: 0.2), .removeFromParent()]))
+                                  .fadeOut(withDuration: 0.2), .removeFromParent()]), completion: {})
         }
 
         let travelA = SKAction.follow(pathA, asOffset: false, orientToPath: false, duration: 0.3)

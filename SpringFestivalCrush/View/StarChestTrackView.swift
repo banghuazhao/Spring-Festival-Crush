@@ -59,6 +59,11 @@ struct StarChestTrackView: View {
                                 .foregroundStyle(state == .locked ? AppTheme.ink.opacity(0.5) : theme.accent)
                             }
                             .frame(minWidth: 44, minHeight: 44)
+                            .overlay(alignment: .bottomTrailing) {
+                                if state == .ready {
+                                    TapHintHand(size: 24).offset(x: 12, y: 14)
+                                }
+                            }
                         }
                         .buttonStyle(.gameNode)
                         .position(x: min(width - 20, max(20, CGFloat(chest.threshold) / CGFloat(max(1, track.maxStars)) * width)),
@@ -72,11 +77,6 @@ struct StarChestTrackView: View {
             }
             .frame(height: 60)
 
-            if hasReadyChest {
-                Text("A chest is ready — tap it to open!")
-                    .font(.caption.weight(.bold))
-                    .foregroundStyle(AppTheme.festivalRed)
-            }
         }
         .padding(14)
         .background(AppTheme.creamHighlight.opacity(0.78), in: .rect(cornerRadius: 18))
