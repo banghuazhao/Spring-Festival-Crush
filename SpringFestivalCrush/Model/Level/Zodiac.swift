@@ -23,6 +23,28 @@ enum ChineseZodiac: Int, CaseIterable, Codable {
         emoji + " " + name
     }
 
+    /// Display name. `name` stays English because it also names the level files.
+    var localizedName: String {
+        switch self {
+        case .rat: String(localized: "Rat")
+        case .ox: String(localized: "Ox")
+        case .tiger: String(localized: "Tiger")
+        case .rabbit: String(localized: "Rabbit")
+        case .dragon: String(localized: "Dragon")
+        case .snake: String(localized: "Snake")
+        case .horse: String(localized: "Horse")
+        case .goat: String(localized: "Goat")
+        case .monkey: String(localized: "Monkey")
+        case .rooster: String(localized: "Rooster")
+        case .dog: String(localized: "Dog")
+        case .pig: String(localized: "Pig")
+        }
+    }
+
+    var localizedTitle: String {
+        emoji + " " + localizedName
+    }
+
     var name: String {
         switch self {
         case .rat:

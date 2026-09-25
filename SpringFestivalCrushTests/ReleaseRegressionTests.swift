@@ -263,6 +263,10 @@ final class ReleaseRegressionTests: XCTestCase {
         }
         await game.handleSwipe(swap)
         XCTAssertTrue(checkedPendingMove)
+        // Running out now pauses on the continue offer; declining is what ends the attempt.
+        XCTAssertEqual(game.gameState, .offeringContinue)
+        XCTAssertEqual(game.loseReason, .outOfTime)
+        game.declineContinue()
         XCTAssertEqual(game.gameState, .lose)
         XCTAssertEqual(game.loseReason, .outOfTime)
     }
@@ -305,6 +309,11 @@ final class ReleaseRegressionTests: XCTestCase {
         }
         game.tickTimer()
         game.tickTimer()
+        for _ in 0 ..< 200 where game.gameState != .offeringContinue { await Task.yield() }
+        XCTAssertEqual(game.gameState, .offeringContinue)
+        XCTAssertEqual(game.lives, 10, "The offer itself never costs a life")
+        game.declineContinue()
+        game.declineContinue()
         await fulfillment(of: [finished], timeout: 5)
         game.tickTimer()
         XCTAssertEqual(game.secondsLeft, 0)

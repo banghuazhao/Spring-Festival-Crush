@@ -15,12 +15,15 @@ extension GameScene {
 
     func animateCascade(depth: Int) {
         let cue = CascadeFeedback(depth: depth)
-        playSound(.match, volume: cue.volume, rate: cue.playbackRate)
+        playSound(.match, volume: cue.volume * 0.7, rate: cue.playbackRate)
+        // Each cascade climbs one guzheng string, so long chains literally sound richer.
+        playSound(.note(cue.noteStep), volume: 0.75)
+        if depth >= 2 { HapticManager.cascade(depth: depth) }
         guard let title = cue.title else { return }
         childNode(withName: "cascadeCaption")?.removeFromParent()
         let label = SKLabelNode(fontNamed: "AvenirNext-Heavy")
         label.name = "cascadeCaption"
-        label.text = "\(title)  ·  \(depth) cascades"
+        label.text = String(localized: "\(title)  ·  \(depth) cascades")
         label.fontSize = min(CGFloat(17 + cue.tier), gameModel.tileSize.width * 0.55)
         label.fontColor = UIColor(hex: 0xFFE4A3)
         label.position = CGPoint(x: 0, y: gameModel.tileSize.height * CGFloat(gameModel.numRows) / 2 + 12)

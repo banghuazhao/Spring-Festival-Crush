@@ -8,10 +8,10 @@ struct SettingsSoundControl: View {
 
     var body: some View {
         VStack(spacing: 8) {
-            Toggle(isOn: $enabled) { Label(title, systemImage: icon) }
+            Toggle(isOn: $enabled) { Label(LocalizedStringKey(title), systemImage: icon) }
             HStack(spacing: 12) {
                 Slider(value: $volume, in: 0...1, step: 0.05) {
-                    Text("\(title) volume")
+                    Text("\(String(localized: String.LocalizationValue(title))) volume")
                 }
                 .accessibilityValue(volume.formatted(.percent.precision(.fractionLength(0))))
                 Text(volume, format: .percent.precision(.fractionLength(0)))

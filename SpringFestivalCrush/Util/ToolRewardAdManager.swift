@@ -20,7 +20,7 @@ final class ToolRewardAdManager: NSObject, ObservableObject, GADFullScreenConten
         #else
         let unitID = Bundle.main.object(forInfoDictionaryKey: "RewardedAdUnitID") as? String ?? ""
         guard unitID.hasPrefix("ca-app-pub-"), !unitID.contains("$(") else {
-            message = "Ad refills are currently unavailable."
+            message = String(localized: "Ad refills are currently unavailable.")
             return
         }
         #endif
@@ -28,7 +28,7 @@ final class ToolRewardAdManager: NSObject, ObservableObject, GADFullScreenConten
         message = nil
         defer { isLoading = false }
         guard await ConsentManager.shared.gatherConsent() else {
-            message = "Ads are unavailable until your privacy choices allow them."
+            message = String(localized: "Ads are unavailable until your privacy choices allow them.")
             return
         }
         do {
@@ -39,7 +39,7 @@ final class ToolRewardAdManager: NSObject, ObservableObject, GADFullScreenConten
             isReady = true
         } catch {
             guard !Task.isCancelled else { return }
-            message = "No ad available right now. Please try again."
+            message = String(localized: "No ad available right now. Please try again.")
         }
     }
 
@@ -48,7 +48,7 @@ final class ToolRewardAdManager: NSObject, ObservableObject, GADFullScreenConten
         guard let scene = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene })
                 .first(where: { $0.activationState == .foregroundActive }),
               var presenter = scene.windows.first(where: \.isKeyWindow)?.rootViewController else {
-            message = "Please return to the app and try again."
+            message = String(localized: "Please return to the app and try again.")
             return
         }
         while let presented = presenter.presentedViewController { presenter = presented }
@@ -71,7 +71,7 @@ final class ToolRewardAdManager: NSObject, ObservableObject, GADFullScreenConten
 
     nonisolated func ad(_ ad: GADFullScreenPresentingAd, didFailToPresentFullScreenContentWithError error: Error) {
         Task { @MainActor [weak self] in
-            self?.message = "The ad could not be shown. Please try again."
+            self?.message = String(localized: "The ad could not be shown. Please try again.")
             self?.finishPresentation()
         }
     }

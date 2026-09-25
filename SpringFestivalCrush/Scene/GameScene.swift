@@ -13,6 +13,7 @@ class GameScene: SKScene {
     var lastSoundTimes: [GameSound: TimeInterval] = [:]
     let idleHintLayer = SKNode()
     var feedbackPaused = false
+    var hitStopToken = 0
 
     // MARK: - Layers
     let gameLayer = SKNode()
@@ -125,6 +126,12 @@ class GameScene: SKScene {
             animateGoalProgress(progress)
         case let .onCascade(depth):
             animateCascade(depth: depth)
+        case let .onBossHit(damage):
+            animateBossHit(damage: damage)
+        case let .onBossAttack(kind):
+            animateBossAttack(kind)
+        case let .onFinaleBegin(movesLeft):
+            beginFinale(movesLeft: movesLeft)
         }
     }
 
@@ -158,6 +165,8 @@ class GameScene: SKScene {
             await shuffle(by: newSprites)
         case let .onHammerImpact(symbol):
             await animateHammerImpact(symbol)
+        case let .onFreeSwap(swap):
+            await animateFreeSwap(swap)
         }
     }
 
@@ -356,7 +365,11 @@ class GameScene: SKScene {
             // 4
             let swap = Swap(symbolA: fromSymbol, symbolB: toSymbol)
             Task { @MainActor in
-                await gameModel.handleSwipe(swap)
+                if gameModel.swapModeActive {
+                    await gameModel.useRuyiSwap(swap)
+                } else {
+                    await gameModel.handleSwipe(swap)
+                }
             }
         }
     }
@@ -536,6 +549,7 @@ class GameScene: SKScene {
                 group.addTask { @MainActor in
                     if !self.reduceMotion { await self.run(.wait(forDuration: min(0.36, Double(index) * 0.025))) }
                     guard self.gameModel.level === level, self.gameModel.gameState == state, !Task.isCancelled else { return }
+                    if state == .finishing { self.playFinaleNote(index) }
                     symbol.sprite?.removeFromParent()
                     await self.createSpriteForSymbol(symbol)
                     guard self.gameModel.level === level, self.gameModel.gameState == state, !Task.isCancelled else { return }
@@ -546,11 +560,15 @@ class GameScene: SKScene {
     }
 
     func animateBeginGame() async {
+        cancelHitStop()
+        childNode(withName: "festivalFinale")?.removeFromParent()
         gameLayer.removeAction(forKey: "screenShake")
         gameLayer.removeAction(forKey: "victorySettle")
         gameLayer.isHidden = false
         gameLayer.alpha = 1
         gameLayer.setScale(1)
+        // A guardian announces itself with a gong; ordinary levels open with a zither sweep.
+        playSound(gameModel.level.boss == nil ? .glissando : .gong, volume: 0.55)
         if reduceMotion {
             gameLayer.position = .zero
             gameLayer.alpha = 0

@@ -21,9 +21,10 @@ struct ZodiacChapterTheme {
         }
     }
 
-    var name: String { identity.name }
+    // Looked up at runtime so the tuple above stays the single English source.
+    var name: String { NSLocalizedString(identity.name, comment: "Zodiac chapter name") }
     var chineseName: String { identity.chinese }
-    var detail: String { identity.detail }
+    var detail: String { NSLocalizedString(identity.detail, comment: "Zodiac chapter tagline") }
     var motif: String { identity.motif }
     var accent: Color { Color(UIColor(hex: identity.accent)) }
     var sky: Color { Color(UIColor(hex: identity.sky)) }

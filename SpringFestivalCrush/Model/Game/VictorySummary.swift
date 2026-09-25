@@ -9,5 +9,7 @@ struct VictorySummary: Identifiable {
     let stars: Int
     let coins: Int
     let newlyUnlockedLevel: Int?
+    var defeatedBoss = false
+    var usedContinue = false
     var mapFocusLevel: Int { newlyUnlockedLevel ?? level }
 }

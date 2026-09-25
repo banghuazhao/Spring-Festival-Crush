@@ -22,7 +22,7 @@ struct RewardedAdButton: View {
                 HapticManager.buttonTap()
                 adManager.show(onReward: onReward)
             } label: {
-                Label(title, systemImage: systemImage)
+                Label(LocalizedStringKey(title), systemImage: systemImage)
                     .font(.subheadline.weight(.semibold))
             }
             .buttonStyle(.gamePrimary(gradient: AppTheme.successGradient, shape: Capsule()))

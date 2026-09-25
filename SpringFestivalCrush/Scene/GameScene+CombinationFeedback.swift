@@ -65,6 +65,9 @@ extension GameScene {
             guard let self, let effect, effect.parent?.parent != nil, !self.reduceMotion else { return }
             HapticManager.explosion()
             self.playSound(.match, volume: 0.9, rate: combination == .fiveFive ? 0.8 : 1.2)
+            if combination.lightningCount > 0 { self.playSound(.firecracker, volume: 0.75) }
+            if combination == .fiveFive { self.playSound(.gong, volume: 0.6, rate: 1.4) }
+            self.hitStop(combination == .fiveFive ? 0.11 : 0.09)
             self.screenShake(magnitude: combination == .fiveFive ? 4 : 3, duration: 0.24)
             self.addClearSparks(at: center, color: gold, count: 12, to: effect)
         }]), withKey: "combinationImpact")

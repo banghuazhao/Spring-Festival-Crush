@@ -12,12 +12,16 @@ struct ToolRefillView: View {
 
     var body: some View {
         ScrollView {
-            GamePopupPanel(title: tool.title.uppercased()) {
+            GamePopupPanel(title: tool.title.localizedUppercase) {
                 VStack(spacing: 18) {
                     Image(tool.imageName)
                         .resizable().scaledToFit().frame(width: 80, height: 80)
                         .accessibilityHidden(true)
-                    Text(earnedReward ? "+1 added to your tools!" : "Watch an ad to add 1 charge. No moves spent.")
+                    Text(tool.detail)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(AppTheme.ink.opacity(0.75))
+                        .multilineTextAlignment(.center)
+                    Text(earnedReward ? "+1 added to your tools!" : "Watch an ad to add 1 charge. No moves spent." as LocalizedStringKey)
                         .font(.headline)
                         .foregroundStyle(AppTheme.ink)
                         .multilineTextAlignment(.center)
@@ -54,7 +58,7 @@ struct ToolRefillView: View {
         }
         .background(AppTheme.festivalRedDark.gradient)
         .safeAreaInset(edge: .bottom) {
-            Button(earnedReward ? "Back to Game" : "Not Now") { dismiss() }
+            Button(earnedReward ? String(localized: "Back to Game") : String(localized: "Not Now")) { dismiss() }
                 .buttonStyle(.gamePrimary(gradient: AppTheme.neutralGradient))
                 .padding(12)
                 .frame(maxWidth: .infinity)

@@ -60,7 +60,7 @@ struct SettingsView: View {
                         .font(.footnote).foregroundStyle(AppTheme.ink.opacity(0.7))
                     Divider()
                     Label("Match 3 or more to collect goals. Match 4 or make a special shape to create a power-up.", systemImage: "sparkles").font(.subheadline)
-                    Label("Hammer clears one tile. Shuffle rearranges the board. Neither spends a move.", systemImage: "info.circle").font(.subheadline)
+                    Label("Hammer, Shuffle and Ruyi Swap never spend a move: the Hammer clears one tile, Shuffle rearranges the board, and Ruyi Swap trades any two neighbours.", systemImage: "info.circle").font(.subheadline)
                 }
 
                 SettingsCard(title: "Privacy", icon: "hand.raised.fill") {
@@ -106,7 +106,7 @@ struct SettingsView: View {
                         }
                         .frame(minHeight: 44)
                     }
-                    .accessibilityValue(moreAppsExpanded ? "Expanded" : "Collapsed")
+                    .accessibilityValue(moreAppsExpanded ? Text("Expanded") : Text("Collapsed"))
                     if moreAppsExpanded {
                         ForEach(AppItem.allItems) { item in
                             if let url = item.url {

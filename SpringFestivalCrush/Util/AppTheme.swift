@@ -211,7 +211,7 @@ struct GamePopupPanel<Content: View>: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Text(title)
+            Text(LocalizedStringKey(title))
                 .font(.system(size: 20, weight: .black, design: .rounded))
                 .foregroundStyle(tone.foreground)
                 .multilineTextAlignment(.center)
@@ -263,7 +263,7 @@ struct GameNoticeBanner: View {
         HStack(spacing: 10) {
             Image(systemName: icon)
                 .font(.system(size: 18, weight: .black))
-            Text(message)
+            Text(LocalizedStringKey(message))
                 .font(.system(size: 15, weight: .bold, design: .rounded))
                 .lineLimit(2)
         }

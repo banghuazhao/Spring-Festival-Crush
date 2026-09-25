@@ -37,7 +37,7 @@ struct LevelFailedView: View {
                             .font(.caption.bold())
                             .foregroundStyle(AppTheme.ink.opacity(0.7))
                             GridRow {
-                                Text(gameModel.currentLevel >= 1 ? "\(gameModel.currentLevel)" : "DEMO")
+                                Text(gameModel.currentLevel >= 1 ? "\(gameModel.currentLevel)" : "DEMO" as LocalizedStringKey)
                                 Text("\(gameModel.score)")
                             }
                             .font(.title2.bold().monospacedDigit())

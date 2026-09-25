@@ -17,6 +17,7 @@ struct PreLevelBoosterView: View {
 
     @State private var buyExtraMoves = false
     @State private var buyHammer = false
+    @State private var buySwap = false
     @State private var previewLevel: Level?
     @State private var showInsufficientCoins = false
     @State private var isStarting = false
@@ -32,6 +33,7 @@ struct PreLevelBoosterView: View {
     private var selectedCost: Int {
         (buyExtraMoves ? GameModel.extraMovesBoosterCost : 0)
             + (buyHammer ? GameModel.hammerBoosterCost : 0)
+            + (buySwap ? GameModel.swapBoosterCost : 0)
     }
 
     private var coinsRemaining: Int {
@@ -43,7 +45,7 @@ struct PreLevelBoosterView: View {
             ZodiacChapterScenery(theme: theme).ignoresSafeArea()
 
             ScrollView(showsIndicators: false) {
-                GamePopupPanel(title: "LEVEL \(levelNumber)", tone: .gold) {
+                GamePopupPanel(title: String(localized: "LEVEL \(levelNumber)"), tone: .gold) {
                     VStack(spacing: 14) {
                         if let previewLevel, let zodiac = gameModel.zodiac {
                             LevelBriefingView(level: previewLevel, zodiac: zodiac, theme: theme)
@@ -74,14 +76,14 @@ struct PreLevelBoosterView: View {
                         .background(Capsule().fill(AppTheme.creamHighlight))
                         .overlay(Capsule().stroke(AppTheme.festivalGold, lineWidth: 2))
 
-                        RewardedAdButton(title: "Watch Ad · +\(GameModel.rewardedCoinsAmount)", systemImage: "play.rectangle.fill") {
+                        RewardedAdButton(title: String(localized: "Watch Ad · +\(GameModel.rewardedCoinsAmount) coins"), systemImage: "play.rectangle.fill") {
                             gameModel.grantRewardedCoins()
                         }
 
                         VStack(spacing: 10) {
                             boosterRow(
                                 icon: "plus.circle.fill",
-                                title: "+\(GameModel.extraMovesBoosterAmount) Moves",
+                                title: String(localized: "+\(GameModel.extraMovesBoosterAmount) Moves"),
                                 detail: "More room to make a comeback",
                                 cost: GameModel.extraMovesBoosterCost,
                                 isSelected: $buyExtraMoves
@@ -93,6 +95,14 @@ struct PreLevelBoosterView: View {
                                 detail: "Clear any one tile",
                                 cost: GameModel.hammerBoosterCost,
                                 isSelected: $buyHammer
+                            )
+                            boosterRow(
+                                icon: "arrow.left.arrow.right",
+                                imageName: "SwapBoosterIcon",
+                                title: "Ruyi Swap",
+                                detail: "Swap any two tiles, no match needed",
+                                cost: GameModel.swapBoosterCost,
+                                isSelected: $buySwap
                             )
                         }
                     }
@@ -133,7 +143,7 @@ struct PreLevelBoosterView: View {
         .safeAreaInset(edge: .bottom, spacing: 0) {
             VStack(spacing: 6) {
                 if !dynamicTypeSize.isAccessibilitySize || selectedCost > 0 {
-                    Text(selectedCost > 0 ? "Total: \(selectedCost) coins" : "Boosters are optional. Play your way!")
+                    Text(selectedCost > 0 ? String(localized: "Total: \(selectedCost) coins") : String(localized: "Boosters are optional. Play your way!"))
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(AppTheme.ink.opacity(0.75))
                         .multilineTextAlignment(.center)
@@ -175,6 +185,7 @@ struct PreLevelBoosterView: View {
         HapticManager.buttonTap()
         if buyExtraMoves { gameModel.applyExtraMovesBooster() }
         if buyHammer { gameModel.applyHammerBooster() }
+        if buySwap { gameModel.applySwapBooster() }
         onStart()
         dismiss()
     }
@@ -214,9 +225,9 @@ struct PreLevelBoosterView: View {
                 }
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(title)
+                    Text(LocalizedStringKey(title))
                         .font(.subheadline.weight(.heavy))
-                    Text(detail)
+                    Text(LocalizedStringKey(detail))
                         .font(.caption.weight(.medium))
                         .foregroundStyle(AppTheme.ink.opacity(0.58))
                 }
@@ -253,8 +264,8 @@ struct PreLevelBoosterView: View {
         .animation(reduceMotion ? nil : .spring(response: 0.28, dampingFraction: 0.65), value: isSelected.wrappedValue)
         .accessibilityElement(children: .ignore)
         .accessibilityAddTraits(.isButton)
-        .accessibilityLabel("\(title), \(cost) coins. \(detail)")
-        .accessibilityValue(isSelected.wrappedValue ? "Selected" : (affordable ? "Not selected" : "Not enough coins"))
+        .accessibilityLabel(Text("\(String(localized: String.LocalizationValue(title))), \(cost) coins. \(String(localized: String.LocalizationValue(detail)))"))
+        .accessibilityValue(isSelected.wrappedValue ? Text("Selected") : (affordable ? Text("Not selected") : Text("Not enough coins")))
         .accessibilityAddTraits(isSelected.wrappedValue ? .isSelected : [])
     }
 }

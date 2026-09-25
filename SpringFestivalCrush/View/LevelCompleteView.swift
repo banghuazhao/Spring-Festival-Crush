@@ -1,3 +1,4 @@
+import StoreKit
 import SwiftUI
 
 struct LevelCompleteView: View {
@@ -5,6 +6,7 @@ struct LevelCompleteView: View {
     @EnvironmentObject private var gameModel: GameModel
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
     @Environment(\.gameReducedEffects) private var reducedEffects
+    @Environment(\.requestReview) private var requestReview
     private var reduceMotion: Bool { systemReduceMotion || reducedEffects }
     @State private var revealedStars = 0
     @State private var rewardVisible = false
@@ -96,11 +98,31 @@ struct LevelCompleteView: View {
                 revealedStars = 3
                 rewardVisible = true
                 onRevealComplete()
+                maybeAskForReview(token: token)
             } else {
                 revealNextStar(token: token)
             }
         }
         .onDisappear { revealID = UUID() }
+    }
+
+    /// Asks for a rating only at a high point, after the stars have landed.
+    private func maybeAskForReview(token: UUID) {
+        guard let summary = gameModel.victorySummary, !ReviewPromptStore.isRunningTests,
+              ReviewPromptPolicy.shouldAsk(
+                summary: summary,
+                lifetimeWins: gameModel.lifetimeLevelWins,
+                lastPromptDate: ReviewPromptStore.lastPromptDate,
+                lastPromptVersion: ReviewPromptStore.lastPromptVersion,
+                currentVersion: ReviewPromptStore.currentVersion
+              ) else { return }
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(1.2))
+            // Still on this victory screen, and no ad is covering it.
+            guard revealID == token, gameModel.gameState == .win else { return }
+            ReviewPromptStore.recordPrompt()
+            requestReview()
+        }
     }
 
     private func revealNextStar(token: UUID) {
@@ -117,7 +139,9 @@ struct LevelCompleteView: View {
             withAnimation(.easeOut(duration: 0.22), completionCriteria: .logicallyComplete) {
                 rewardVisible = true
             } completion: {
-                if revealID == token { onRevealComplete() }
+                guard revealID == token else { return }
+                onRevealComplete()
+                maybeAskForReview(token: token)
             }
         }
     }
