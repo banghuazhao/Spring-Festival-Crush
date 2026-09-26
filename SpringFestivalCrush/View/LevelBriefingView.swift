@@ -23,6 +23,8 @@ struct LevelBriefingView: View {
                 }
                 Spacer()
                 if level.hasSnow { Label("瑞雪兆丰年", systemImage: "snowflake") }
+                HelpTipButton(size: 22, tint: theme.accent) { legend }
+                    .accessibilityIdentifier("level-briefing-help")
             }
             .font(.caption.weight(.heavy))
             .foregroundStyle(theme.accent)
@@ -79,6 +81,30 @@ struct LevelBriefingView: View {
         .frame(maxWidth: .infinity)
         .padding(14)
         .background(theme.sky.opacity(0.7), in: .rect(cornerRadius: 18))
+    }
+
+    /// The words behind every picture on this card, each next to the icon it explains.
+    @ViewBuilder
+    private var legend: some View {
+        if let boss = level.boss {
+            HelpTipRow(Text(boss.configuration.kind.instructions)) {
+                Text(verbatim: boss.configuration.kind.avatar).font(.system(size: 20))
+            }
+        } else {
+            HelpTipRow(Text("CHALLENGE \(level.difficulty) / 5"), systemImage: "flame.fill", tint: theme.accent)
+        }
+        if let hint = level.mechanicHint {
+            HelpTipRow(Text(LocalizedStringKey(hint)), systemImage: "lightbulb.fill", tint: theme.accent)
+        }
+        HelpTipRow(Text("\(level.maximumMoves) moves"), systemImage: "arrow.left.arrow.right", tint: theme.accent)
+        if let seconds = level.timeLimit {
+            HelpTipRow(Text("\(seconds) seconds"), systemImage: "timer", tint: theme.accent)
+        }
+        HelpTipRow(Text("Reach \(level.levelGoal.firstStarScore.formatted()) points for 1 star"),
+                   systemImage: "star.fill", tint: theme.accent)
+        HelpTipRow(level.boss == nil ? Text("Complete every goal before you run out of moves.")
+                                     : Text("Defeat the guardian AND complete every goal."),
+                   systemImage: "target", tint: theme.accent)
     }
 
     private func statChip(systemImage: String, value: String) -> some View {

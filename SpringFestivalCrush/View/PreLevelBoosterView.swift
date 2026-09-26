@@ -240,8 +240,12 @@ struct PreLevelBoosterView: View {
                 }
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(LocalizedStringKey(title))
-                        .font(.subheadline.weight(.heavy))
+                    HStack(spacing: 6) {
+                        Text(LocalizedStringKey(title))
+                            .font(.subheadline.weight(.heavy))
+                        // Its own button inside the row, so asking doesn't select the booster.
+                        HelpTipButton(Text(LocalizedStringKey(detail)), size: 16, tint: theme.accent)
+                    }
                     art()
                 }
                 Spacer()

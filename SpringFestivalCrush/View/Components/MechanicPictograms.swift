@@ -444,6 +444,87 @@ struct BossRulesView: View {
     }
 }
 
+// MARK: - Help on demand
+
+/// A small "?" beside a pictogram. Pictures come first; the words stay one tap away
+/// for players who want them, in a bubble that points back at what it explains.
+struct HelpTipButton<Detail: View>: View {
+    var size: CGFloat = 20
+    var tint: Color = AppTheme.festivalGoldDark
+    @ViewBuilder let detail: Detail
+    @State private var isShowing = false
+
+    var body: some View {
+        Button {
+            HapticManager.buttonTap()
+            isShowing = true
+        } label: {
+            Image(systemName: "questionmark.circle.fill")
+                .font(.system(size: size, weight: .bold))
+                .symbolRenderingMode(.palette)
+                .foregroundStyle(.white, tint)
+                .shadow(color: .black.opacity(0.2), radius: 1, y: 1)
+                // Small to look at, but a full finger-sized target.
+                .contentShape(Circle().inset(by: -max(0, (44 - size) / 2)))
+        }
+        .buttonStyle(.plain)
+        .popover(isPresented: $isShowing) {
+            // A definite width, so the popover measures the wrapped height of every line.
+            VStack(alignment: .leading, spacing: 10) { detail }
+                .font(.subheadline)
+                .foregroundStyle(AppTheme.ink)
+                .frame(width: 260, alignment: .leading)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(16)
+                .presentationCompactAdaptation(.popover)
+                .presentationBackground(AppTheme.creamHighlight)
+        }
+        .accessibilityLabel(Text("How it works"))
+    }
+}
+
+extension HelpTipButton where Detail == HelpTipRow<EmptyView> {
+    /// A "?" whose bubble is a single sentence.
+    init(_ text: Text, size: CGFloat = 20, tint: Color = AppTheme.festivalGoldDark) {
+        self.init(size: size, tint: tint) { HelpTipRow(text) }
+    }
+}
+
+/// One line in a help bubble: the picture the player saw, then the words for it.
+struct HelpTipRow<Icon: View>: View {
+    let text: Text
+    let icon: Icon?
+
+    init(_ text: Text, @ViewBuilder icon: () -> Icon) {
+        self.text = text
+        self.icon = icon()
+    }
+
+    init(_ text: Text, systemImage: String, tint: Color = AppTheme.festivalGoldDark) where Icon == AnyView {
+        self.init(text) {
+            AnyView(Image(systemName: systemImage)
+                .font(.system(size: 15, weight: .black))
+                .foregroundStyle(tint))
+        }
+    }
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 10) {
+            if let icon {
+                icon.frame(width: 24).alignmentGuide(.firstTextBaseline) { $0[VerticalAlignment.center] + 5 }
+            }
+            text.fixedSize(horizontal: false, vertical: true)
+        }
+    }
+}
+
+extension HelpTipRow where Icon == EmptyView {
+    init(_ text: Text) {
+        self.text = text
+        self.icon = nil
+    }
+}
+
 // MARK: - Small shared pictures
 
 /// Five lanterns, lit up to the level's challenge rating.

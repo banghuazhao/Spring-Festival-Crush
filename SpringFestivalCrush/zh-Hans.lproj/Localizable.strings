@@ -365,3 +365,9 @@
 "Expanded" = "已展开";
 "Complete" = "已完成";
 "Collapsed" = "已收起";
+
+/* Help bubbles behind pictograms */
+"How it works" = "玩法说明";
+"Reach %@ points for 1 star" = "达到 %@ 分即可获得 1 颗星";
+"Complete every goal before you run out of moves." = "在步数用完前完成所有目标。";
+"Earn stars on this chapter's levels. A chest opens when your stars reach its number." = "在本章关卡中赢取星星。星星数量达到宝箱上的数字时即可打开宝箱。";

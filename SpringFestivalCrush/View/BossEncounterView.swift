@@ -100,6 +100,12 @@ struct BossEncounterView: View {
                         .padding(.horizontal, 4)
                         .background(Color.cyan.opacity(0.45), in: Capsule())
                 }
+                HelpTipButton(size: 15, tint: .black.opacity(0.45)) {
+                    HelpTipRow(Text(encounter.cue)) {
+                        Text(verbatim: kind.avatar).font(.system(size: 20))
+                    }
+                    HelpTipRow(Text(kind.instructions))
+                }
             }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(Text(encounter.cue))
