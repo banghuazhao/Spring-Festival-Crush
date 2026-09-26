@@ -10,6 +10,8 @@ struct PictoTile: View {
         case armor(Int)
         case ice
         case enhanced
+        /// Strength pips of a multi-hit lock, as the board draws them.
+        case lockStrength(Int)
     }
 
     let asset: String
@@ -18,7 +20,7 @@ struct PictoTile: View {
 
     private static let slot = Color(UIColor(hex: 0x2E4A50))
     private static let armorGold = Color(UIColor(red: 1, green: 0.79, blue: 0.28, alpha: 1))
-    @MainActor private static var enhancedCache: [String: UIImage] = [:]
+    @MainActor private static var decoratedCache: [String: UIImage] = [:]
 
     var body: some View {
         ZStack {
@@ -35,6 +37,8 @@ struct PictoTile: View {
                 RoundedRectangle(cornerRadius: size * 0.2, style: .continuous)
                     .fill(Color.cyan.opacity(0.28))
                 frame(color: .cyan, badge: "❄")
+            case let .lockStrength(hits):
+                frame(color: .clear, badge: "\(hits)")
             case .none, .enhanced:
                 EmptyView()
             }
@@ -44,10 +48,22 @@ struct PictoTile: View {
     }
 
     private var artwork: Image {
-        guard overlay == .enhanced, let base = UIImage(named: asset) else { return Image(asset) }
-        if let cached = Self.enhancedCache[asset] { return Image(uiImage: cached) }
-        let image = EnhancedTileAppearance.image(over: base)
-        Self.enhancedCache[asset] = image
+        let key: String
+        let decorate: (UIImage) -> UIImage
+        switch overlay {
+        case .enhanced:
+            key = asset + ":enhanced"
+            decorate = { EnhancedTileAppearance.image(over: $0) }
+        case let .lockStrength(strength):
+            key = asset + ":\(strength)"
+            decorate = { LockTileAppearance.image(over: $0, strength: strength) }
+        default:
+            return Image(asset)
+        }
+        if let cached = Self.decoratedCache[key] { return Image(uiImage: cached) }
+        guard let base = UIImage(named: asset) else { return Image(asset) }
+        let image = decorate(base)
+        Self.decoratedCache[key] = image
         return Image(uiImage: image)
     }
 
@@ -138,7 +154,7 @@ struct PictoCountdown: View {
 }
 
 /// A rounded card that holds one pictogram.
-private struct PictoCard<Content: View>: View {
+struct PictoCard<Content: View>: View {
     @ViewBuilder let content: Content
 
     var body: some View {
@@ -151,70 +167,77 @@ private struct PictoCard<Content: View>: View {
     }
 }
 
-// MARK: - Level mechanic tips
+// MARK: - Rule pictures
 
-/// One board mechanic a level introduces, shown as a picture instead of a sentence.
-enum MechanicTip: Hashable {
-    case swapToMatch
-    case specials
-    case lock
-    case armor
-    case ice
-    case cascade
-
-    /// Level JSON keeps the authored sentence (localized for VoiceOver); the briefing
-    /// draws the mechanics it names. Order follows the sentence.
-    static func tips(in hint: String) -> [MechanicTip] {
-        let keys: [(String, MechanicTip)] = [
-            ("Swap neighbors", .swapToMatch),
-            ("Match 3 to collect", .swapToMatch),
-            ("Gold frame", .armor),
-            ("Ice:", .ice),
-            ("beside a lock", .lock),
-            ("Chain reactions", .cascade),
-            ("Match 4", .specials),
-            ("special tiles", .specials)
-        ]
-        let found = keys.compactMap { key, tip in hint.range(of: key).map { ($0.lowerBound, tip) } }
-            .sorted { $0.0 < $1.0 }
-        var tips: [MechanicTip] = []
-        for (_, tip) in found where !tips.contains(tip) { tips.append(tip) }
-        return tips
-    }
-}
-
-/// The level's mechanics as a grid of pictograms, with the full sentence for VoiceOver.
-struct MechanicTipsView: View {
-    let hint: String
+/// The rules a level teaches, as picture cards. A NEW tag marks a rule met for the first time;
+/// each card's "?" holds the words.
+struct RuleLessonsView: View {
+    let rules: [GameRule]
+    var isNew: (GameRule) -> Bool = { _ in false }
 
     var body: some View {
-        let tips = MechanicTip.tips(in: hint)
-        if tips.isEmpty {
-            Text(LocalizedStringKey(hint))
-                .font(.subheadline)
-                .foregroundStyle(AppTheme.ink)
-                .fixedSize(horizontal: false, vertical: true)
-        } else {
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 132), spacing: 8)], spacing: 8) {
-                ForEach(tips, id: \.self) { tip in
-                    PictoCard { MechanicTipArt(tip: tip) }
-                }
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 132), spacing: 8)], spacing: 8) {
+            ForEach(rules) { rule in
+                PictoCard { RuleArt(rule: rule) }
+                    .overlay(alignment: .topLeading) {
+                        if isNew(rule) { NewRuleTag().offset(x: -4, y: -6) }
+                    }
+                    .overlay(alignment: .topTrailing) {
+                        HelpTipButton(Text(rule.detail), size: 16).padding(4)
+                    }
             }
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(Text(LocalizedStringKey(hint)))
         }
     }
 }
 
-private struct MechanicTipArt: View {
-    let tip: MechanicTip
+/// A small red "NEW" tag for a rule the player hasn't met before.
+struct NewRuleTag: View {
+    var body: some View {
+        Text("NEW")
+            .font(.system(size: 9, weight: .black, design: .rounded))
+            .foregroundStyle(.white)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .background(AppTheme.festivalRed, in: Capsule())
+            .overlay(Capsule().stroke(.white, lineWidth: 1))
+            .rotationEffect(.degrees(-8))
+            .accessibilityLabel(Text("New rule"))
+    }
+}
+
+/// The picture for one rule, shared by level briefings and the rule handbook.
+struct RuleArt: View {
+    let rule: GameRule
     private let tile: CGFloat = 26
 
     var body: some View {
-        switch tip {
-        case .swapToMatch:
+        art
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text(rule.title) + Text(verbatim: ". ") + Text(rule.detail))
+    }
+
+    @ViewBuilder
+    private var art: some View {
+        switch rule {
+        case .goals:
+            HStack(spacing: 6) {
+                VStack(spacing: 2) {
+                    PictoTile(asset: "redPocket", size: tile)
+                    PictoTag(text: "12", tint: AppTheme.festivalGoldDark, size: 10)
+                }
+                VStack(spacing: 2) {
+                    Image(systemName: "arrow.left.arrow.right")
+                        .font(.system(size: 15, weight: .black))
+                        .foregroundStyle(AppTheme.festivalRed)
+                        .frame(height: tile)
+                    PictoTag(text: "20", size: 10)
+                }
+                PictoArrow(size: 11)
+                Image("StarTile").resizable().scaledToFit().frame(width: tile, height: tile)
+            }
+        case .swapMatch:
             SwapToMatchPicto(tile: tile)
-        case .specials:
+        case .blastTile:
             VStack(spacing: 5) {
                 HStack(spacing: 5) {
                     TileRun(asset: "redPocket", count: 4, size: tile * 0.72)
@@ -222,17 +245,62 @@ private struct MechanicTipArt: View {
                     PictoTile(asset: "redPocket", overlay: .enhanced, size: tile)
                 }
                 HStack(spacing: 5) {
+                    PictoTile(asset: "redPocket", overlay: .enhanced, size: tile * 0.8)
+                    PictoArrow(size: 11)
+                    ClearGrid { row, column in abs(row - 2) <= 1 && abs(column - 2) <= 1 }
+                }
+            }
+        case .luckyFive:
+            VStack(spacing: 5) {
+                HStack(spacing: 5) {
                     TileRun(asset: "dumpling", count: 5, size: tile * 0.72)
                     PictoArrow(size: 11)
                     PictoTile(asset: "FiveTile", size: tile)
                 }
+                HStack(spacing: 4) {
+                    PictoTile(asset: "FiveTile", size: tile * 0.8)
+                    PictoArrow(systemName: "arrow.left.arrow.right", size: 10)
+                    PictoTile(asset: "lantern", size: tile * 0.8)
+                    PictoArrow(size: 10)
+                    TileRun(asset: "lantern", count: 3, size: tile * 0.62)
+                        .overlay(PictoClear(size: tile * 0.8))
+                }
+            }
+        case .lightning:
+            VStack(spacing: 5) {
+                HStack(spacing: 5) {
+                    LShapeRun(asset: "firecracker", size: tile * 0.55)
+                    PictoArrow(size: 11)
+                    PictoTile(asset: "LightningTile", size: tile)
+                }
+                HStack(spacing: 5) {
+                    PictoTile(asset: "LightningTile", size: tile * 0.8)
+                    PictoArrow(size: 11)
+                    ClearGrid { row, column in row == 2 || column == 2 }
+                }
+            }
+        case .combos:
+            HStack(spacing: 4) {
+                PictoTile(asset: "FiveTile", size: tile)
+                PictoArrow(systemName: "arrow.left.arrow.right", size: 11)
+                PictoTile(asset: "LightningTile", size: tile)
+                PictoArrow(size: 11)
+                Image(systemName: "burst.fill")
+                    .font(.system(size: tile * 1.1, weight: .bold))
+                    .foregroundStyle(AppTheme.festivalGold)
+                    .overlay(PictoClear(size: tile * 0.8))
             }
         case .lock:
             NeighborMatchPicto(tile: tile, target: PictoTile(asset: "LockTile", size: tile)) {
-                Image(systemName: "lock.open.fill")
-                    .font(.system(size: tile * 0.62, weight: .bold))
-                    .foregroundStyle(AppTheme.festivalGoldDark)
-                    .frame(width: tile, height: tile)
+                OpenLockPicto(size: tile)
+            }
+        case .doubleLock:
+            HStack(spacing: 4) {
+                PictoTile(asset: "LockTile", overlay: .lockStrength(2), size: tile)
+                PictoArrow(size: 11)
+                PictoTile(asset: "LockTile", overlay: .lockStrength(1), size: tile)
+                PictoArrow(size: 11)
+                OpenLockPicto(size: tile)
             }
         case .ice:
             NeighborMatchPicto(tile: tile, target: PictoTile(asset: "lantern", overlay: .ice, size: tile)) {
@@ -269,7 +337,59 @@ private struct MechanicTipArt: View {
                     PictoTag(text: "×3", size: 11)
                 }
             }
+        case .ratGuardian, .oxGuardian, .tigerGuardian:
+            if let kind = rule.guardian { BossRulesView(kind: kind) }
         }
+    }
+}
+
+/// A tiny board where the cells a power-up clears light up.
+private struct ClearGrid: View {
+    var cells = 5
+    var cell: CGFloat = 6
+    let lit: (Int, Int) -> Bool
+
+    var body: some View {
+        VStack(spacing: 1.5) {
+            ForEach(0 ..< cells, id: \.self) { row in
+                HStack(spacing: 1.5) {
+                    ForEach(0 ..< cells, id: \.self) { column in
+                        RoundedRectangle(cornerRadius: 1.5)
+                            .fill(row == cells / 2 && column == cells / 2 ? AppTheme.festivalRed
+                                  : lit(row, column) ? AppTheme.festivalGold : AppTheme.ink.opacity(0.15))
+                            .frame(width: cell, height: cell)
+                    }
+                }
+            }
+        }
+        .accessibilityHidden(true)
+    }
+}
+
+/// Five tiles bent into an L: three down, then two across.
+private struct LShapeRun: View {
+    let asset: String
+    let size: CGFloat
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 1) {
+            PictoTile(asset: asset, size: size)
+            PictoTile(asset: asset, size: size)
+            HStack(spacing: 1) {
+                ForEach(0 ..< 3, id: \.self) { _ in PictoTile(asset: asset, size: size) }
+            }
+        }
+    }
+}
+
+private struct OpenLockPicto: View {
+    let size: CGFloat
+
+    var body: some View {
+        Image(systemName: "lock.open.fill")
+            .font(.system(size: size * 0.62, weight: .bold))
+            .foregroundStyle(AppTheme.festivalGoldDark)
+            .frame(width: size, height: size)
     }
 }
 

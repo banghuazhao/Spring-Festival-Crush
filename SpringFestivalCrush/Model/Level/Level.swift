@@ -10,7 +10,6 @@ class Level {
     var bgMusic: String?
     let timeLimit: Int?
     let hasSnow: Bool
-    let mechanicHint: String?
     let difficulty: Int
     let armorGrid: [[Int]]?
     var boss: BossEncounter?
@@ -46,7 +45,6 @@ class Level {
         possibleSymbols = levelData.possibleSymbols
         timeLimit = levelData.timeLimit
         hasSnow = levelData.snow ?? false
-        mechanicHint = levelData.mechanicHint
         difficulty = levelData.difficulty ?? 1
         armorGrid = levelData.armor
         boss = levelData.boss.map(BossEncounter.init)

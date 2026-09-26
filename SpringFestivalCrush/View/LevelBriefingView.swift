@@ -2,8 +2,17 @@ import SwiftUI
 
 struct LevelBriefingView: View {
     let level: Level
+    let levelNumber: Int
     let zodiac: Zodiac
     let theme: ZodiacChapterTheme
+
+    private var ref: LevelRef { LevelRef(zodiac: zodiac.zodiacType, number: levelNumber) }
+
+    /// Only the rules this level teaches: each is shown on the first level or two where it
+    /// appears, then left to the rule handbook. A guardian's rules have their own card.
+    private var lessons: [GameRule] {
+        RuleCurriculum.shared.lessons(for: ref).filter { $0.guardian == nil }
+    }
 
     var body: some View {
         VStack(spacing: 12) {
@@ -32,8 +41,8 @@ struct LevelBriefingView: View {
             if let boss = level.boss {
                 BossRulesView(kind: boss.configuration.kind)
             }
-            if let hint = level.mechanicHint {
-                MechanicTipsView(hint: hint)
+            if !lessons.isEmpty {
+                RuleLessonsView(rules: lessons) { RuleCurriculum.shared.introduces($0, at: ref) }
             }
 
             HStack(spacing: 8) {
@@ -93,8 +102,8 @@ struct LevelBriefingView: View {
         } else {
             HelpTipRow(Text("CHALLENGE \(level.difficulty) / 5"), systemImage: "flame.fill", tint: theme.accent)
         }
-        if let hint = level.mechanicHint {
-            HelpTipRow(Text(LocalizedStringKey(hint)), systemImage: "lightbulb.fill", tint: theme.accent)
+        ForEach(lessons) { rule in
+            HelpTipRow(Text(rule.detail), systemImage: "lightbulb.fill", tint: theme.accent)
         }
         HelpTipRow(Text("\(level.maximumMoves) moves"), systemImage: "arrow.left.arrow.right", tint: theme.accent)
         if let seconds = level.timeLimit {

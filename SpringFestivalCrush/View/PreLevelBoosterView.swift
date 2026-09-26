@@ -48,7 +48,7 @@ struct PreLevelBoosterView: View {
                 GamePopupPanel(title: String(localized: "LEVEL \(levelNumber)"), tone: .gold) {
                     VStack(spacing: 14) {
                         if let previewLevel, let zodiac = gameModel.zodiac {
-                            LevelBriefingView(level: previewLevel, zodiac: zodiac, theme: theme)
+                            LevelBriefingView(level: previewLevel, levelNumber: levelNumber, zodiac: zodiac, theme: theme)
                         } else {
                             Text("This level is unavailable. Please return to the trail.")
                                 .font(.subheadline)

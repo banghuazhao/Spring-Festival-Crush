@@ -373,3 +373,31 @@
 "Reach %@ points for 1 star" = "達到 %@ 分即可獲得 1 顆星";
 "Complete every goal before you run out of moves." = "在步數用完前完成所有目標。";
 "Earn stars on this chapter's levels. A chest opens when your stars reach its number." = "在本章關卡中贏取星星。星星數量達到寶箱上的數字時即可打開寶箱。";
+
+/* Rule handbook */
+"Goals" = "目標";
+"Swap & Match" = "交換消除";
+"Lock" = "鎖";
+"Festival Lightning" = "節日閃電";
+"Blast Tile" = "爆破方塊";
+"Lucky Five" = "幸運五星";
+"Gold Frame" = "金框";
+"Power-up Combos" = "特效組合";
+"Ice" = "冰凍";
+"Chain Reaction" = "連鎖反應";
+"Double Lock" = "雙重鎖";
+"Swap two neighboring tiles to line up 3 or more of the same kind." = "交換兩個相鄰方塊，讓3個或更多相同方塊連成一線。";
+"Match beside a lock to break it." = "在鎖旁邊消除即可打開它。";
+"Match in an L or T shape to make Lightning. Swap it to clear its whole row and column." = "以L形或T形消除可製造閃電。交換它即可清除整行和整列。";
+"Match 4 in a row to make a blast tile. Clear it to blast the tiles around it." = "四連可製造爆破方塊。消除它時會炸開周圍的方塊。";
+"Match 5 in a row to make a Lucky Five. Swap it with a tile to collect every tile of that kind." = "五連可製造幸運五星。將它與一個方塊交換，即可收集所有同類方塊。";
+"Swap two power-ups into each other for a much bigger blast." = "將兩個特效方塊互相交換，引發更大的爆炸。";
+"Ice: clear a neighboring tile to thaw it before matching." = "冰凍：先消除相鄰方塊使其解凍，才能進行匹配。";
+"Falling tiles can match on their own. Chain reactions score more and open tight spaces." = "落下的方塊也能自動消除。連鎖反應得分更高，還能打開狹窄區域。";
+"A double lock needs two matches beside it. The first turns it into a normal lock." = "雙重鎖需要在旁邊消除兩次。第一次會把它變成普通鎖。";
+"NEW" = "新";
+"New rule" = "新規則";
+"RULE HANDBOOK" = "玩法圖鑑";
+"Rule handbook" = "玩法圖鑑";
+"%lld of %lld rules unlocked" = "已解鎖 %lld/%lld 條規則";
+"Reach %@ level %lld to unlock." = "到達%@第%lld關即可解鎖。";

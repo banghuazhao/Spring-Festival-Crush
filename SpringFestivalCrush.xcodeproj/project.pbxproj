@@ -12,12 +12,14 @@
 		C2609250B1B1000000000002 /* DailyEnvelope.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2609250A1A1000000000002 /* DailyEnvelope.swift */; };
 		C2609250B1B1000000000003 /* StarChest.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2609250A1A1000000000003 /* StarChest.swift */; };
 		C2609250B1B1000000000004 /* BossEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2609250A1A1000000000004 /* BossEvent.swift */; };
+		C2609250B1B1000000000010 /* GameRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2609250A1A1000000000010 /* GameRule.swift */; };
 		C2609250B1B1000000000005 /* GameScene+Festival.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2609250A1A1000000000005 /* GameScene+Festival.swift */; };
 		C2609250B1B1000000000006 /* ReviewPrompt.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2609250A1A1000000000006 /* ReviewPrompt.swift */; };
 		C2609250B1B1000000000007 /* UISoundPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2609250A1A1000000000007 /* UISoundPlayer.swift */; };
 		C2609250B1B1000000000008 /* ContinueOfferView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2609250A1A1000000000008 /* ContinueOfferView.swift */; };
 		C2609250B1B1000000000009 /* DailyEnvelopeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2609250A1A1000000000009 /* DailyEnvelopeView.swift */; };
 		C2609250B1B100000000000A /* StarChestTrackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2609250A1A100000000000A /* StarChestTrackView.swift */; };
+		C2609250B1B1000000000011 /* RuleHandbookView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2609250A1A1000000000011 /* RuleHandbookView.swift */; };
 		C2609250B1B100000000000B /* FestivalRewardArt.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2609250A1A100000000000B /* FestivalRewardArt.swift */; };
 		C2609250B1B100000000000F /* MechanicPictograms.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2609250A1A100000000000F /* MechanicPictograms.swift */; };
 		C2609250B2B2000000000000 /* Pluck1.wav in Resources */ = {isa = PBXBuildFile; fileRef = C2609250A2A2000000000000 /* Pluck1.wav */; };
@@ -194,12 +196,14 @@
 		C2609250A1A1000000000002 /* DailyEnvelope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringFestivalCrush/Model/Rewards/DailyEnvelope.swift; sourceTree = SOURCE_ROOT; };
 		C2609250A1A1000000000003 /* StarChest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringFestivalCrush/Model/Rewards/StarChest.swift; sourceTree = SOURCE_ROOT; };
 		C2609250A1A1000000000004 /* BossEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringFestivalCrush/Model/Level/BossEvent.swift; sourceTree = SOURCE_ROOT; };
+		C2609250A1A1000000000010 /* GameRule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringFestivalCrush/Model/Level/GameRule.swift; sourceTree = SOURCE_ROOT; };
 		C2609250A1A1000000000005 /* GameScene+Festival.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SpringFestivalCrush/Scene/GameScene+Festival.swift"; sourceTree = SOURCE_ROOT; };
 		C2609250A1A1000000000006 /* ReviewPrompt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringFestivalCrush/Util/ReviewPrompt.swift; sourceTree = SOURCE_ROOT; };
 		C2609250A1A1000000000007 /* UISoundPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringFestivalCrush/Util/UISoundPlayer.swift; sourceTree = SOURCE_ROOT; };
 		C2609250A1A1000000000008 /* ContinueOfferView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringFestivalCrush/View/ContinueOfferView.swift; sourceTree = SOURCE_ROOT; };
 		C2609250A1A1000000000009 /* DailyEnvelopeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringFestivalCrush/View/DailyEnvelopeView.swift; sourceTree = SOURCE_ROOT; };
 		C2609250A1A100000000000A /* StarChestTrackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringFestivalCrush/View/StarChestTrackView.swift; sourceTree = SOURCE_ROOT; };
+		C2609250A1A1000000000011 /* RuleHandbookView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringFestivalCrush/View/RuleHandbookView.swift; sourceTree = SOURCE_ROOT; };
 		C2609250A1A100000000000B /* FestivalRewardArt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringFestivalCrush/View/Components/FestivalRewardArt.swift; sourceTree = SOURCE_ROOT; };
 		C2609250A1A100000000000F /* MechanicPictograms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringFestivalCrush/View/Components/MechanicPictograms.swift; sourceTree = SOURCE_ROOT; };
 		C2609250A2A2000000000000 /* Pluck1.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = Pluck1.wav; sourceTree = "<group>"; };
@@ -688,12 +692,14 @@
 				C2609250A1A1000000000002 /* DailyEnvelope.swift */,
 				C2609250A1A1000000000003 /* StarChest.swift */,
 				C2609250A1A1000000000004 /* BossEvent.swift */,
+				C2609250A1A1000000000010 /* GameRule.swift */,
 				C2609250A1A1000000000005 /* GameScene+Festival.swift */,
 				C2609250A1A1000000000006 /* ReviewPrompt.swift */,
 				C2609250A1A1000000000007 /* UISoundPlayer.swift */,
 				C2609250A1A1000000000008 /* ContinueOfferView.swift */,
 				C2609250A1A1000000000009 /* DailyEnvelopeView.swift */,
 				C2609250A1A100000000000A /* StarChestTrackView.swift */,
+				C2609250A1A1000000000011 /* RuleHandbookView.swift */,
 				C2609250A1A100000000000B /* FestivalRewardArt.swift */,
 				C2609250A1A100000000000F /* MechanicPictograms.swift */,
 				B2C3D4E501234567AABBCC17 /* RewardedAdButton.swift */,
@@ -971,12 +977,14 @@
 				C2609250B1B1000000000002 /* DailyEnvelope.swift in Sources */,
 				C2609250B1B1000000000003 /* StarChest.swift in Sources */,
 				C2609250B1B1000000000004 /* BossEvent.swift in Sources */,
+				C2609250B1B1000000000010 /* GameRule.swift in Sources */,
 				C2609250B1B1000000000005 /* GameScene+Festival.swift in Sources */,
 				C2609250B1B1000000000006 /* ReviewPrompt.swift in Sources */,
 				C2609250B1B1000000000007 /* UISoundPlayer.swift in Sources */,
 				C2609250B1B1000000000008 /* ContinueOfferView.swift in Sources */,
 				C2609250B1B1000000000009 /* DailyEnvelopeView.swift in Sources */,
 				C2609250B1B100000000000A /* StarChestTrackView.swift in Sources */,
+				C2609250B1B1000000000011 /* RuleHandbookView.swift in Sources */,
 				C2609250B1B100000000000B /* FestivalRewardArt.swift in Sources */,
 				C2609250B1B100000000000F /* MechanicPictograms.swift in Sources */,
 				B2C3D4E501234567AABBCC16 /* RewardedAdButton.swift in Sources */,

@@ -47,6 +47,9 @@ struct MainView: View {
     @State private var showDailyEnvelope = false
     /// The envelope pops up by itself at most once per launch; the toolbar button stays.
     @State private var didAutoPresentEnvelope = false
+    @State private var showRuleHandbook = false
+    /// A rule has unlocked that the player hasn't opened in the handbook yet.
+    @State private var hasNewRules = false
 
     #if DEBUG
     @State private var showDebugMenu = false
@@ -65,6 +68,15 @@ struct MainView: View {
         #endif
         didAutoPresentEnvelope = true
         showDailyEnvelope = true
+    }
+
+    private func refreshRuleHandbookDot() {
+        let curriculum = RuleCurriculum.shared
+        let seen = RuleHandbookStore.seen()
+        hasNewRules = curriculum.rules.contains { rule in
+            !seen.contains(rule)
+                && curriculum.isUnlocked(rule) { settingModel.unlockAllLevels || gameModel.hasReached($0) }
+        }
     }
 
     var body: some View {
@@ -86,6 +98,27 @@ struct MainView: View {
                         .accessibilityLabel(Text("Daily red envelope"))
                         .accessibilityValue(dailyEnvelope.isReady ? Text("Ready to open") : Text("Opened today"))
                         .accessibilityIdentifier("daily-envelope-toolbar")
+                    }
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button {
+                            HapticManager.buttonTap()
+                            showRuleHandbook = true
+                        } label: {
+                            Image(systemName: "book.closed.fill")
+                                .foregroundStyle(AppTheme.festivalRed)
+                                .overlay(alignment: .topTrailing) {
+                                    if hasNewRules {
+                                        Circle()
+                                            .fill(AppTheme.festivalGold)
+                                            .overlay(Circle().stroke(.white, lineWidth: 1.5))
+                                            .frame(width: 10, height: 10)
+                                            .offset(x: 6, y: -5)
+                                    }
+                                }
+                        }
+                        .accessibilityLabel(Text("Rule handbook"))
+                        .accessibilityValue(hasNewRules ? Text("New rule") : Text(verbatim: ""))
+                        .accessibilityIdentifier("rule-handbook-toolbar")
                     }
                     ToolbarItem(placement: .navigationBarTrailing) {
                         NavigationLink(destination: SettingsView()) {
@@ -115,6 +148,12 @@ struct MainView: View {
                 #endif
                 .onAppear {
                     gameModel.initializeRecords(modelContext: modelContext)
+                    refreshRuleHandbookDot()
+                }
+                .sheet(isPresented: $showRuleHandbook, onDismiss: refreshRuleHandbookDot) {
+                    RuleHandbookView()
+                        .environmentObject(gameModel)
+                        .environmentObject(settingModel)
                 }
                 .sheet(isPresented: $showDailyEnvelope) {
                     DailyEnvelopeView(envelope: dailyEnvelope)
@@ -134,8 +173,12 @@ struct MainView: View {
                     dailyEnvelope.refresh()
                 }
                 .onChange(of: gameModel.shouldPresentGame) { _, presenting in
-                    if !presenting { dailyEnvelope.refresh() }
+                    if !presenting {
+                        dailyEnvelope.refresh()
+                        refreshRuleHandbookDot()
+                    }
                 }
+                .onChange(of: settingModel.unlockAllLevels) { _, _ in refreshRuleHandbookDot() }
             #if !targetEnvironment(macCatalyst)
                 .task {
                     await ConsentManager.shared.gatherConsent()
