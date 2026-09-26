@@ -286,6 +286,13 @@ class GameModel: ObservableObject {
         currentLevelRecords = zodiacRecord.levelRecords.sorted { $0.number < $1.number }
     }
 
+    /// Whether the player has reached this level on the trail, i.e. it's open to play.
+    func hasReached(_ level: LevelRef) -> Bool {
+        guard let zodiacRecord = zodiacRecords.first(where: { $0.zodiacType == level.zodiac }),
+              zodiacRecord.isUnlocked else { return false }
+        return zodiacRecord.levelRecords.contains { $0.number == level.number && $0.isUnlocked }
+    }
+
     func createLevelTargetDatas() -> [LevelTargetData] {
         level.levelGoal.levelTarget.getLevelTargetDatas(gameZodiac: zodiac)
     }

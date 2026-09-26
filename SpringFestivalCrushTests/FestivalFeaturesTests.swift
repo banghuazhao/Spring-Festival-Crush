@@ -335,22 +335,42 @@ final class FestivalFeaturesTests: XCTestCase {
         }
     }
 
-    func testEveryLevelHintIsDrawnAsPictures() {
-        var checked = 0
-        for zodiac in ["Rat", "Ox", "Tiger"] {
-            var number = 1
-            while let level = Level(filename: "\(zodiac)_Level_\(number)") {
-                if let hint = level.mechanicHint {
-                    XCTAssertFalse(MechanicTip.tips(in: hint).isEmpty, "\(zodiac) \(number): \(hint)")
-                    checked += 1
-                }
-                number += 1
-            }
+    func testRulesAreTaughtGraduallyAndNeverRepeated() {
+        let curriculum = RuleCurriculum.shared
+        func lessons(_ zodiac: ChineseZodiac, _ number: Int) -> [GameRule] {
+            curriculum.lessons(for: LevelRef(zodiac: zodiac, number: number))
         }
-        XCTAssertGreaterThan(checked, 30)
-        XCTAssertEqual(MechanicTip.tips(in: "Swap neighbors to match 3. Match 4 for a blast tile, 5 for a star."),
-                       [.swapToMatch, .specials])
-        XCTAssertEqual(MechanicTip.tips(in: "Gold frame · 2 hits. Ice: thaw. Chain reactions. Match 4 or 5 to make special tiles."),
-                       [.armor, .ice, .cascade, .specials])
+        XCTAssertEqual(lessons(.rat, 1), [.goals, .swapMatch])
+        XCTAssertEqual(curriculum.introductions[.lock], LevelRef(zodiac: .rat, number: 2))
+        XCTAssertEqual(curriculum.introductions[.armor], LevelRef(zodiac: .rat, number: 5))
+        XCTAssertEqual(curriculum.introductions[.ice], LevelRef(zodiac: .rat, number: 8))
+        XCTAssertEqual(curriculum.introductions[.tigerGuardian], LevelRef(zodiac: .tiger, number: 10))
+        // The gold frame is on almost every board, but only its first two levels teach it.
+        let armorLessons = curriculum.order.filter { lessons($0.zodiac, $0.number).contains(.armor) }
+        XCTAssertEqual(armorLessons, [LevelRef(zodiac: .rat, number: 5), LevelRef(zodiac: .rat, number: 6)])
+
+        var taught: [GameRule: Int] = [:]
+        for level in curriculum.order {
+            let rules = lessons(level.zodiac, level.number)
+            XCTAssertLessThanOrEqual(rules.filter { $0.guardian == nil }.count, 3, "\(level) teaches too much at once")
+            for rule in rules { taught[rule, default: 0] += 1 }
+        }
+        XCTAssertEqual(Set(taught.keys), Set(curriculum.rules), "every handbook rule is taught somewhere")
+        for (rule, count) in taught { XCTAssertLessThanOrEqual(count, 2, "\(rule)") }
+        XCTAssertTrue(curriculum.rules.contains(.doubleLock))
+        XCTAssertEqual(curriculum.rules.first, .goals)
+    }
+
+    func testHandbookUnlocksRulesAsLevelsAreReached() {
+        let curriculum = RuleCurriculum.shared
+        let reached: Set<LevelRef> = [LevelRef(zodiac: .rat, number: 1), LevelRef(zodiac: .rat, number: 2)]
+        let unlocked = curriculum.rules.filter { curriculum.isUnlocked($0, reached: reached.contains) }
+        XCTAssertEqual(Set(unlocked), [.goals, .swapMatch, .lock, .lightning])
+
+        let defaults = makeDefaults()
+        XCTAssertTrue(RuleHandbookStore.seen(in: defaults).isEmpty)
+        RuleHandbookStore.markSeen([.goals, .lock], in: defaults)
+        RuleHandbookStore.markSeen([.lock, .ice], in: defaults)
+        XCTAssertEqual(RuleHandbookStore.seen(in: defaults), [.goals, .lock, .ice])
     }
 }

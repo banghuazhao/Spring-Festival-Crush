@@ -365,3 +365,37 @@
 "Expanded" = "已展开";
 "Complete" = "已完成";
 "Collapsed" = "已收起";
+
+/* Help bubbles behind pictograms */
+"How it works" = "玩法说明";
+"Reach %@ points for 1 star" = "达到 %@ 分即可获得 1 颗星";
+"Complete every goal before you run out of moves." = "在步数用完前完成所有目标。";
+"Earn stars on this chapter's levels. A chest opens when your stars reach its number." = "在本章关卡中赢取星星。星星数量达到宝箱上的数字时即可打开宝箱。";
+
+/* Rule handbook */
+"Goals" = "目标";
+"Swap & Match" = "交换消除";
+"Lock" = "锁";
+"Festival Lightning" = "节日闪电";
+"Blast Tile" = "爆破方块";
+"Lucky Five" = "幸运五星";
+"Gold Frame" = "金框";
+"Power-up Combos" = "特效组合";
+"Ice" = "冰冻";
+"Chain Reaction" = "连锁反应";
+"Double Lock" = "双重锁";
+"Swap two neighboring tiles to line up 3 or more of the same kind." = "交换两个相邻方块，让3个或更多相同方块连成一线。";
+"Match beside a lock to break it." = "在锁旁边消除即可打开它。";
+"Match in an L or T shape to make Lightning. Swap it to clear its whole row and column." = "以L形或T形消除可制造闪电。交换它即可清除整行和整列。";
+"Match 4 in a row to make a blast tile. Clear it to blast the tiles around it." = "四连可制造爆破方块。消除它时会炸开周围的方块。";
+"Match 5 in a row to make a Lucky Five. Swap it with a tile to collect every tile of that kind." = "五连可制造幸运五星。将它与一个方块交换，即可收集所有同类方块。";
+"Swap two power-ups into each other for a much bigger blast." = "将两个特效方块互相交换，引发更大的爆炸。";
+"Ice: clear a neighboring tile to thaw it before matching." = "冰冻：先消除相邻方块使其解冻，才能进行匹配。";
+"Falling tiles can match on their own. Chain reactions score more and open tight spaces." = "落下的方块也能自动消除。连锁反应得分更高，还能打开狭窄区域。";
+"A double lock needs two matches beside it. The first turns it into a normal lock." = "双重锁需要在旁边消除两次。第一次会把它变成普通锁。";
+"NEW" = "新";
+"New rule" = "新规则";
+"RULE HANDBOOK" = "玩法图鉴";
+"Rule handbook" = "玩法图鉴";
+"%lld of %lld rules unlocked" = "已解锁 %lld/%lld 条规则";
+"Reach %@ level %lld to unlock." = "到达%@第%lld关即可解锁。";

@@ -56,7 +56,11 @@ struct DailyEnvelopeView: View {
                             }
                         }
 
-                        streakRule
+                        HStack(spacing: 8) {
+                            streakRule
+                            HelpTipButton(Text("Open one every day. Miss a day and the streak starts again from Day 1."),
+                                          tint: AppTheme.festivalRed)
+                        }
                     }
                     .foregroundStyle(AppTheme.ink)
                 }

@@ -25,6 +25,8 @@ struct StarChestTrackView: View {
             HStack {
                 Label("STAR CHESTS", systemImage: "star.fill")
                     .font(.caption.weight(.black))
+                HelpTipButton(Text("Earn stars on this chapter's levels. A chest opens when your stars reach its number."),
+                              size: 16, tint: theme.accent)
                 Spacer()
                 Text("\(stars)/\(track.maxStars)")
                     .font(.caption.weight(.black).monospacedDigit())

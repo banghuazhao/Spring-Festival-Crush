@@ -16,6 +16,7 @@ class LevelData: Codable {
     var timeLimit: Int?
     var armor: [[Int]]?
     var snow: Bool?
+    // Author's note only. Briefings teach from RuleCurriculum, so a rule isn't repeated on every level.
     var mechanicHint: String?
     var difficulty: Int?
     var boss: BossConfiguration?
