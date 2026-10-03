@@ -54,12 +54,9 @@ The bands come from the 40 levels that had already shipped, where the sensible b
 - The 15 levels ramp from difficulty 1 to 5 and introduce one idea at a time: blossoms, deep blossoms, ear-shaped boards, locks over blossoms, gold frames on blossoms, vaults, ice rings, an hourglass, a "mooncake" vault ring, a garden in full bloom, and the guardian.
 - Chinese text for every new string is in both `zh-Hans` and `zh-Hant` (玉兔, 月下花, 宝库锁/寶庫鎖).
 
-### Art still to make
+### Rabbit art
 
-Rabbit uses the fallback artwork: the generic board background and a 🐰 emoji for the zodiac tile. The Rat, Ox and Tiger chapters have painted assets. To match them, generate:
-
-- `RabbitBoardBackground` with the same prompt template as [art/zodiac-board-backgrounds.md](art/zodiac-board-backgrounds.md). Use "RABBIT — MOON BLOSSOM GARDEN", a soft plum-pink and pearl palette, a small carved jade rabbit on the lower-left ledge, and plum blossom branches at the far edges. Then add it to `gameBackgrounds` in `Zodiac.swift`.
-- `RabbitTile`, matching `RatTile`/`OxTile`/`TigerTile` (prepare it with `tools/prepare_tile.swift`). Then return it from `Zodiac.tileAssetName`.
+Rabbit now uses painted `RabbitBoardBackground` and `RabbitTile` assets, selected by `Zodiac.swift` in place of the generic background and emoji fallback. The board depicts the Moon Blossom Garden with a quiet central play area; the tile matches the other zodiac faces. Both generated images were compressed for the app bundle. See [art/rabbit-board-and-tile.md](art/rabbit-board-and-tile.md) for the prompts, export sizes and compression checks.
 
 ## Progress fix for existing players
 

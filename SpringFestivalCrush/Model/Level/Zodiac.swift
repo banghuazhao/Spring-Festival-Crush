@@ -123,6 +123,7 @@ struct Zodiac: Identifiable {
         case .rat: "RatTile"
         case .ox: "OxTile"
         case .tiger: "TigerTile"
+        case .rabbit: "RabbitTile"
         default: nil
         }
     }
@@ -133,7 +134,7 @@ extension Zodiac {
         let allChineseZodiacs = ChineseZodiac.allCases
 
         let gameBackgrounds = [
-            "RatBoardBackground", "OxBoardBackground", "TigerBoardBackground", "Background",
+            "RatBoardBackground", "OxBoardBackground", "TigerBoardBackground", "RabbitBoardBackground",
             "Background", "Background", "Background", "Background",
             "Background", "Background", "Background", "Background",
         ]
