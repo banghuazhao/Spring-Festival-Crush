@@ -1,0 +1,45 @@
+{
+  "tiles": [
+    [1, 1, 1, 0, 0, 0, 1, 1, 1],
+    [1, 1, 1, 0, 0, 0, 1, 1, 1],
+    [1, 1, 1, 1, 0, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 2, 1, 1, 1, 2, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1]
+  ],
+  "moves": 31,
+  "levelGoal": {
+    "firstStarScore": 900,
+    "secondStarScore": 1600,
+    "thirdStarScore": 2300,
+    "levelTarget": {
+      "lock": 2,
+      "redPocket": 18
+    }
+  },
+  "difficulty": 2,
+  "possibleSymbols": [
+    "firecracker",
+    "redPocket",
+    "dumpling",
+    "zodiac",
+    "bowl",
+    "lantern"
+  ],
+  "snow": false,
+  "jelly": [
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 1, 0, 0, 0, 0, 0, 1, 0],
+    [1, 1, 1, 1, 0, 1, 1, 1, 1],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0]
+  ],
+  "mechanicHint": "Rabbit ears: blossoms high in the ears need matches up top."
+}

@@ -14,6 +14,9 @@ enum AppTheme {
     static let festivalGold = Color(UIColor(hex: 0xFFC947))
     static let festivalGoldDark = Color(UIColor(hex: 0xC67816))
 
+    /// Moon blossoms (the board's jelly layer): pale for one clear left, deep for two or more.
+    static func blossom(layers: Int) -> UIColor { UIColor(hex: layers > 1 ? 0xE0609A : 0xF4A6C6) }
+
     // MARK: - Gradients
 
     static let primaryGradient = LinearGradient(

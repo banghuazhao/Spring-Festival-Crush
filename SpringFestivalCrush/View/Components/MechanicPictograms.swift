@@ -12,6 +12,8 @@ struct PictoTile: View {
         case enhanced
         /// Strength pips of a multi-hit lock, as the board draws them.
         case lockStrength(Int)
+        /// A moon blossom under the tile, deep pink while it needs more than one clear.
+        case blossom(Int)
     }
 
     let asset: String
@@ -26,6 +28,11 @@ struct PictoTile: View {
         ZStack {
             RoundedRectangle(cornerRadius: size * 0.2, style: .continuous)
                 .fill(Self.slot.opacity(0.9))
+            if case let .blossom(layers) = overlay {
+                RoundedRectangle(cornerRadius: size * 0.2, style: .continuous)
+                    .fill(Color(AppTheme.blossom(layers: layers)))
+                    .padding(size * 0.05)
+            }
             artwork
                 .resizable()
                 .scaledToFit()
@@ -39,6 +46,8 @@ struct PictoTile: View {
                 frame(color: .cyan, badge: "❄")
             case let .lockStrength(hits):
                 frame(color: .clear, badge: "\(hits)")
+            case let .blossom(layers):
+                frame(color: Color(AppTheme.blossom(layers: layers)), badge: "\(layers)")
             case .none, .enhanced:
                 EmptyView()
             }
@@ -302,6 +311,31 @@ struct RuleArt: View {
                 PictoArrow(size: 11)
                 OpenLockPicto(size: tile)
             }
+        case .vaultLock:
+            HStack(spacing: 3) {
+                PictoTile(asset: "LockTile", overlay: .lockStrength(3), size: tile * 0.9)
+                PictoArrow(size: 10)
+                PictoTile(asset: "LockTile", overlay: .lockStrength(2), size: tile * 0.9)
+                PictoArrow(size: 10)
+                PictoTile(asset: "LockTile", overlay: .lockStrength(1), size: tile * 0.9)
+                PictoArrow(size: 10)
+                OpenLockPicto(size: tile * 0.9)
+            }
+        case .blossom:
+            VStack(spacing: 5) {
+                HStack(spacing: 4) {
+                    PictoTile(asset: "lantern", overlay: .blossom(1), size: tile)
+                    PictoArrow(size: 11)
+                    Text(verbatim: "🌸").font(.system(size: tile * 0.75))
+                }
+                HStack(spacing: 4) {
+                    PictoTile(asset: "lantern", overlay: .blossom(2), size: tile)
+                    PictoArrow(size: 11)
+                    PictoTile(asset: "dumpling", overlay: .blossom(1), size: tile)
+                    PictoArrow(size: 11)
+                    Text(verbatim: "🌸").font(.system(size: tile * 0.75))
+                }
+            }
         case .ice:
             NeighborMatchPicto(tile: tile, target: PictoTile(asset: "lantern", overlay: .ice, size: tile)) {
                 PictoTile(asset: "lantern", size: tile)
@@ -337,7 +371,7 @@ struct RuleArt: View {
                     PictoTag(text: "×3", size: 11)
                 }
             }
-        case .ratGuardian, .oxGuardian, .tigerGuardian:
+        case .ratGuardian, .oxGuardian, .tigerGuardian, .rabbitGuardian:
             if let kind = rule.guardian { BossRulesView(kind: kind) }
         }
     }
@@ -522,6 +556,15 @@ struct BossRulesView: View {
                     PictoTag(text: "2+", tint: AppTheme.festivalGoldDark, size: 11)
                 } result: { hit("−1") }
                 raid(every: 3) { PictoTile(asset: "lantern", overlay: .ice, size: tile); PictoTag(text: "×2", size: 11) }
+            case .rabbit:
+                rule { PictoTile(asset: "lantern", size: tile) } result: { hit("−1") }
+                rule { PictoTile(asset: "LockTile", size: tile) } result: { hit("−2") }
+                raid(every: 3) {
+                    Image(systemName: "arrow.down").font(.system(size: 12, weight: .black))
+                        .foregroundStyle(AppTheme.festivalGoldDark)
+                    PictoTile(asset: "LockTile", size: tile)
+                    PictoTag(text: "×2", size: 11)
+                }
             }
         }
         .accessibilityElement(children: .ignore)

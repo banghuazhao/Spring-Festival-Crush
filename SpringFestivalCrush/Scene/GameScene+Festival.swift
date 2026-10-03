@@ -136,6 +136,7 @@ extension GameScene {
         case .rat: UIColor(hex: 0xFFC947)
         case .ox: UIColor(hex: 0x8C97A6)
         case .tiger: UIColor(hex: 0x9BE8FF)
+        case .rabbit: UIColor(hex: 0xF4B6D2)
         }
         let flash = SKSpriteNode(color: tint, size: CGSize(width: width, height: height))
         flash.position = CGPoint(x: width / 2, y: height / 2)

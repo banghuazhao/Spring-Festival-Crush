@@ -1,0 +1,47 @@
+{
+  "tiles": [
+    [1, 1, 1, 1, 0, 1, 1, 1, 1],
+    [1, 1, 1, 1, 0, 1, 1, 1, 1],
+    [1, 1, 3, 1, 1, 1, 3, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [0, 1, 1, 1, 1, 1, 1, 1, 0],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 3, 1, 1, 1, 3, 1, 1],
+    [1, 1, 1, 1, 0, 1, 1, 1, 1],
+    [1, 1, 1, 1, 0, 1, 1, 1, 1]
+  ],
+  "moves": 26,
+  "levelGoal": {
+    "firstStarScore": 1100,
+    "secondStarScore": 1900,
+    "thirdStarScore": 2700,
+    "levelTarget": {
+      "lock": 4,
+      "zodiac": 24,
+      "bowl": 22
+    }
+  },
+  "bgMusic": "Colorful.mp3",
+  "difficulty": 5,
+  "possibleSymbols": [
+    "firecracker",
+    "redPocket",
+    "dumpling",
+    "zodiac",
+    "bowl",
+    "lantern"
+  ],
+  "snow": false,
+  "armor": [
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 1, 0, 0, 0, 0, 0, 1, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 1, 0, 1, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 1, 0, 1, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 1, 0, 0, 0, 0, 0, 1, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0]
+  ],
+  "mechanicHint": "Holes split the board: aim for chain reactions across the gaps."
+}

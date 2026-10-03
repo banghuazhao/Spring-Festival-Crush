@@ -662,6 +662,17 @@ class GameScene: SKScene {
             marker.lineWidth = 2
             marker.zPosition = 10
             overlayLayer.addChild(marker)
+        } else if let boss = gameModel.level.boss, boss.health > 0, boss.configuration.kind == .rabbit {
+            // The column the Jade Rabbit hops into next.
+            let marker = SKShapeNode(rectOf: CGSize(width: gameModel.tileSize.width - 2, height: gameModel.tileSize.height * CGFloat(gameModel.numRows)), cornerRadius: 5)
+            marker.name = "bossThreat"
+            marker.position = CGPoint(x: gameModel.tileSize.width * (CGFloat(boss.nextAttackLane % gameModel.numColumns) + 0.5),
+                                      y: gameModel.tileSize.height * CGFloat(gameModel.numRows) / 2)
+            marker.strokeColor = boss.movesUntilAttack == 1 ? .systemOrange : .systemPink
+            marker.fillColor = UIColor.systemPink.withAlphaComponent(0.08)
+            marker.lineWidth = 2
+            marker.zPosition = 10
+            overlayLayer.addChild(marker)
         }
         for column in 0 ..< gameModel.numColumns {
             for row in 0 ..< gameModel.numRows {
@@ -670,7 +681,7 @@ class GameScene: SKScene {
                 if jellyCount > 0 {
                     let node = (overlayLayer.childNode(withName: jellyName) as? SKShapeNode)
                         ?? makeJellyNode(name: jellyName, column: column, row: row)
-                    node.alpha = min(0.85, 0.3 + 0.2 * CGFloat(jellyCount))
+                    node.fillColor = AppTheme.blossom(layers: jellyCount)
                 } else {
                     overlayLayer.childNode(withName: jellyName)?.removeFromParent()
                 }
@@ -690,9 +701,11 @@ class GameScene: SKScene {
     private func makeJellyNode(name: String, column: Int, row: Int) -> SKShapeNode {
         let node = SKShapeNode(rectOf: CGSize(width: gameModel.tileSize.width * 0.9, height: gameModel.tileSize.height * 0.9), cornerRadius: 6)
         node.name = name
-        node.fillColor = UIColor.systemGreen.withAlphaComponent(0.5)
-        node.strokeColor = .clear
-        node.zPosition = 5
+        // Moon blossoms peek out around the tile that sits on them.
+        node.strokeColor = UIColor.white.withAlphaComponent(0.7)
+        node.lineWidth = 1.5
+        // Same depth as the tiles, so sibling order draws it after the board and before symbolsLayer.
+        node.zPosition = 0
         node.position = pointFor(column: column, row: row)
         overlayLayer.addChild(node)
         return node

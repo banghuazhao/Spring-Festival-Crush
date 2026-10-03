@@ -1019,11 +1019,13 @@ class GameModel: ObservableObject {
 
             let existingMax = zodiacRecord.levelRecords.map { $0.number }.max() ?? 0
             guard zodiac.numLevels > existingMax else { continue }
+            // A player who already beat the old last level goes straight on to the first new one.
+            let finishedOldLevels = zodiacRecord.levelRecords.first { $0.number == existingMax }?.isComplete ?? false
 
             for i in (existingMax + 1) ... zodiac.numLevels {
                 let levelRecord = LevelRecord(
                     number: i,
-                    isUnlocked: existingMax == 0 && i == 1,
+                    isUnlocked: i == existingMax + 1 && (existingMax == 0 || finishedOldLevels),
                     zodiacRecord: zodiacRecord
                 )
                 modelContext.insert(levelRecord)

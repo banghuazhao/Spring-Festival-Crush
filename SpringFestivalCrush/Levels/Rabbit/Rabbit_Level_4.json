@@ -1,0 +1,46 @@
+{
+  "tiles": [
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 3, 1, 1, 1, 3, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 3, 1, 1, 1, 3, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1]
+  ],
+  "moves": 29,
+  "levelGoal": {
+    "firstStarScore": 1000,
+    "secondStarScore": 1700,
+    "thirdStarScore": 2400,
+    "levelTarget": {
+      "lock": 4,
+      "dumpling": 18
+    }
+  },
+  "bgMusic": "Colorful.mp3",
+  "difficulty": 2,
+  "possibleSymbols": [
+    "firecracker",
+    "redPocket",
+    "dumpling",
+    "zodiac",
+    "bowl",
+    "lantern"
+  ],
+  "snow": false,
+  "jelly": [
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 1, 0, 0, 0, 0, 0, 1, 0],
+    [0, 1, 0, 1, 0, 1, 0, 1, 0],
+    [0, 1, 0, 0, 0, 0, 0, 1, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 1, 0, 0, 0, 0, 0, 1, 0],
+    [0, 1, 0, 1, 0, 1, 0, 1, 0],
+    [0, 1, 0, 0, 0, 0, 0, 1, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0]
+  ],
+  "mechanicHint": "Locks guard the blossoms: open them to reach underneath."
+}

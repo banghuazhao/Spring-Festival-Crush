@@ -210,7 +210,6 @@
 "lanterns" = "燈籠";
 "%@ tiles" = "%@方塊";
 "locks" = "鎖";
-"jelly layers" = "果凍層";
 "gifts to bring to the bottom" = "需要送到底部的禮物";
 "lightning combos" = "閃電特效";
 "five-tile combos" = "五連特效";
@@ -401,3 +400,17 @@
 "Rule handbook" = "玩法圖鑑";
 "%lld of %lld rules unlocked" = "已解鎖 %lld/%lld 條規則";
 "Reach %@ level %lld to unlock." = "到達%@第%lld關即可解鎖。";
+
+/* Rabbit chapter: Jade Rabbit guardian, moon blossoms, vault locks */
+"🐰 Jade Rabbit" = "🐰 玉兔";
+"Clear lanterns for 1 damage and break locks for 2. Every 3 moves, the Rabbit hops to the marked column and locks two tiles there." = "消除燈籠造成 1 點傷害，打開鎖造成 2 點傷害。玉兔每 3 步會跳到標記的列，並鎖住那裡的兩個方塊。";
+"Lanterns + locks · column %lld locks in %lld moves" = "燈籠 + 開鎖 · 第 %lld 列將在 %lld 步後上鎖";
+"Hop, hop… mind your step!" = "蹦蹦跳跳…小心腳下！";
+"Locked by moonlight!" = "月光上鎖啦！";
+"Eek! My lanterns!" = "哎呀！我的燈籠！";
+"Back to the moon I go…" = "我回月亮上去啦…";
+"Moon Blossom" = "月下花";
+"Vault Lock" = "寶庫鎖";
+"Moon blossoms grow under tiles. Clear the tile on top to collect one. Deep pink blossoms need two clears." = "月下花長在方塊下面。消除上面的方塊即可收集一朵。深粉色的花需要消除兩次。";
+"A vault lock needs three matches beside it: vault, double lock, lock, then open." = "寶庫鎖需要在旁邊消除三次：寶庫鎖、雙重鎖、鎖，然後打開。";
+"moon blossoms" = "月下花";

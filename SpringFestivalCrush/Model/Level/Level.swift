@@ -118,7 +118,6 @@ class Level {
         repeat {
             set = createInitialSymbols()
             detectPossibleSwaps()
-            print("possible swaps: \(possibleSwaps)")
         } while possibleSwaps.count == 0 || hasAnyExistingMatch()
         return set
     }
@@ -821,7 +820,9 @@ class Level {
         boss = encounter
         guard attacks else { return false }
         let all = symbols.nonNilElements()
-        let budget = max(0, 12 - all.filter { $0.isFrozen || $0.armorLayers > 0 }.count)
+        // The Rabbit's locks pin tiles in place, so they count against the same budget.
+        let isRabbit = encounter.configuration.kind == .rabbit
+        let budget = max(0, 12 - all.filter { $0.isFrozen || $0.armorLayers > 0 || (isRabbit && $0.type == .lock) }.count)
         let candidates = all.filter {
             $0.type.isNormalMatchable && !$0.isFrozen && $0.armorLayers == 0
         }.sorted { ($0.row, $0.column) < ($1.row, $1.column) }
@@ -836,10 +837,18 @@ class Level {
             }
         case .tiger:
             targets = candidates.filter { $0.row == encounter.attackLane % numRows }
+        case .rabbit:
+            // Top of the column first, so the lock lands where the player is looking.
+            targets = candidates.filter { $0.column == encounter.attackLane % numColumns }.reversed()
         }
         for target in targets.prefix(min(budget, encounter.configuration.kind == .ox ? 3 : 2)) {
-            if encounter.configuration.kind == .tiger { target.iceLayer = 1 }
-            else { target.armorLayers = 1 }
+            switch encounter.configuration.kind {
+            case .tiger: target.iceLayer = 1
+            case .rabbit:
+                target.type = .lock
+                tiles[target.column, target.row]?.type = .lock
+            case .rat, .ox: target.armorLayers = 1
+            }
         }
         return true
     }

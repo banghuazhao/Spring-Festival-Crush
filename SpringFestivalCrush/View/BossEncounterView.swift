@@ -90,15 +90,23 @@ struct BossEncounterView: View {
                 case .tiger:
                     PictoTile(asset: "firecracker", size: 18)
                     Image(systemName: "chevron.compact.down").font(.system(size: 10, weight: .black))
+                case .rabbit:
+                    PictoTile(asset: "lantern", size: 18)
+                    PictoTile(asset: "LockTile", size: 18)
                 }
                 Spacer(minLength: 4)
                 PictoCountdown(moves: encounter.movesUntilAttack, size: 18, tint: .white)
-                Text(verbatim: kind == .tiger ? "❄" : "💢").font(.system(size: 11))
+                Text(verbatim: kind == .tiger ? "❄" : (kind == .rabbit ? "🔒" : "💢")).font(.system(size: 11))
                 if kind == .tiger {
                     Text(verbatim: "\(9 - encounter.nextAttackLane)")
                         .font(.caption2.weight(.black))
                         .padding(.horizontal, 4)
                         .background(Color.cyan.opacity(0.45), in: Capsule())
+                } else if kind == .rabbit {
+                    Text(verbatim: "\(encounter.nextAttackLane + 1)")
+                        .font(.caption2.weight(.black))
+                        .padding(.horizontal, 4)
+                        .background(Color.pink.opacity(0.45), in: Capsule())
                 }
                 HelpTipButton(size: 15, tint: .black.opacity(0.45)) {
                     HelpTipRow(Text(encounter.cue)) {

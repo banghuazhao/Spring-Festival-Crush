@@ -1,0 +1,44 @@
+{
+  "tiles": [
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1]
+  ],
+  "moves": 24,
+  "levelGoal": {
+    "firstStarScore": 900,
+    "secondStarScore": 1500,
+    "thirdStarScore": 2100,
+    "levelTarget": {
+      "zodiac": 15
+    }
+  },
+  "difficulty": 1,
+  "possibleSymbols": [
+    "firecracker",
+    "redPocket",
+    "dumpling",
+    "zodiac",
+    "bowl",
+    "lantern"
+  ],
+  "snow": false,
+  "jelly": [
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 1, 1, 1, 0, 0, 0],
+    [0, 0, 1, 1, 1, 1, 1, 0, 0],
+    [0, 0, 1, 1, 1, 1, 1, 0, 0],
+    [0, 0, 1, 1, 1, 1, 1, 0, 0],
+    [0, 0, 0, 1, 1, 1, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0]
+  ],
+  "mechanicHint": "Moon blossoms sit under the tiles. Clear a tile on a blossom to collect it."
+}

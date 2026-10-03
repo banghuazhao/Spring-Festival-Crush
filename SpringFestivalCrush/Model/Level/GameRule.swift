@@ -20,9 +20,12 @@ enum GameRule: String, CaseIterable, Identifiable {
     case ice
     case cascade
     case doubleLock
+    case blossom
+    case vaultLock
     case ratGuardian
     case oxGuardian
     case tigerGuardian
+    case rabbitGuardian
 
     var id: String { rawValue }
 
@@ -39,7 +42,9 @@ enum GameRule: String, CaseIterable, Identifiable {
         case .ice: String(localized: "Ice")
         case .cascade: String(localized: "Chain Reaction")
         case .doubleLock: String(localized: "Double Lock")
-        case .ratGuardian, .oxGuardian, .tigerGuardian: guardian!.title
+        case .blossom: String(localized: "Moon Blossom")
+        case .vaultLock: String(localized: "Vault Lock")
+        case .ratGuardian, .oxGuardian, .tigerGuardian, .rabbitGuardian: guardian!.title
         }
     }
 
@@ -57,7 +62,9 @@ enum GameRule: String, CaseIterable, Identifiable {
         case .ice: String(localized: "Ice: clear a neighboring tile to thaw it before matching.")
         case .cascade: String(localized: "Falling tiles can match on their own. Chain reactions score more and open tight spaces.")
         case .doubleLock: String(localized: "A double lock needs two matches beside it. The first turns it into a normal lock.")
-        case .ratGuardian, .oxGuardian, .tigerGuardian: guardian!.instructions
+        case .blossom: String(localized: "Moon blossoms grow under tiles. Clear the tile on top to collect one. Deep pink blossoms need two clears.")
+        case .vaultLock: String(localized: "A vault lock needs three matches beside it: vault, double lock, lock, then open.")
+        case .ratGuardian, .oxGuardian, .tigerGuardian, .rabbitGuardian: guardian!.instructions
         }
     }
 
@@ -66,6 +73,7 @@ enum GameRule: String, CaseIterable, Identifiable {
         case .ratGuardian: .rat
         case .oxGuardian: .ox
         case .tigerGuardian: .tiger
+        case .rabbitGuardian: .rabbit
         default: nil
         }
     }
@@ -82,9 +90,11 @@ enum GameRule: String, CaseIterable, Identifiable {
         case .lightning: return has(.lightning)
         case .luckyFive: return has(.five)
         case .blastTile: return has(.enhanced)
+        case .vaultLock: return has(.vaultLock)
         case .armor: return any(data.armor)
         case .ice: return any(data.ice)
-        case .ratGuardian, .oxGuardian, .tigerGuardian: return data.boss?.kind == guardian
+        case .blossom: return any(data.jelly)
+        case .ratGuardian, .oxGuardian, .tigerGuardian, .rabbitGuardian: return data.boss?.kind == guardian
         case .goals, .swapMatch, .combos, .cascade: return false
         }
     }

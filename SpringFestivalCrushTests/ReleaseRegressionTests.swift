@@ -138,7 +138,7 @@ final class ReleaseRegressionTests: XCTestCase {
     }
 
     func testReshuffleAlwaysFindsPlayableBoardOnEveryLevel() throws {
-        let levels = [("Rat", 15), ("Ox", 15), ("Tiger", 10)]
+        let levels = [("Rat", 15), ("Ox", 15), ("Tiger", 15), ("Rabbit", 15)]
             .flatMap { name, count in (1...count).map { "\(name)_Level_\($0)" } }
         for filename in levels {
             let level = try XCTUnwrap(Level(filename: filename), filename)

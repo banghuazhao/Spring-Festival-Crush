@@ -1,5 +1,6 @@
 import XCTest
 import SpriteKit
+import SwiftData
 import SwiftUI
 @testable import SpringFestivalCrush
 
@@ -92,6 +93,74 @@ final class ProgressionTests: XCTestCase {
         XCTAssertEqual(tiger.health, 40)
         tiger.receive(chains: [tribute], cascadeDepth: 2)
         XCTAssertEqual(tiger.health, 37)
+
+        var rabbit = BossEncounter(configuration: .init(kind: .rabbit, health: 40))
+        let lanterns = Chain(chainType: .horizontal3)
+        lanterns.add(symbols: (0..<3).map { Symbol(column: $0, row: 0, symbolType: .lantern) })
+        let opened = Chain(chainType: .locks)
+        opened.add(symbol: Symbol(column: 5, row: 5, symbolType: .lock))
+        rabbit.receive(chains: [tribute], cascadeDepth: 3)
+        XCTAssertEqual(rabbit.health, 40, "Only lanterns and locks hurt the Jade Rabbit")
+        rabbit.receive(chains: [lanterns, opened], cascadeDepth: 1)
+        XCTAssertEqual(rabbit.health, 35)
+    }
+
+    func testNewLevelsInAFinishedChapterOpenTheFirstNewLevel() throws {
+        let saved = UserDefaults.standard.object(forKey: "firstLaunch")
+        addTeardownBlock {
+            if let saved { UserDefaults.standard.set(saved, forKey: "firstLaunch") }
+            else { UserDefaults.standard.removeObject(forKey: "firstLaunch") }
+        }
+        let container = try ModelContainer(for: ZodiacRecord.self, LevelRecord.self,
+                                           configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let context = container.mainContext
+        // A player who finished the old 10-level Tiger chapter and is midway through Ox's old 10.
+        for (zodiac, completed) in [(ChineseZodiac.tiger, 10), (.ox, 6)] {
+            let record = ZodiacRecord(zodiacType: zodiac, isUnlocked: true)
+            context.insert(record)
+            for number in 1...10 {
+                let level = LevelRecord(number: number, isUnlocked: number <= completed + 1, zodiacRecord: record)
+                level.isComplete = number <= completed
+                context.insert(level)
+                record.levelRecords.append(level)
+            }
+        }
+        try context.save()
+        let game = GameModel()
+        game.firstLaunch = false
+        game.initializeRecords(modelContext: context)
+
+        func level(_ zodiac: ChineseZodiac, _ number: Int) -> LevelRecord? {
+            game.zodiacRecords.first { $0.zodiacType == zodiac }?.levelRecords.first { $0.number == number }
+        }
+        XCTAssertEqual(level(.tiger, 11)?.isUnlocked, true)
+        XCTAssertEqual(level(.tiger, 12)?.isUnlocked, false)
+        XCTAssertEqual(level(.ox, 11)?.isUnlocked, false, "Ox 10 is not beaten yet")
+        XCTAssertEqual(level(.tiger, 15)?.isComplete, false)
+    }
+
+    func testJadeRabbitLocksTwoTilesInTheMarkedColumn() throws {
+        let level = try XCTUnwrap(Level(filename: "Rabbit_Level_15"))
+        _ = level.shuffle()
+        let boss = try XCTUnwrap(level.boss)
+        XCTAssertEqual(boss.configuration.kind, .rabbit)
+        let column = boss.nextAttackLane % level.numColumns
+        func locks() -> [Symbol] {
+            (0..<level.numColumns).flatMap { c in (0..<level.numRows).compactMap { level.symbol(atColumn: c, row: $0) } }
+                .filter { $0.type == .lock }
+        }
+        XCTAssertTrue(locks().isEmpty)
+        let attacks = (0 ..< boss.configuration.attackInterval).filter { _ in level.advanceBossTurn() }.count
+        XCTAssertEqual(attacks, 1)
+        let locked = locks()
+        XCTAssertEqual(locked.count, 2)
+        XCTAssertTrue(locked.allSatisfy { $0.column == column && !$0.isMovable() })
+        for piece in locked {
+            XCTAssertEqual(level.tileAt(column: piece.column, row: piece.row)?.type, .lock)
+        }
+        // A raid never buries the board: protected pieces stay within the shared budget.
+        for _ in 0..<90 { level.advanceBossTurn() }
+        XCTAssertLessThanOrEqual(locks().count, 12)
     }
 
     func testBossMustBeDefeatedEvenAfterAllCollectionGoals() throws {
@@ -106,7 +175,7 @@ final class ProgressionTests: XCTestCase {
     }
 
     func testAllChaptersHaveProgressionSnowAndFinalBoss() throws {
-        for (chapter, count) in [("Rat", 15), ("Ox", 15), ("Tiger", 10)] {
+        for (chapter, count) in [("Rat", 15), ("Ox", 15), ("Tiger", 15), ("Rabbit", 15)] {
             var previousTier = 0
             var snowLevels = 0
             for number in 1...count {
@@ -128,7 +197,7 @@ final class ProgressionTests: XCTestCase {
     }
 
     func testHazardsPreservePiecesAndRemainBounded() throws {
-        let level = try XCTUnwrap(Level(filename: "Tiger_Level_10"))
+        let level = try XCTUnwrap(Level(filename: "Tiger_Level_15"))
         let pieces = level.shuffle()
         let identities = Set(pieces.map(ObjectIdentifier.init))
         let specials = pieces.filter { $0.isSpecialPowerUp }
@@ -164,9 +233,15 @@ final class ProgressionTests: XCTestCase {
     }
 
     func testBossGameScreenFitsSmallPhone() async throws {
+        for chapter in [2, 3] {
+            try await assertBossScreenFitsSmallPhone(chapter: chapter)
+        }
+    }
+
+    private func assertBossScreenFitsSmallPhone(chapter: Int) async throws {
         let game = GameModel()
-        game.zodiac = Zodiac.all[2]
-        game.selectLevel(10)
+        game.zodiac = Zodiac.all[chapter]
+        game.selectLevel(15)
         await game.setupNewGame()
         let size = CGSize(width: 375, height: 667)
         let feedback = GameFeedback()
@@ -200,16 +275,16 @@ final class ProgressionTests: XCTestCase {
         renderer.scale = 2
         let image = try XCTUnwrap(renderer.uiImage)
         let attachment = XCTAttachment(image: image)
-        attachment.name = "Boss-small-phone"
+        attachment.name = "Boss-small-phone-\(game.zodiac.zodiacType.name)"
         attachment.lifetime = .keepAlways
         add(attachment)
-        try image.pngData()?.write(to: URL(fileURLWithPath: "/tmp/spring-boss-small-phone.png"))
+        try image.pngData()?.write(to: URL(fileURLWithPath: "/tmp/spring-boss-small-phone-\(game.zodiac.zodiacType.name).png"))
     }
 
     func testBossAndSnowVisuals() async throws {
         let game = GameModel()
         game.zodiac = Zodiac.all[2]
-        game.selectLevel(10)
+        game.selectLevel(15)
         await game.setupNewGame()
         let size = CGSize(width: 393, height: 852)
         let scene = GameScene(size: size, gameModel: game, themeModel: ThemeModel(),

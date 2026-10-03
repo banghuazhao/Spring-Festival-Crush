@@ -1,0 +1,46 @@
+{
+  "tiles": [
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 7, 1, 1, 1, 1, 1, 7, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 5, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 7, 1, 1, 1, 1, 1, 7, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1]
+  ],
+  "moves": 29,
+  "levelGoal": {
+    "firstStarScore": 1100,
+    "secondStarScore": 1900,
+    "thirdStarScore": 2700,
+    "levelTarget": {
+      "lock": 4,
+      "redPocket": 18
+    }
+  },
+  "bgMusic": "Colorful.mp3",
+  "difficulty": 3,
+  "possibleSymbols": [
+    "firecracker",
+    "redPocket",
+    "dumpling",
+    "zodiac",
+    "bowl",
+    "lantern"
+  ],
+  "snow": false,
+  "jelly": [
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 1, 0, 0, 0, 0, 0, 1, 0],
+    [0, 0, 1, 0, 0, 0, 1, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 1, 0, 0, 0, 1, 0, 0],
+    [0, 1, 0, 0, 0, 0, 0, 1, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0]
+  ],
+  "mechanicHint": "Vaults in the corners keep blossoms locked away."
+}

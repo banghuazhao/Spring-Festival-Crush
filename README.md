@@ -96,7 +96,7 @@ Special tiles can be swapped directly to trigger their effect at any time. Some 
 |---------|----------|
 | 🔐 Vault Lock | Three-hit lock: vault → heavy lock → lock → cleared |
 | 🍫 Chocolate | Clears like a lock, but spreads to an adjacent tile each move if left alone |
-| 🟩 Jelly | A layer under the tile — keep matching over it to clear it, regardless of what's on top |
+| 🌸 Moon Blossom | A layer under the tile (pale = 1 clear, deep pink = 2) — clear whatever sits on top to collect it |
 | 🧊 Ice | Freezes a tile in place; breaks one layer at a time when a neighboring match clears |
 | 🎁 Ingredient | Guide it down to the bottom row to collect it |
 | ⏱️ Timer | Some levels race the clock in addition to (or instead of) move count |
@@ -138,6 +138,17 @@ SpringFestivalCrush/
 - **Ad Integration**: Google AdMob
 - **Build System**: Xcode
 
+### Level Solver
+
+`tools/simulate_levels.sh` plays every bundled level hundreds of times in the simulator with a sensible bot and a random bot, using the same `Level` calls as `GameModel`. It writes win rates, star rates, spare moves, the median winning score and the goal most often left unfinished to [docs/level-balance-report.md](docs/level-balance-report.md).
+
+```bash
+tools/simulate_levels.sh                              # every level, 200 games each
+SIM_RUNS=400 tools/simulate_levels.sh Rabbit Tiger_Level_12
+```
+
+`LevelBalanceTests` also runs on every test pass: each level must be won by the bot at least once, and no lock goal may ask for more locks than the board holds.
+
 ### Key Features
 
 - **Modern Swift**: Leverages the latest Swift features including async/await and SwiftData
@@ -147,7 +158,17 @@ SpringFestivalCrush/
 
 ## 📋 Release Notes
 
-### Version 3.3 (In development)
+### Version 3.4 (In development)
+- 🐰 **Rabbit chapter — Moon Blossom Garden**: 15 new levels, ending with the 🐰 **Jade Rabbit** guardian, who takes damage from lanterns and broken locks and locks two tiles in a marked column every 3 moves
+- 🌸 **Moon blossoms**: pink squares under the tiles; clear the tile on top to collect them, deep pink ones twice
+- 🔐 **Vault locks** arrive on the board for the first time (three matches to open)
+- 🐯 **Tiger** grows to 15 levels; the Snowfang Tiger guardian moves to the new chapter finale, Tiger 15
+- 🐛 Players who had already beaten the last level of a chapter now go straight on to its new levels, instead of having to replay that level to unlock them
+- 🧪 Level solver tool and a balance report for every level
+
+See [docs/rabbit-chapter-and-level-solver.md](docs/rabbit-chapter-and-level-solver.md) for details.
+
+### Version 3.3
 - 🔁 **Continue offer**: out of moves or time, buy +5 moves / +20 seconds instead of losing straight away
 - 🔄 **Ruyi Swap** tool: swap any two neighbouring tiles, no match needed, no move spent
 - 🧧 **Daily red envelope** with a 7-day login streak, and 🎁 **star chests** on every chapter map

@@ -1,0 +1,35 @@
+{
+  "tiles": [
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 7, 1, 1, 1, 7, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 7, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1]
+  ],
+  "moves": 22,
+  "levelGoal": {
+    "firstStarScore": 1000,
+    "secondStarScore": 1800,
+    "thirdStarScore": 2500,
+    "levelTarget": {
+      "lock": 3,
+      "lantern": 24
+    }
+  },
+  "bgMusic": "glitter-blast.mp3",
+  "difficulty": 3,
+  "possibleSymbols": [
+    "firecracker",
+    "redPocket",
+    "dumpling",
+    "zodiac",
+    "bowl",
+    "lantern"
+  ],
+  "snow": false,
+  "mechanicHint": "Vault locks take three matches beside them: vault, double lock, lock, open."
+}

@@ -300,12 +300,12 @@ final class FestivalFeaturesTests: XCTestCase {
     }
 
     func testGuardiansAttackOnTheirIntervalAndAlwaysHaveALine() throws {
-        let level = try XCTUnwrap(Level(filename: "Tiger_Level_10"))
+        let level = try XCTUnwrap(Level(filename: "Tiger_Level_15"))
         _ = level.shuffle()
         let interval = try XCTUnwrap(level.boss).configuration.attackInterval
         let attacks = (0 ..< interval * 2).filter { _ in level.advanceBossTurn() }.count
         XCTAssertEqual(attacks, 2)
-        for kind in [BossConfiguration.Kind.rat, .ox, .tiger] {
+        for kind in [BossConfiguration.Kind.rat, .ox, .tiger, .rabbit] {
             for event in [BossEvent.Kind.hit(3), .windUp, .attack, .defeated] {
                 XCTAssertFalse(kind.taunt(for: event).isEmpty)
             }
@@ -321,7 +321,9 @@ final class FestivalFeaturesTests: XCTestCase {
             let table = try XCTUnwrap(NSDictionary(contentsOfFile: path) as? [String: String])
             for key in ["KEEP GOING?", "Ruyi Swap", "DAILY RED ENVELOPE", "STAR CHESTS", "FESTIVAL FINALE!",
                         "Only %lld more pieces to go!", "LEVEL COMPLETE!", "OUT OF MOVES", "Lantern Harbor",
-                        "Firecrackers + cascades · row %lld freezes in %lld moves"] {
+                        "Firecrackers + cascades · row %lld freezes in %lld moves",
+                        "Lanterns + locks · column %lld locks in %lld moves", "🐰 Jade Rabbit", "Moon Blossom",
+                        "Vault Lock", "moon blossoms"] {
                 XCTAssertNotNil(table[key], "\(language) is missing \(key)")
             }
             let specifier = try NSRegularExpression(pattern: "%(?:\\d\\$)?(?:lld|@|lf|d)")
@@ -344,7 +346,10 @@ final class FestivalFeaturesTests: XCTestCase {
         XCTAssertEqual(curriculum.introductions[.lock], LevelRef(zodiac: .rat, number: 2))
         XCTAssertEqual(curriculum.introductions[.armor], LevelRef(zodiac: .rat, number: 5))
         XCTAssertEqual(curriculum.introductions[.ice], LevelRef(zodiac: .rat, number: 8))
-        XCTAssertEqual(curriculum.introductions[.tigerGuardian], LevelRef(zodiac: .tiger, number: 10))
+        XCTAssertEqual(curriculum.introductions[.tigerGuardian], LevelRef(zodiac: .tiger, number: 15))
+        XCTAssertEqual(curriculum.introductions[.blossom], LevelRef(zodiac: .rabbit, number: 1))
+        XCTAssertEqual(curriculum.introductions[.vaultLock], LevelRef(zodiac: .rabbit, number: 6))
+        XCTAssertEqual(curriculum.introductions[.rabbitGuardian], LevelRef(zodiac: .rabbit, number: 15))
         // The gold frame is on almost every board, but only its first two levels teach it.
         let armorLessons = curriculum.order.filter { lessons($0.zodiac, $0.number).contains(.armor) }
         XCTAssertEqual(armorLessons, [LevelRef(zodiac: .rat, number: 5), LevelRef(zodiac: .rat, number: 6)])

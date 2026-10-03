@@ -25,6 +25,7 @@ struct BossEncounter {
                 : String(localized: "Match dumplings · raid in \(movesUntilAttack) moves")
         case .ox: return String(localized: "Break armor / trigger specials · charge in \(movesUntilAttack) moves")
         case .tiger: return String(localized: "Firecrackers + cascades · row \(9 - nextAttackLane) freezes in \(movesUntilAttack) moves")
+        case .rabbit: return String(localized: "Lanterns + locks · column \(nextAttackLane + 1) locks in \(movesUntilAttack) moves")
         }
     }
 
@@ -47,6 +48,10 @@ struct BossEncounter {
             damage = armor.count * 2 + (enhanced + specials + combined + reactions + convertedBolts) * 4
         case .tiger:
             damage = cleared.filter { $0.collectionType.isMatchableTo(.firecracker) || (cascadeDepth >= 2 && $0.collectionType.isNormalMatchable) }.count
+        case .rabbit:
+            let lanterns = cleared.filter { $0.collectionType.isMatchableTo(.lantern) }.count
+            let locks = cleared.filter { $0.type == .lock }.count
+            damage = lanterns + locks * 2
         }
         lastDamage = min(health, damage)
         health = max(0, health - damage)

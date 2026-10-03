@@ -91,7 +91,7 @@ struct LevelTarget: Codable {
         if let jelly {
             levelTargetDatas.append(
                 LevelTargetData(
-                    image: Image.image(from: "🟩", fontSize: 40),
+                    image: Image.image(from: "🌸", fontSize: 40),
                     imageName: "jelly",
                     targetNum: jelly
                 )
