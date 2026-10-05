@@ -12,3 +12,33 @@
 "Target" = "Target";
 "Level" = "Level";
 "Music" = "Music";
+
+/* Level briefing star score targets */
+"1 star: %@ points" = "1 star: %@ points";
+"2 stars: %@ points" = "2 stars: %@ points";
+"3 stars: %@ points" = "3 stars: %@ points";
+"Saved best: %lld of 3 stars" = "Saved best: %lld of 3 stars";
+
+/* Active tool hints */
+"Tap a tile to clear it; tap Hammer again to cancel." = "Tap a tile to clear it; tap Hammer again to cancel.";
+"Swipe neighbors; tap Ruyi Swap again to cancel." = "Swipe neighbors; tap Ruyi Swap again to cancel.";
+
+/* Locked star chest preview */
+"Chest preview" = "Chest preview";
+"Stars needed to unlock: %lld" = "Stars needed to unlock: %lld";
+"Preview rewards" = "Preview rewards";
+"Open chest" = "Open chest";
+
+/* End-of-level recap */
+"GOALS REMAINING" = "GOALS REMAINING";
+"Guardian health left" = "Guardian health left";
+"A star chest is ready on the map!" = "A star chest is ready on the map!";
+"Stars to next chest: %lld" = "Stars to next chest: %lld";
+"All star chests opened!" = "All star chests opened!";
+"%lld/%lld stars" = "%lld/%lld stars";
+
+/* Daily envelope reward preview */
+"View rewards" = "View rewards";
+"7-day rewards" = "7-day rewards";
+"Day %lld" = "Day %lld";
+"Today" = "Today";

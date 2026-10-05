@@ -99,7 +99,9 @@
 "Use one charge without spending a move" = "使用一次，不消耗步数";
 "Watch an optional ad for one charge" = "观看可选广告获得一次";
 "Tap a tile to clear it" = "点击任意方块将其消除";
+"Tap a tile to clear it; tap Hammer again to cancel." = "点击方块将其消除；再次点击新春锤可取消。";
 "Swipe any two tiles to swap them — no match needed" = "滑动任意两个相邻方块即可交换，无需凑成三消";
+"Swipe neighbors; tap Ruyi Swap again to cancel." = "滑动相邻方块；再点如意换位可取消。";
 "Swipe two tiles to match 3 or more!" = "滑动两个方块，凑齐3个或更多即可消除！";
 "Festival Finale! Every move left becomes fireworks…" = "新春压轴！剩余步数都化作烟花…";
 "No safe shuffle available. Your charge was kept." = "当前无法安全换一换，次数已为你保留。";
@@ -137,11 +139,16 @@
 "Level %lld unlocked!" = "第 %lld 关已解锁！";
 "Continue to Map" = "返回地图";
 "You can continue immediately; rewards are already saved" = "可以直接继续，奖励已保存";
+"A star chest is ready on the map!" = "地图上有可打开的星星宝箱！";
+"Stars to next chest: %lld" = "距离下一个宝箱还差 %lld 颗星";
+"All star chests opened!" = "所有星星宝箱都已打开！";
 "Play Next" = "下一关";
 "%lld of 3 stars earned" = "获得 %lld/3 颗星";
 "+%lld coins" = "+%lld 金币";
 "%lld coins earned. Balance %lld" = "获得 %lld 金币，余额 %lld";
 "So close! Every attempt reveals a better path." = "就差一点！每次尝试都会找到更好的路线。";
+"GOALS REMAINING" = "剩余目标";
+"Guardian health left" = "守护兽剩余生命值";
 "Try Again" = "再试一次";
 "Out of lives" = "生命已用完";
 "Watch Ad for +1 Life" = "看广告 +1 生命";
@@ -323,6 +330,10 @@
 "STAR CHESTS" = "星星宝箱";
 "A chest is ready — tap it to open!" = "有宝箱可以打开了，快点它！";
 "Star chest at %lld stars" = "%lld 星宝箱";
+"Chest preview" = "宝箱预览";
+"Stars needed to unlock: %lld" = "解锁还需 %lld 颗星";
+"Preview rewards" = "预览奖励";
+"Open chest" = "打开宝箱";
 "Ready to open" = "可以打开";
 "Opened" = "已打开";
 "STAR CHEST OPENED!" = "星星宝箱已打开！";
@@ -340,6 +351,10 @@
 "Streak day %lld of %lld" = "连续第 %lld/%lld 天";
 "Daily red envelope" = "每日红包";
 "Opened today" = "今天已打开";
+"View rewards" = "查看奖励";
+"7-day rewards" = "七日奖励";
+"Day %lld" = "第 %lld 天";
+"Today" = "今天";
 "Your festival, your way" = "你的新春，你做主";
 "Tune the sound, feel, and little helping hands." = "调整声音、手感和小帮手。";
 "Sound" = "声音";
@@ -368,6 +383,10 @@
 /* Help bubbles behind pictograms */
 "How it works" = "玩法说明";
 "Reach %@ points for 1 star" = "达到 %@ 分即可获得 1 颗星";
+"1 star: %@ points" = "1 颗星：%@ 分";
+"2 stars: %@ points" = "2 颗星：%@ 分";
+"3 stars: %@ points" = "3 颗星：%@ 分";
+"Saved best: %lld of 3 stars" = "历史最佳：%lld/3 颗星";
 "Complete every goal before you run out of moves." = "在步数用完前完成所有目标。";
 "Earn stars on this chapter's levels. A chest opens when your stars reach its number." = "在本章关卡中赢取星星。星星数量达到宝箱上的数字时即可打开宝箱。";
 

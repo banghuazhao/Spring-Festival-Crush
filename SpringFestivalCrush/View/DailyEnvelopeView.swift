@@ -15,6 +15,7 @@ struct DailyEnvelopeView: View {
     @State private var openedReward: RewardBundle?
     @State private var showBurst = false
     @State private var doubled = false
+    @State private var showingRewardSchedule = false
 
     private var todayDay: Int { envelope.highlightedDay }
 
@@ -28,47 +29,63 @@ struct DailyEnvelopeView: View {
             Rectangle().fill(AppTheme.festivalRedDark.gradient).ignoresSafeArea()
 
             ScrollView {
-                GamePopupPanel(title: String(localized: "DAILY RED ENVELOPE"), tone: .red) {
-                    VStack(spacing: 16) {
-                        streakStrip
+                if showingRewardSchedule {
+                    rewardSchedule
+                } else {
+                    GamePopupPanel(title: String(localized: "DAILY RED ENVELOPE"), tone: .red) {
+                        VStack(spacing: 16) {
+                            streakStrip
 
-                        envelopeButton
-
-                        if let openedReward {
-                            RewardItemsView(reward: openedReward, revealed: isOpen)
-                            if doubled {
-                                HStack(spacing: 4) {
-                                    Image(systemName: "checkmark.seal.fill")
-                                    PictoTag(text: "×2", size: 16)
-                                }
-                                .font(.title3)
-                                .foregroundStyle(AppTheme.festivalRed)
-                                .accessibilityElement(children: .ignore)
-                                .accessibilityLabel(Text("Doubled!"))
+                            Button {
+                                HapticManager.buttonTap()
+                                showBurst = false
+                                showingRewardSchedule = true
+                            } label: {
+                                Label("View rewards", systemImage: "list.bullet.rectangle")
+                                    .frame(maxWidth: .infinity, minHeight: 44)
                             }
-                        } else if !envelope.isReady {
-                            TimelineView(.periodic(from: .now, by: 1)) { context in
-                                let remaining = Self.countdown(to: context.date)
-                                Label(remaining, systemImage: "clock.fill")
-                                    .font(.headline.monospacedDigit())
+                            .buttonStyle(.gamePrimary(gradient: AppTheme.neutralGradient))
+                            .accessibilityIdentifier("daily-rewards-preview")
+
+                            envelopeButton
+
+                            if let openedReward {
+                                RewardItemsView(reward: openedReward, revealed: isOpen)
+                                if doubled {
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "checkmark.seal.fill")
+                                        PictoTag(text: "×2", size: 16)
+                                    }
+                                    .font(.title3)
                                     .foregroundStyle(AppTheme.festivalRed)
-                                    .accessibilityLabel(Text("Next envelope in \(remaining)"))
+                                    .accessibilityElement(children: .ignore)
+                                    .accessibilityLabel(Text("Doubled!"))
+                                }
+                            } else if !envelope.isReady {
+                                TimelineView(.periodic(from: .now, by: 1)) { context in
+                                    let remaining = Self.countdown(to: context.date)
+                                    Label(remaining, systemImage: "clock.fill")
+                                        .font(.headline.monospacedDigit())
+                                        .foregroundStyle(AppTheme.festivalRed)
+                                        .accessibilityLabel(Text("Next envelope in \(remaining)"))
+                                }
+                            }
+
+                            HStack(spacing: 8) {
+                                streakRule
+                                HelpTipButton(Text("Open one every day. Miss a day and the streak starts again from Day 1."),
+                                              tint: AppTheme.festivalRed)
                             }
                         }
-
-                        HStack(spacing: 8) {
-                            streakRule
-                            HelpTipButton(Text("Open one every day. Miss a day and the streak starts again from Day 1."),
-                                          tint: AppTheme.festivalRed)
-                        }
+                        .foregroundStyle(AppTheme.ink)
                     }
-                    .foregroundStyle(AppTheme.ink)
+                    .padding(20)
+                    .frame(maxWidth: 500)
+                    .frame(maxWidth: .infinity)
                 }
-                .padding(20)
-                .frame(maxWidth: 500)
-                .frame(maxWidth: .infinity)
             }
             .scrollIndicators(.hidden)
+            .id(showingRewardSchedule)
 
             if showBurst && !reduceMotion {
                 CelebrationBurstView { showBurst = false }
@@ -77,23 +94,34 @@ struct DailyEnvelopeView: View {
         }
         .safeAreaInset(edge: .bottom) {
             VStack(spacing: 8) {
-                if openedReward != nil, envelope.canDoubleLastReward {
-                    RewardedAdButton(title: "Watch Ad · Double It", systemImage: "play.rectangle.fill") {
-                        envelope.doubleLastReward(into: gameModel)
-                        doubled = true
-                        UISoundPlayer.shared.play(.chime)
-                        HapticManager.rewardOpen()
+                if showingRewardSchedule {
+                    Button {
+                        HapticManager.buttonTap()
+                        showingRewardSchedule = false
+                    } label: {
+                        Text("Close").frame(maxWidth: .infinity)
                     }
+                    .buttonStyle(.gamePrimary(gradient: AppTheme.neutralGradient))
+                    .accessibilityIdentifier("daily-rewards-preview-close")
+                } else {
+                    if openedReward != nil, envelope.canDoubleLastReward {
+                        RewardedAdButton(title: "Watch Ad · Double It", systemImage: "play.rectangle.fill") {
+                            envelope.doubleLastReward(into: gameModel)
+                            doubled = true
+                            UISoundPlayer.shared.play(.chime)
+                            HapticManager.rewardOpen()
+                        }
+                    }
+                    Button {
+                        HapticManager.buttonTap()
+                        if envelope.isReady { open() } else { dismiss() }
+                    } label: {
+                        Text(primaryTitle)
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.gamePrimary(gradient: envelope.isReady ? AppTheme.dangerGradient : AppTheme.successGradient))
+                    .accessibilityIdentifier("daily-envelope-primary")
                 }
-                Button {
-                    HapticManager.buttonTap()
-                    if envelope.isReady { open() } else { dismiss() }
-                } label: {
-                    Text(primaryTitle)
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.gamePrimary(gradient: envelope.isReady ? AppTheme.dangerGradient : AppTheme.successGradient))
-                .accessibilityIdentifier("daily-envelope-primary")
             }
             .padding(.horizontal, 24)
             .padding(.top, 10)
@@ -113,6 +141,56 @@ struct DailyEnvelopeView: View {
             }
         }
         .onDisappear { envelope.dismissDoubleOffer() }
+    }
+
+    /// Shows the existing reward table without claiming an envelope or changing the streak.
+    private var rewardSchedule: some View {
+        GamePopupPanel(title: String(localized: "7-day rewards"), tone: .gold) {
+            VStack(spacing: 12) {
+                ForEach(1 ... DailyEnvelopeRules.cycleLength, id: \.self) { day in
+                    rewardDay(day)
+                }
+            }
+            .foregroundStyle(AppTheme.ink)
+        }
+        .padding(20)
+        .frame(maxWidth: 500)
+        .frame(maxWidth: .infinity)
+    }
+
+    private func rewardDay(_ day: Int) -> some View {
+        let isCurrentDay = day == todayDay
+        let currentDayStatus: LocalizedStringKey = envelope.isReady ? "Today" : "Opened today"
+        let reward = DailyEnvelopeRules.reward(forDay: day)
+        return VStack(alignment: .leading, spacing: 8) {
+            Text("Day \(day)")
+                .font(.headline.weight(.heavy))
+                .accessibilityAddTraits(.isHeader)
+            if isCurrentDay {
+                Text(currentDayStatus)
+                    .font(.caption.weight(.heavy))
+                    .foregroundStyle(AppTheme.festivalRed)
+            }
+
+            ForEach(reward.items) { item in
+                HStack(spacing: 10) {
+                    RewardIcon(kind: item.kind, size: 26)
+                        .accessibilityHidden(true)
+                    Text(item.kind.name)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    Text(verbatim: "+\(item.amount)")
+                        .font(.headline.monospacedDigit())
+                }
+                .font(.subheadline)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityElement(children: .combine)
+            }
+        }
+        .padding(12)
+        .background(isCurrentDay ? AppTheme.festivalGold.opacity(0.2) : AppTheme.creamHighlight,
+                    in: .rect(cornerRadius: 14))
+        .overlay(RoundedRectangle(cornerRadius: 14)
+            .stroke(isCurrentDay ? AppTheme.festivalRed : AppTheme.festivalGold.opacity(0.45), lineWidth: 2))
     }
 
     private var envelopeButton: some View {

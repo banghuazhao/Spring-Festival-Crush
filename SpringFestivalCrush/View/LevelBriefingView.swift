@@ -5,6 +5,7 @@ struct LevelBriefingView: View {
     let levelNumber: Int
     let zodiac: Zodiac
     let theme: ZodiacChapterTheme
+    let savedBestStars: Int?
 
     private var ref: LevelRef { LevelRef(zodiac: zodiac.zodiacType, number: levelNumber) }
 
@@ -38,6 +39,28 @@ struct LevelBriefingView: View {
             .font(.caption.weight(.heavy))
             .foregroundStyle(theme.accent)
 
+            if let savedBestStars {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Saved best: \(savedBestStars) of 3 stars")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(AppTheme.ink)
+                        .fixedSize(horizontal: false, vertical: true)
+                    HStack(spacing: 6) {
+                        ForEach(0..<3) { index in
+                            Image(systemName: index < savedBestStars ? "star.fill" : "star")
+                                .foregroundStyle(theme.accent)
+                        }
+                    }
+                    .font(.title3)
+                    .accessibilityHidden(true)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(10)
+                .background(AppTheme.creamHighlight, in: .rect(cornerRadius: 12))
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("level-briefing-best-stars")
+            }
+
             if let boss = level.boss {
                 BossRulesView(kind: boss.configuration.kind)
             }
@@ -52,9 +75,23 @@ struct LevelBriefingView: View {
                     statChip(systemImage: "timer", value: "\(seconds)s")
                         .accessibilityLabel(Text("\(seconds) seconds"))
                 }
-                statChip(systemImage: "star.fill", value: level.levelGoal.firstStarScore.formatted())
-                    .accessibilityLabel(Text("Score \(level.levelGoal.firstStarScore.formatted())"))
             }
+
+            HStack(alignment: .top, spacing: 10) {
+                Image(systemName: "star.fill")
+                    .foregroundStyle(theme.accent)
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("1 star: \(level.levelGoal.firstStarScore.formatted()) points")
+                    Text("2 stars: \(level.levelGoal.secondStarScore.formatted()) points")
+                    Text("3 stars: \(level.levelGoal.thirdStarScore.formatted()) points")
+                }
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(AppTheme.ink)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .padding(10)
+            .background(AppTheme.creamHighlight, in: .rect(cornerRadius: 12))
 
             let targets = level.levelGoal.levelTarget.getLevelTargetDatas(gameZodiac: zodiac).filter { $0.targetNum > 0 }
             if !targets.isEmpty || level.boss != nil {
@@ -109,8 +146,6 @@ struct LevelBriefingView: View {
         if let seconds = level.timeLimit {
             HelpTipRow(Text("\(seconds) seconds"), systemImage: "timer", tint: theme.accent)
         }
-        HelpTipRow(Text("Reach \(level.levelGoal.firstStarScore.formatted()) points for 1 star"),
-                   systemImage: "star.fill", tint: theme.accent)
         HelpTipRow(level.boss == nil ? Text("Complete every goal before you run out of moves.")
                                      : Text("Defeat the guardian AND complete every goal."),
                    systemImage: "target", tint: theme.accent)

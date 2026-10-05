@@ -1,12 +1,19 @@
 import SwiftUI
 
-/// A modal alert over the frozen board. Opening Settings keeps this alert active.
+/// A modal alert over the frozen board. Opening a sheet keeps this alert active.
 struct PauseMenuView: View {
+    private enum PauseSheet: String, Identifiable {
+        case rules, settings
+        var id: Self { self }
+    }
+
     let onResume: () -> Void
     let onRestart: () -> Void
     let onExit: () -> Void
 
-    @State private var showingSettings = false
+    @EnvironmentObject private var gameModel: GameModel
+    @EnvironmentObject private var settingModel: SettingModel
+    @State private var presentedSheet: PauseSheet?
     @AccessibilityFocusState private var resumeFocused: Bool
 
     var body: some View {
@@ -18,6 +25,8 @@ struct PauseMenuView: View {
             GeometryReader { geometry in
                 ScrollView {
                     panel
+                        .disabled(presentedSheet != nil)
+                        .accessibilityHidden(presentedSheet != nil)
                         .padding(24)
                         .frame(maxWidth: .infinity)
                         .frame(minHeight: geometry.size.height)
@@ -27,14 +36,23 @@ struct PauseMenuView: View {
         }
         .accessibilityAddTraits(.isModal)
         .onAppear { resumeFocused = true }
-        .sheet(isPresented: $showingSettings, onDismiss: { resumeFocused = true }) {
-            NavigationStack {
-                SettingsView()
-                    .toolbar {
-                        ToolbarItem(placement: .confirmationAction) {
-                            Button("Done") { showingSettings = false }
-                        }
+        .sheet(item: $presentedSheet, onDismiss: { resumeFocused = true }) { sheet in
+            Group {
+                switch sheet {
+                case .rules:
+                    RuleHandbookView()
+                        .environmentObject(gameModel)
+                        .environmentObject(settingModel)
+                case .settings:
+                    NavigationStack {
+                        SettingsView()
+                            .toolbar {
+                                ToolbarItem(placement: .confirmationAction) {
+                                    Button("Done") { presentedSheet = nil }
+                                }
+                            }
                     }
+                }
             }
             .tint(AppTheme.festivalGold)
         }
@@ -74,7 +92,17 @@ struct PauseMenuView: View {
 
                 Button {
                     HapticManager.buttonTap()
-                    showingSettings = true
+                    presentedSheet = .rules
+                } label: {
+                    Label("Rule handbook", systemImage: "book.closed.fill")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.gamePrimary(gradient: AppTheme.neutralGradient))
+                .accessibilityIdentifier("pause-rules")
+
+                Button {
+                    HapticManager.buttonTap()
+                    presentedSheet = .settings
                 } label: {
                     Label("Settings", systemImage: "gearshape.fill")
                         .frame(maxWidth: .infinity)
@@ -103,4 +131,5 @@ struct PauseMenuView: View {
         PauseMenuView(onResume: {}, onRestart: {}, onExit: {})
     }
     .environmentObject(SettingModel())
+    .environmentObject(GameModel())
 }

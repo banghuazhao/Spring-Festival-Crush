@@ -7,6 +7,7 @@ struct LevelCompleteView: View {
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
     @Environment(\.gameReducedEffects) private var reducedEffects
     @Environment(\.requestReview) private var requestReview
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     private var reduceMotion: Bool { systemReduceMotion || reducedEffects }
     @State private var revealedStars = 0
     @State private var rewardVisible = false
@@ -14,6 +15,17 @@ struct LevelCompleteView: View {
 
     private var hasNextLevel: Bool {
         gameModel.currentLevel >= 1 && gameModel.currentLevel < gameModel.zodiac.numLevels && gameModel.lives > 0
+    }
+
+    /// Saved best stars already include this win, so replays cannot count twice.
+    private var chestProgress: (stars: Int, next: StarChestTrack.Chest?)? {
+        guard let summary = gameModel.victorySummary, summary.level >= 1,
+              let record = gameModel.currentZodiacRecord, record.zodiacType == summary.zodiac,
+              !record.levelRecords.isEmpty else { return nil }
+        let stars = record.levelRecords.reduce(0) { $0 + $1.stars }
+        let track = StarChestTrack(levelCount: record.levelRecords.count)
+        let claimed = StarChestStore.claimed(for: summary.zodiac)
+        return (stars, track.chests.first { !claimed.contains($0.index) })
     }
 
     var body: some View {
@@ -62,11 +74,41 @@ struct LevelCompleteView: View {
                                 .foregroundStyle(AppTheme.festivalRed)
                         }
 
+                        if let progress = chestProgress {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Label("STAR CHESTS", systemImage: "star.fill")
+                                    .font(.caption.bold())
+                                if let chest = progress.next {
+                                    ProgressView(value: Double(min(progress.stars, chest.threshold)),
+                                                 total: Double(chest.threshold))
+                                        .tint(AppTheme.festivalRed)
+                                        .accessibilityHidden(true)
+                                    Text("\(min(progress.stars, chest.threshold))/\(chest.threshold) stars")
+                                        .font(.subheadline.weight(.semibold).monospacedDigit())
+                                    if progress.stars >= chest.threshold {
+                                        Text("A star chest is ready on the map!")
+                                            .font(.subheadline)
+                                    } else {
+                                        Text("Stars to next chest: \(chest.threshold - progress.stars)")
+                                            .font(.subheadline)
+                                    }
+                                } else {
+                                    Label("All star chests opened!", systemImage: "checkmark.seal.fill")
+                                        .font(.subheadline)
+                                }
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(12)
+                            .background(AppTheme.creamHighlight, in: .rect(cornerRadius: 16))
+                            .accessibilityElement(children: .combine)
+                            .accessibilityIdentifier("victory-chest-progress")
+                        }
+
                         Button {
                             HapticManager.buttonTap()
                             gameModel.onTapVictoryMap()
                         } label: {
-                            Label("Continue to Map", systemImage: "map.fill").frame(maxWidth: .infinity)
+                            actionLabel("Continue to Map", systemImage: "map.fill")
                         }
                         .buttonStyle(.gamePrimary(gradient: AppTheme.successGradient))
                         .accessibilityIdentifier("victory-map")
@@ -77,7 +119,7 @@ struct LevelCompleteView: View {
                                 HapticManager.buttonTap()
                                 gameModel.onTapNextLevel()
                             } label: {
-                                Label("Play Next", systemImage: "play.fill").frame(maxWidth: .infinity)
+                                actionLabel("Play Next", systemImage: "play.fill")
                             }
                             .buttonStyle(.gamePrimary(gradient: AppTheme.neutralGradient))
                             .accessibilityIdentifier("victory-next")
@@ -104,6 +146,19 @@ struct LevelCompleteView: View {
             }
         }
         .onDisappear { revealID = UUID() }
+    }
+
+    @ViewBuilder
+    private func actionLabel(_ title: LocalizedStringKey, systemImage: String) -> some View {
+        if dynamicTypeSize.isAccessibilitySize {
+            VStack(spacing: 6) {
+                Image(systemName: systemImage).accessibilityHidden(true)
+                Text(title).multilineTextAlignment(.center)
+            }
+            .frame(maxWidth: .infinity)
+        } else {
+            Label(title, systemImage: systemImage).frame(maxWidth: .infinity)
+        }
     }
 
     /// Asks for a rating only at a high point, after the stars have landed.

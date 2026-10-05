@@ -55,10 +55,10 @@ struct GameView: View {
             return HUDBanner(id: notice, text: notice, icon: "shuffle", tint: .black)
         }
         if gameModel.hammerModeActive {
-            return HUDBanner(id: "hammer", text: String(localized: "Tap a tile to clear it"), icon: "hammer.fill", tint: .orange)
+            return HUDBanner(id: "hammer", text: String(localized: "Tap a tile to clear it; tap Hammer again to cancel."), icon: "hammer.fill", tint: .orange)
         }
         if gameModel.swapModeActive {
-            return HUDBanner(id: "swap", text: String(localized: "Swipe any two tiles to swap them — no match needed"), icon: "arrow.left.arrow.right", tint: AppTheme.festivalGoldDark)
+            return HUDBanner(id: "swap", text: String(localized: "Swipe neighbors; tap Ruyi Swap again to cancel."), icon: "arrow.left.arrow.right", tint: AppTheme.festivalGoldDark)
         }
         if gameModel.isTutorialHintActive {
             return HUDBanner(id: "tutorial", text: String(localized: "Swipe two tiles to match 3 or more!"), icon: nil, tint: .black)
@@ -249,7 +249,7 @@ struct GameView: View {
             )
         }
         .onReceive(timerTicker) { _ in
-            // Pause stays visible beneath Settings, so the entire menu flow suspends time.
+            // Pause stays visible beneath its sheets, so the entire menu flow suspends time.
             guard !isGameplayPaused else { return }
             gameModel.tickTimer()
         }

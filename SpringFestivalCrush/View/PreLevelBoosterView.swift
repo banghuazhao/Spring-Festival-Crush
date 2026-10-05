@@ -26,6 +26,15 @@ struct PreLevelBoosterView: View {
         ZodiacChapterTheme(zodiac: gameModel.zodiac?.zodiacType ?? .rat)
     }
 
+    /// Read only the selected chapter's saved result; uncompleted levels have no best yet.
+    private var savedBestStars: Int? {
+        guard let zodiac = gameModel.zodiac,
+              let record = gameModel.currentLevelRecords.first(where: {
+                  $0.number == levelNumber && $0.zodiacRecord.zodiacType == zodiac.zodiacType && $0.isComplete
+              }) else { return nil }
+        return min(3, max(0, record.stars))
+    }
+
     /// Coins already committed by the current selection. Affordability has to be judged
     /// against this, not against the raw balance: with 30 coins both boosters look
     /// individually affordable, so selecting both used to charge for the first and then
@@ -48,7 +57,8 @@ struct PreLevelBoosterView: View {
                 GamePopupPanel(title: String(localized: "LEVEL \(levelNumber)"), tone: .gold) {
                     VStack(spacing: 14) {
                         if let previewLevel, let zodiac = gameModel.zodiac {
-                            LevelBriefingView(level: previewLevel, levelNumber: levelNumber, zodiac: zodiac, theme: theme)
+                            LevelBriefingView(level: previewLevel, levelNumber: levelNumber, zodiac: zodiac,
+                                              theme: theme, savedBestStars: savedBestStars)
                         } else {
                             Text("This level is unavailable. Please return to the trail.")
                                 .font(.subheadline)

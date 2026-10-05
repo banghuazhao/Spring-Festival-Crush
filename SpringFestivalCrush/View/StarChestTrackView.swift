@@ -10,8 +10,10 @@ struct StarChestTrackView: View {
     let open: (StarChestTrack.Chest) -> Void
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
     @Environment(\.gameReducedEffects) private var reducedEffects
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     private var reduceMotion: Bool { systemReduceMotion || reducedEffects }
     @State private var bounce = false
+    @State private var previewChest: StarChestTrack.Chest?
 
     private var fraction: CGFloat {
         guard track.maxStars > 0 else { return 0 }
@@ -43,12 +45,17 @@ struct StarChestTrackView: View {
                     ForEach(track.chests) { chest in
                         let state = track.state(of: chest, stars: stars, claimed: claimed)
                         Button {
-                            guard state == .ready else {
+                            switch state {
+                            case .locked:
                                 HapticManager.locked()
-                                return
+                                previewChest = chest
+                            case .ready:
+                                HapticManager.buttonTap()
+                                open(chest)
+                            case .opened:
+                                HapticManager.buttonTap()
+                                previewChest = chest
                             }
-                            HapticManager.buttonTap()
-                            open(chest)
                         } label: {
                             VStack(spacing: 1) {
                                 FestivalChestArt(state: state, width: 34)
@@ -72,6 +79,7 @@ struct StarChestTrackView: View {
                                   y: 30)
                         .accessibilityLabel(Text("Star chest at \(chest.threshold) stars"))
                         .accessibilityValue(Self.accessibilityValue(state))
+                        .accessibilityHint(state == .ready ? Text("Open chest") : Text("Preview rewards"))
                         .accessibilityIdentifier("star-chest-\(chest.index)")
                     }
                 }
@@ -87,6 +95,74 @@ struct StarChestTrackView: View {
         .padding(.bottom, 12)
         .onAppear(perform: updateBounce)
         .onChange(of: hasReadyChest) { _, _ in updateBounce() }
+        .sheet(item: $previewChest) { chest in
+            preview(for: chest)
+                .presentationDetents(dynamicTypeSize.isAccessibilitySize ? [.large] : [.medium, .large])
+                .presentationDragIndicator(.visible)
+        }
+    }
+
+    /// Reads the chest's existing reward without going through the claim callback.
+    private func preview(for chest: StarChestTrack.Chest) -> some View {
+        let isOpened = claimed.contains(chest.index)
+        return ZStack {
+            AppTheme.festivalBackground.ignoresSafeArea()
+            ScrollView {
+                GamePopupPanel(title: String(localized: "Chest preview"), tone: .gold) {
+                    VStack(spacing: 16) {
+                        FestivalChestArt(state: isOpened ? .opened : .locked, width: 86)
+
+                        if isOpened {
+                            Label("Opened", systemImage: "checkmark.seal.fill")
+                                .font(.headline)
+                                .foregroundStyle(theme.accent)
+                        } else {
+                            Label {
+                                Text("Stars needed to unlock: \(max(0, chest.threshold - stars))")
+                            } icon: {
+                                Image(systemName: "star.fill")
+                            }
+                            .font(.headline)
+                            .foregroundStyle(theme.accent)
+                        }
+
+                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 108), spacing: 8)], spacing: 8) {
+                            ForEach(chest.reward.items) { item in
+                                VStack(spacing: 4) {
+                                    RewardIcon(kind: item.kind, size: 32)
+                                    Text("+\(item.amount)")
+                                        .font(.headline.weight(.black).monospacedDigit())
+                                    Text(item.kind.name)
+                                        .font(.caption.weight(.semibold))
+                                        .multilineTextAlignment(.center)
+                                }
+                                .frame(maxWidth: .infinity, minHeight: 72)
+                                .padding(6)
+                                .background(AppTheme.creamHighlight, in: .rect(cornerRadius: 12))
+                                .overlay(RoundedRectangle(cornerRadius: 12).stroke(AppTheme.festivalGold, lineWidth: 1.5))
+                                .accessibilityElement(children: .ignore)
+                                .accessibilityLabel(Text("\(item.amount) \(item.kind.name)"))
+                            }
+                        }
+
+                        Button {
+                            previewChest = nil
+                        } label: {
+                            Text("Close").frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.gamePrimary(gradient: theme.gradient))
+                        .accessibilityIdentifier("star-chest-preview-close")
+                    }
+                    .foregroundStyle(AppTheme.ink)
+                }
+                .padding(.horizontal, 18)
+                .padding(.top, 28)
+                .padding(.bottom, 12)
+                .frame(maxWidth: .infinity)
+            }
+            .scrollIndicators(.hidden)
+        }
+        .accessibilityAddTraits(.isModal)
     }
 
     private func updateBounce() {

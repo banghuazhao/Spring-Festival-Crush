@@ -1527,6 +1527,74 @@ final class ReleaseRegressionTests: XCTestCase {
         }
     }
 
+    func testFailureRecapAndReplayChestProgressRenderAtSmallAccessibleSize() async throws {
+        let game = makeGame()
+        let zodiac = ZodiacRecord(zodiacType: .rat, isUnlocked: true)
+        let records = (1...15).map { LevelRecord(number: $0, isUnlocked: true, zodiacRecord: zodiac) }
+        zodiac.levelRecords = records
+        records[0].isComplete = true
+        records[0].stars = 3
+        game.zodiacRecords = [zodiac]
+        game.currentZodiacRecord = zodiac
+        game.currentLevelRecords = records
+        game.lives = 10
+        let size = CGSize(width: 320, height: 568)
+
+        // Rat 15 has unfinished lock and zodiac goals plus a guardian.
+        game.selectLevel(15)
+        await game.setupNewGame()
+        XCTAssertGreaterThan(game.remainingGoalPieces, 0)
+        XCTAssertGreaterThan(game.bossStatus?.health ?? 0, 0)
+        game.movesLeft = 0
+        await game.beginNextTurn()
+        XCTAssertEqual(game.gameState, .offeringContinue)
+        game.declineContinue()
+        XCTAssertEqual(game.gameState, .lose)
+        let failureInventory = [game.coins, game.hammerCharges, game.shuffleCharges, game.swapCharges, game.lives]
+        try await snapshot(name: "Defeat-recap-320-accessible", size: size) { ready in
+            LevelFailedView(onRevealComplete: ready)
+                .environmentObject(game)
+                .environment(\.dynamicTypeSize, .accessibility3)
+                .environment(\.gameReducedEffects, true)
+                .background(AppTheme.festivalRedDark)
+        }
+        XCTAssertEqual([game.coins, game.hammerCharges, game.shuffleCharges, game.swapCharges, game.lives], failureInventory)
+        XCTAssertEqual(records[0].stars, 3)
+
+        // A one-star replay must keep the already saved three stars and chest progress.
+        game.selectLevel(1)
+        await game.setupNewGame()
+        game.level.levelGoal.levelTarget = LevelTarget()
+        game.score = game.level.levelGoal.firstStarScore
+        game.movesLeft = 0
+        await game.beginNextTurn()
+        XCTAssertEqual(game.gameState, .win)
+        XCTAssertLessThan(try XCTUnwrap(game.victorySummary).stars, 3)
+        XCTAssertEqual(records[0].stars, 3)
+        let chapterStars = records.reduce(0) { $0 + $1.stars }
+        XCTAssertEqual(chapterStars, 3)
+        let victoryInventory = [game.coins, game.hammerCharges, game.shuffleCharges, game.swapCharges, game.lives]
+        try await snapshot(name: "New-Victory-replay-320-accessible", size: size) { ready in
+            LevelCompleteView(onRevealComplete: ready)
+                .environmentObject(game)
+                .environment(\.dynamicTypeSize, .accessibility3)
+                .environment(\.gameReducedEffects, true)
+                .background(AppTheme.festivalRedDark)
+        }
+        let theme = ZodiacChapterTheme(zodiac: .rat)
+        try await snapshot(name: "Chest-progress-replay-320-accessible", size: size) { ready in
+            StarChestTrackView(theme: theme, track: StarChestTrack(levelCount: records.count),
+                               stars: chapterStars, claimed: [], open: { _ in XCTFail("Snapshot must not claim a chest") })
+                .environment(\.dynamicTypeSize, .accessibility3)
+                .environment(\.gameReducedEffects, true)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                .background(ZodiacChapterScenery(theme: theme))
+                .onAppear(perform: ready)
+        }
+        XCTAssertEqual(records[0].stars, 3)
+        XCTAssertEqual([game.coins, game.hammerCharges, game.shuffleCharges, game.swapCharges, game.lives], victoryInventory)
+    }
+
     private func presentTestScene(_ scene: GameScene) throws -> SKView {
         let windowScene = try XCTUnwrap(UIApplication.shared.connectedScenes.first as? UIWindowScene)
         let previousWindow = windowScene.keyWindow
