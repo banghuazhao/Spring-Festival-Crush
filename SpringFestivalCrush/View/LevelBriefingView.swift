@@ -8,6 +8,7 @@ struct LevelBriefingView: View {
     let savedBestStars: Int?
 
     private var ref: LevelRef { LevelRef(zodiac: zodiac.zodiacType, number: levelNumber) }
+    private var bestScore: Int { BestScoreStore.best(for: zodiac.zodiacType, level: levelNumber) }
 
     /// Only the rules this level teaches: each is shown on the first level or two where it
     /// appears, then left to the rule handbook. A guardian's rules have their own card.
@@ -49,10 +50,22 @@ struct LevelBriefingView: View {
                         ForEach(0..<3) { index in
                             Image(systemName: index < savedBestStars ? "star.fill" : "star")
                                 .foregroundStyle(theme.accent)
+                                .accessibilityHidden(true)
+                        }
+                        if bestScore > 0 {
+                            Spacer(minLength: 12)
+                            Label {
+                                Text(verbatim: bestScore.formatted())
+                            } icon: {
+                                Image(systemName: "trophy.fill")
+                            }
+                            .font(.subheadline.weight(.semibold).monospacedDigit())
+                            .foregroundStyle(AppTheme.ink.opacity(0.75))
+                            .accessibilityElement(children: .ignore)
+                            .accessibilityLabel(Text("Best score: \(bestScore)"))
                         }
                     }
                     .font(.title3)
-                    .accessibilityHidden(true)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(10)

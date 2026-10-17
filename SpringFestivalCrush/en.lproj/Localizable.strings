@@ -18,6 +18,8 @@
 "2 stars: %@ points" = "2 stars: %@ points";
 "3 stars: %@ points" = "3 stars: %@ points";
 "Saved best: %lld of 3 stars" = "Saved best: %lld of 3 stars";
+"NEW BEST!" = "NEW BEST!";
+"Best score: %lld" = "Best score: %lld";
 
 /* Active tool hints */
 "Tap a tile to clear it; tap Hammer again to cancel." = "Tap a tile to clear it; tap Hammer again to cancel.";

@@ -130,7 +130,7 @@ fileprivate struct Game {
 
     private func finish(won: Bool, stuck: Bool) -> LevelSimulator.Outcome {
         let goal = level.levelGoal
-        let stars = won ? [goal.firstStarScore, goal.secondStarScore, goal.thirdStarScore].filter { score >= $0 }.count : 0
+        let stars = won ? goal.stars(forWinningScore: score) : 0
         var progress = initialPieces > 0 ? 1 - Double(Self.remainingPieces(level)) / Double(initialPieces) : 1
         if initialHealth > 0 {
             progress = min(progress, 1 - Double(level.boss?.health ?? 0) / Double(initialHealth))
@@ -285,6 +285,11 @@ struct LevelBalance {
     let medianMovesLeft: Int
     /// Median final score of winning games, the yardstick for star thresholds.
     let medianWinScore: Int
+    /// Winning scores at the 40th and 80th percentile, where the second and third stars sit.
+    let winScoreP40: Int
+    let winScoreP80: Int
+    /// The level's second and third star thresholds, to compare against the percentiles.
+    let starThresholds: [Int]
     let lossProgress: Double
     let stuckRate: Double
     /// The goal furthest from done in lost games, as "lock 3.2/8": average left over of the starting count.
@@ -303,7 +308,14 @@ struct LevelBalance {
         winRate = Double(wins.count) / Double(max(1, runs))
         starRates = (1 ... 3).map { stars in Double(wins.filter { $0.stars >= stars }.count) / Double(max(1, runs)) }
         medianMovesLeft = wins.map(\.movesLeft).sorted().dropFirst(wins.count / 2).first ?? 0
-        medianWinScore = wins.map(\.score).sorted().dropFirst(wins.count / 2).first ?? 0
+        let winScores = wins.map(\.score).sorted()
+        medianWinScore = winScores.dropFirst(wins.count / 2).first ?? 0
+        let percentile = { (p: Double) in
+            winScores.isEmpty ? 0 : winScores[min(winScores.count - 1, Int(Double(winScores.count) * p))]
+        }
+        winScoreP40 = percentile(0.4)
+        winScoreP80 = percentile(0.8)
+        starThresholds = level.map { [$0.levelGoal.secondStarScore, $0.levelGoal.thirdStarScore] } ?? []
         lossProgress = losses.isEmpty ? 1 : losses.map(\.progress).reduce(0, +) / Double(losses.count)
         stuckRate = Double(outcomes.filter(\.stuck).count) / Double(max(1, runs))
         var start = level.map { Game.goals($0).compactMapValues { $0 } } ?? [:]

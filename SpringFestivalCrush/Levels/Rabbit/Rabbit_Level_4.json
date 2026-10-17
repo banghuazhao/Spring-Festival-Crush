@@ -13,8 +13,8 @@
   "moves": 29,
   "levelGoal": {
     "firstStarScore": 1000,
-    "secondStarScore": 1700,
-    "thirdStarScore": 2400,
+    "secondStarScore": 9300,
+    "thirdStarScore": 17400,
     "levelTarget": {
       "lock": 4,
       "dumpling": 18

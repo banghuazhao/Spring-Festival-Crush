@@ -10,15 +10,15 @@
     [1, 3, 1, 3, 1, 3, 1, 3, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1]
   ],
-  "moves": 34,
+  "moves": 24,
   "levelGoal": {
     "firstStarScore": 1100,
-    "secondStarScore": 1900,
-    "thirdStarScore": 2600,
+    "secondStarScore": 10700,
+    "thirdStarScore": 23000,
     "levelTarget": {
       "lock": 16,
-      "zodiac": 22,
-      "firecracker": 20
+      "zodiac": 24,
+      "firecracker": 24
     }
   },
   "bgMusic": "Colorful.mp3",

@@ -17,8 +17,8 @@
   ],
   "levelGoal": {
     "firstStarScore": 500,
-    "secondStarScore": 800,
-    "thirdStarScore": 1200,
+    "secondStarScore": 5600,
+    "thirdStarScore": 10300,
     "levelTarget": {
       "zodiac": 15
     }

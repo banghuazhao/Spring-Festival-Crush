@@ -57,6 +57,27 @@ struct LevelCompleteView: View {
                             Text("\(gameModel.victorySummary?.score ?? gameModel.score)")
                                 .font(.largeTitle.bold().monospacedDigit())
                                 .foregroundStyle(AppTheme.festivalRed)
+                            if let summary = gameModel.victorySummary {
+                                if summary.isNewBest {
+                                    Label("NEW BEST!", systemImage: "trophy.fill")
+                                        .font(.subheadline.weight(.heavy))
+                                        .foregroundStyle(.white)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 5)
+                                        .background(AppTheme.festivalRed.gradient, in: Capsule())
+                                        .accessibilityIdentifier("victory-new-best")
+                                } else if summary.previousBest > 0 {
+                                    Label {
+                                        Text(verbatim: summary.previousBest.formatted())
+                                    } icon: {
+                                        Image(systemName: "trophy.fill")
+                                    }
+                                    .font(.subheadline.weight(.semibold).monospacedDigit())
+                                    .foregroundStyle(AppTheme.ink.opacity(0.7))
+                                    .accessibilityElement(children: .ignore)
+                                    .accessibilityLabel(Text("Best score: \(summary.previousBest)"))
+                                }
+                            }
                         }
                         .frame(maxWidth: .infinity)
                         .padding(12)

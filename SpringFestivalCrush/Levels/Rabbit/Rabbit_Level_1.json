@@ -13,8 +13,8 @@
   "moves": 24,
   "levelGoal": {
     "firstStarScore": 900,
-    "secondStarScore": 1500,
-    "thirdStarScore": 2100,
+    "secondStarScore": 7400,
+    "thirdStarScore": 13500,
     "levelTarget": {
       "zodiac": 15
     }

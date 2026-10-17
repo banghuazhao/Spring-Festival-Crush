@@ -10,4 +10,10 @@ struct LevelGoal: Codable {
     let secondStarScore: Int
     let thirdStarScore: Int
     var levelTarget: LevelTarget
+
+    /// Stars for a won level. Any win earns the first star, so a low-scoring win never shows
+    /// zero; the second and third stars need their score thresholds.
+    func stars(forWinningScore score: Int) -> Int {
+        max(1, [firstStarScore, secondStarScore, thirdStarScore].filter { score >= $0 }.count)
+    }
 }

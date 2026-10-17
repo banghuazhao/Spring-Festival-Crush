@@ -12,8 +12,8 @@
   "moves": 24,
   "levelGoal": {
     "firstStarScore": 700,
-    "secondStarScore": 1200,
-    "thirdStarScore": 1800,
+    "secondStarScore": 5000,
+    "thirdStarScore": 7800,
     "levelTarget": {
       "zodiac": 12,
       "redPocket": 10

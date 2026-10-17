@@ -10,11 +10,11 @@
     [1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1]
   ],
-  "moves": 26,
+  "moves": 28,
   "levelGoal": {
     "firstStarScore": 900,
-    "secondStarScore": 1600,
-    "thirdStarScore": 2100,
+    "secondStarScore": 4300,
+    "thirdStarScore": 7700,
     "levelTarget": {
       "zodiac": 21,
       "firecracker": 21

@@ -13,8 +13,8 @@
   "moves": 28,
   "levelGoal": {
     "firstStarScore": 900,
-    "secondStarScore": 1600,
-    "thirdStarScore": 2100,
+    "secondStarScore": 5800,
+    "thirdStarScore": 8800,
     "levelTarget": {
       "redPocket": 15,
       "dumpling": 18,

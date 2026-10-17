@@ -10,13 +10,13 @@
     [2, 2, 2, 2, 2, 2, 2, 2, 2],
     [1, 1, 1, 1, 1, 1, 1, 1, 1]
   ],
-  "moves": 30,
+  "moves": 33,
   "levelGoal": {
     "firstStarScore": 900,
-    "secondStarScore": 1500,
-    "thirdStarScore": 2100,
+    "secondStarScore": 6800,
+    "thirdStarScore": 10600,
     "levelTarget": {
-      "lock": 27,
+      "lock": 24,
       "redPocket": 15,
       "lantern": 15
     }

@@ -13,8 +13,8 @@
   "moves": 22,
   "levelGoal": {
     "firstStarScore": 1000,
-    "secondStarScore": 1800,
-    "thirdStarScore": 2500,
+    "secondStarScore": 7300,
+    "thirdStarScore": 12800,
     "levelTarget": {
       "lock": 3,
       "lantern": 24

@@ -158,7 +158,15 @@ SIM_RUNS=400 tools/simulate_levels.sh Rabbit Tiger_Level_12
 
 ## 📋 Release Notes
 
-### Version 3.4 (In development)
+### Version 3.5 (In development)
+- ⭐ **Stars that mean something**: any win earns ★, while ★★ and ★★★ now sit at the 40th and 80th percentile of the solver's winning scores, so replays and the last star chest are a real goal
+- 🏆 **Best scores**: the victory screen celebrates a **New best!** and the level briefing shows each level's best score
+- 🐯 Smoother difficulty: Tiger 2, 4, 5, 6, 7, 8, 9, Ox 7, 11, 14 and Rabbit 14 now sit in their difficulty bands
+- 🛡️ If saved progress ever fails to open, the game starts instead of crashing on launch
+
+See [docs/stars-and-balance.md](docs/stars-and-balance.md) for details.
+
+### Version 3.4
 - 🐰 **Rabbit chapter — Moon Blossom Garden**: 15 new levels, ending with the 🐰 **Jade Rabbit** guardian, who takes damage from lanterns and broken locks and locks two tiles in a marked column every 3 moves
 - 🌸 **Moon blossoms**: pink squares under the tiles; clear the tile on top to collect them, deep pink ones twice
 - 🔐 **Vault locks** arrive on the board for the first time (three matches to open)

@@ -13,8 +13,8 @@
   "moves": 26,
   "levelGoal": {
     "firstStarScore": 900,
-    "secondStarScore": 1600,
-    "thirdStarScore": 2100,
+    "secondStarScore": 4500,
+    "thirdStarScore": 8600,
     "levelTarget": {
       "redPocket": 21,
       "firecracker": 21

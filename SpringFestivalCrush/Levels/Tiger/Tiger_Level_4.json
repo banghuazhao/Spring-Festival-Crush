@@ -10,13 +10,13 @@
     [1, 1, 1, 1, 3, 1, 1, 1, 1],
     [1, 1, 1, 1, 3, 1, 1, 1, 1]
   ],
-  "moves": 33,
+  "moves": 34,
   "levelGoal": {
     "firstStarScore": 1000,
-    "secondStarScore": 1700,
-    "thirdStarScore": 2400,
+    "secondStarScore": 5900,
+    "thirdStarScore": 9500,
     "levelTarget": {
-      "lock": 16,
+      "lock": 14,
       "zodiac": 20,
       "dumpling": 18
     }

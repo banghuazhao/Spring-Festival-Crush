@@ -13,8 +13,8 @@
   "moves": 31,
   "levelGoal": {
     "firstStarScore": 900,
-    "secondStarScore": 1600,
-    "thirdStarScore": 2300,
+    "secondStarScore": 7000,
+    "thirdStarScore": 13400,
     "levelTarget": {
       "lock": 2,
       "redPocket": 18

@@ -236,7 +236,18 @@ class GameModel: ObservableObject {
     func initializeRecords(modelContext: ModelContext) {
         self.modelContext = modelContext
         var newZodiacRecords = [ZodiacRecord]()
-        if firstLaunch {
+        var savedRecords: [ZodiacRecord]?
+        if !firstLaunch {
+            do {
+                savedRecords = try modelContext.fetch(FetchDescriptor<ZodiacRecord>())
+            } catch {
+                print("Failed to fetch ZodiacRecords: \(error)")
+            }
+        }
+        // A later launch with an empty store (saved progress could not be opened, so the game
+        // runs in memory) is set up like a first launch, so the map always has a level to play.
+        // A failed fetch is not, so saved records are never duplicated.
+        if firstLaunch || savedRecords?.isEmpty == true {
             for zodiac in Zodiac.all {
                 let zodiacRecord = ZodiacRecord(
                     zodiacType: zodiac.zodiacType,
@@ -266,15 +277,7 @@ class GameModel: ObservableObject {
             firstLaunch = false
             zodiacRecords = newZodiacRecords
         } else {
-            let request = FetchDescriptor<ZodiacRecord>()
-
-            do {
-                let records = try modelContext.fetch(request)
-                zodiacRecords = records
-            } catch {
-                print("Failed to fetch ZodiacRecords: \(error)")
-            }
-
+            if let savedRecords { zodiacRecords = savedRecords }
             reconcileNewLevels(modelContext: modelContext)
         }
         zodiacRecords.sort { $0.zodiacType.rawValue < $1.zodiacType.rawValue }
@@ -538,14 +541,17 @@ class GameModel: ObservableObject {
         let newlyUnlockedLevel = next?.isUnlocked == false ? next?.number : nil
         updateRecord()
         coins += Self.levelWinCoinReward
+        // The DEBUG demo (level -1) is not a real level, so it keeps no best score.
+        let previousBest = currentLevel >= 1
+            ? BestScoreStore.record(score, for: zodiac.zodiacType, level: currentLevel) : 0
         if currentLevel >= 1 { lifetimeLevelWins += 1 }
         victorySummary = VictorySummary(
             zodiac: zodiac.zodiacType, level: currentLevel, score: score,
-            stars: [level.levelGoal.firstStarScore, level.levelGoal.secondStarScore, level.levelGoal.thirdStarScore]
-                .filter { score >= $0 }.count,
+            stars: level.levelGoal.stars(forWinningScore: score),
             coins: Self.levelWinCoinReward, newlyUnlockedLevel: newlyUnlockedLevel,
             defeatedBoss: level.boss != nil,
-            usedContinue: continuesUsed > 0
+            usedContinue: continuesUsed > 0,
+            previousBest: previousBest
         )
         gameState = .win
         HapticManager.levelWin()
@@ -976,10 +982,7 @@ class GameModel: ObservableObject {
 
     private func updateCurrentLevel() {
         currentLevelRecord?.isComplete = true
-        let firstLevel = score >= level.levelGoal.firstStarScore ? 1 : 0
-        let secondLevel = score >= level.levelGoal.secondStarScore ? 1 : 0
-        let thirdLevel = score >= level.levelGoal.thirdStarScore ? 1 : 0
-        let currentStars = firstLevel + secondLevel + thirdLevel
+        let currentStars = level.levelGoal.stars(forWinningScore: score)
         let previousStars = currentLevelRecord?.stars ?? 0
         currentLevelRecord?.stars = max(currentStars, previousStars)
     }

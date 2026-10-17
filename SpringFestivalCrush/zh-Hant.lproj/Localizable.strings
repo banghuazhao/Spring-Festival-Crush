@@ -389,6 +389,8 @@
 "2 stars: %@ points" = "2 顆星：%@ 分";
 "3 stars: %@ points" = "3 顆星：%@ 分";
 "Saved best: %lld of 3 stars" = "歷史最佳：%lld/3 顆星";
+"NEW BEST!" = "新紀錄！";
+"Best score: %lld" = "最高分：%lld";
 "Complete every goal before you run out of moves." = "在步數用完前完成所有目標。";
 "Earn stars on this chapter's levels. A chest opens when your stars reach its number." = "在本章關卡中贏取星星。星星數量達到寶箱上的數字時即可打開寶箱。";
 

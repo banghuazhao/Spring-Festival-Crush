@@ -13,8 +13,8 @@
   "moves": 23,
   "levelGoal": {
     "firstStarScore": 1200,
-    "secondStarScore": 2000,
-    "thirdStarScore": 2800,
+    "secondStarScore": 9800,
+    "thirdStarScore": 21600,
     "levelTarget": {
       "lock": 8,
       "firecracker": 30,

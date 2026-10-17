@@ -139,6 +139,74 @@ final class ProgressionTests: XCTestCase {
         XCTAssertEqual(level(.tiger, 15)?.isComplete, false)
     }
 
+    /// An empty store on a later launch (the saved file could not be opened, so the game runs
+    /// in memory) must still give the player a map to play, not a blank one.
+    func testEmptyStoreAfterFirstLaunchIsSetUpAgain() throws {
+        let saved = UserDefaults.standard.object(forKey: "firstLaunch")
+        addTeardownBlock {
+            if let saved { UserDefaults.standard.set(saved, forKey: "firstLaunch") }
+            else { UserDefaults.standard.removeObject(forKey: "firstLaunch") }
+        }
+        let container = try ModelContainer(for: ZodiacRecord.self, LevelRecord.self,
+                                           configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let game = GameModel()
+        game.firstLaunch = false
+        game.initializeRecords(modelContext: container.mainContext)
+
+        XCTAssertEqual(game.zodiacRecords.count, Zodiac.all.count)
+        let rat = try XCTUnwrap(game.zodiacRecords.first { $0.zodiacType == .rat })
+        XCTAssertTrue(rat.isUnlocked)
+        XCTAssertEqual(rat.levelRecords.filter(\.isUnlocked).map(\.number), [1])
+
+        // Appearing again must not add a second set of records.
+        game.initializeRecords(modelContext: container.mainContext)
+        let stored = try container.mainContext.fetch(FetchDescriptor<ZodiacRecord>())
+        XCTAssertEqual(stored.count, Zodiac.all.count)
+    }
+
+    func testUnopenableProgressStoreFallsBackInsteadOfCrashing() throws {
+        let unopenable = URL(fileURLWithPath: "/dev/null/progress.store")
+        let container = RecordManager.makeContainer(url: unopenable)
+        let context = container.mainContext
+        context.insert(ZodiacRecord(zodiacType: .rat, isUnlocked: true))
+        try context.save()
+        XCTAssertEqual(try context.fetch(FetchDescriptor<ZodiacRecord>()).count, 1)
+    }
+
+    func testAnyWinEarnsAStarAndHigherStarsNeedTheirScores() {
+        let goal = LevelGoal(firstStarScore: 1000, secondStarScore: 5000, thirdStarScore: 9000, levelTarget: LevelTarget())
+        XCTAssertEqual(goal.stars(forWinningScore: 0), 1)
+        XCTAssertEqual(goal.stars(forWinningScore: 4999), 1)
+        XCTAssertEqual(goal.stars(forWinningScore: 5000), 2)
+        XCTAssertEqual(goal.stars(forWinningScore: 9000), 3)
+        XCTAssertEqual(goal.stars(forWinningScore: 50000), 3)
+    }
+
+    func testBestScoreKeepsTheHighestWinPerLevel() throws {
+        let suite = "BestScoreStoreTests"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defaults.removePersistentDomain(forName: suite)
+        addTeardownBlock { defaults.removePersistentDomain(forName: suite) }
+
+        XCTAssertEqual(BestScoreStore.best(for: .tiger, level: 5, defaults: defaults), 0)
+        XCTAssertEqual(BestScoreStore.record(8000, for: .tiger, level: 5, defaults: defaults), 0)
+        XCTAssertEqual(BestScoreStore.record(6000, for: .tiger, level: 5, defaults: defaults), 8000)
+        XCTAssertEqual(BestScoreStore.best(for: .tiger, level: 5, defaults: defaults), 8000)
+        XCTAssertEqual(BestScoreStore.record(9000, for: .tiger, level: 5, defaults: defaults), 8000)
+        XCTAssertEqual(BestScoreStore.best(for: .tiger, level: 5, defaults: defaults), 9000)
+        XCTAssertEqual(BestScoreStore.best(for: .tiger, level: 6, defaults: defaults), 0, "Levels keep separate bests")
+        XCTAssertEqual(BestScoreStore.best(for: .ox, level: 5, defaults: defaults), 0, "Chapters keep separate bests")
+
+        func summary(score: Int, previousBest: Int) -> VictorySummary {
+            VictorySummary(zodiac: .tiger, level: 5, score: score, stars: 1, coins: 0, newlyUnlockedLevel: nil,
+                           previousBest: previousBest)
+        }
+        XCTAssertFalse(summary(score: 8000, previousBest: 0).isNewBest, "A first win is not a new best")
+        XCTAssertFalse(summary(score: 6000, previousBest: 8000).isNewBest)
+        XCTAssertFalse(summary(score: 8000, previousBest: 8000).isNewBest)
+        XCTAssertTrue(summary(score: 9000, previousBest: 8000).isNewBest)
+    }
+
     func testJadeRabbitLocksTwoTilesInTheMarkedColumn() throws {
         let level = try XCTUnwrap(Level(filename: "Rabbit_Level_15"))
         _ = level.shuffle()

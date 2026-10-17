@@ -10,17 +10,58 @@ final class ReleaseRegressionTests: XCTestCase {
                     "isPlayBackgroundMusic", "playSoundEffect", "musicVolume", "soundEffectsVolume", "hapticsEnabled",
                     "screenShakeEnabled", "reducedEffects", "idleHintsEnabled", "unlockAllLevels"]
         let saved = keys.map { ($0, UserDefaults.standard.object(forKey: $0)) }
+        let savedBestScores = UserDefaults.standard.dictionaryRepresentation().filter { $0.key.hasPrefix("bestScore.") }
         addTeardownBlock {
             for (key, value) in saved {
                 if let value { UserDefaults.standard.set(value, forKey: key) }
                 else { UserDefaults.standard.removeObject(forKey: key) }
             }
+            // Test wins must not leave best scores behind in the simulator's copy of the game.
+            for key in UserDefaults.standard.dictionaryRepresentation().keys where key.hasPrefix("bestScore.") {
+                UserDefaults.standard.removeObject(forKey: key)
+            }
+            for (key, value) in savedBestScores { UserDefaults.standard.set(value, forKey: key) }
         }
         let game = GameModel()
         game.zodiac = Zodiac.all[0]
         game.selectLevel(1)
         game.hasSeenTutorial = true
         return game
+    }
+
+    func testReplayThatBeatsTheSavedScoreIsANewBest() async throws {
+        let game = makeGame()
+        UserDefaults.standard.removeObject(forKey: "bestScore.Rat.1")
+        game.lives = 10
+
+        func win(startingScore: Int) async throws -> VictorySummary {
+            game.resetBoostersForNewAttempt()
+            game.selectLevel(1)
+            await game.setupNewGame()
+            game.level.levelGoal.levelTarget = LevelTarget()
+            game.score = startingScore
+            game.movesLeft = 0
+            await game.beginNextTurn()
+            XCTAssertEqual(game.gameState, .win)
+            return try XCTUnwrap(game.victorySummary)
+        }
+
+        let first = try await win(startingScore: 100)
+        XCTAssertEqual(first.previousBest, 0)
+        XCTAssertFalse(first.isNewBest, "A first win is not a new best")
+        XCTAssertGreaterThanOrEqual(first.stars, 1, "Any win earns a star")
+        XCTAssertEqual(BestScoreStore.best(for: .rat, level: 1), first.score)
+
+        let better = try await win(startingScore: first.score + 100_000)
+        XCTAssertEqual(better.previousBest, first.score)
+        XCTAssertTrue(better.isNewBest)
+        XCTAssertEqual(better.stars, 3)
+        XCTAssertEqual(BestScoreStore.best(for: .rat, level: 1), better.score)
+
+        let worse = try await win(startingScore: 0)
+        XCTAssertEqual(worse.previousBest, better.score)
+        XCTAssertFalse(worse.isNewBest)
+        XCTAssertEqual(BestScoreStore.best(for: .rat, level: 1), better.score, "A lower score never replaces the best")
     }
 
     func testLevelMapFocusUsesLatestUnlockedLevel() {

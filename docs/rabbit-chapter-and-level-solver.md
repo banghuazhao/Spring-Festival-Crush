@@ -17,6 +17,8 @@ Two bots play:
 | ★ / ★★ / ★★★ | Share of games won with at least that many stars |
 | Moves left | Median moves left over in wins |
 | Win score | Median final score in wins, the yardstick for star thresholds |
+| Win p40 / p80 | Winning scores at the 40th and 80th percentile, where ★★ and ★★★ are set (since 3.5) |
+| ★★ / ★★★ at | The level's current second and third star thresholds |
 | Loss progress | Average goal progress when a game is lost (near misses are high) |
 | Short in losses | The goal furthest from done in lost games, e.g. `blossom 3.1/20` |
 | Win (random) | Share of random games won |
@@ -37,6 +39,8 @@ The bands come from the 40 levels that had already shipped, where the sensible b
 | Guardian | about 30–45% |
 
 ### Findings on the shipped levels (not changed)
+
+Both findings below were addressed in 3.5: see [stars-and-balance.md](stars-and-balance.md).
 
 - **Every win is a 3-star win.** In all 40 shipped levels, the median winning score (4,000–22,000, boosted by the Festival Finale) is far above the 3-star threshold (about 2,000–3,000). Stars only record whether a level was beaten, so the star chests effectively open as the chapter is cleared. A possible fix is to set the thresholds from the report's winning-score column, for example ★ at any win, ★★ around the 40th percentile and ★★★ around the 80th. That changes the reward economy, so it is left as a product decision. The new levels keep the existing threshold scale so they are consistent with the old ones.
 - **The Tiger curve has spikes.** Tiger 5 (difficulty 3) is won about 10% of the time, below several difficulty 5 levels, and Tiger 2 (difficulty 1) only about 58%. Ox 14 is at about 10%. These levels are worth a look with the solver.

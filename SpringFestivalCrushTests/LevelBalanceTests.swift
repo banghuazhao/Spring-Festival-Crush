@@ -46,13 +46,22 @@ final class LevelBalanceTests: XCTestCase {
         }
     }
 
+    /// Star thresholds come from the report's winning scores, so a typo can easily put a star out of order.
+    func testStarThresholdsRise() throws {
+        for filename in levels {
+            let goal = try XCTUnwrap(LevelData.loadFrom(file: filename), filename).levelGoal
+            XCTAssertLessThan(goal.firstStarScore, goal.secondStarScore, filename)
+            XCTAssertLessThan(goal.secondStarScore, goal.thirdStarScore, filename)
+        }
+    }
+
     func testBalanceReport() throws {
         guard let runs = environment["SIM_RUNS"].flatMap(Int.init), runs > 0 else {
             throw XCTSkip("Set SIM_RUNS (see tools/simulate_levels.sh) to produce the balance report.")
         }
         var lines = [
-            "| Level | Diff | Moves | Win (sensible) | ★ | ★★ | ★★★ | Moves left | Win score | Loss progress | Short in losses | Win (random) |",
-            "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|---:|",
+            "| Level | Diff | Moves | Win (sensible) | ★ | ★★ | ★★★ | Moves left | Win score | Win p40 / p80 | ★★ / ★★★ at | Loss progress | Short in losses | Win (random) |",
+            "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|---:|",
         ]
         func percent(_ value: Double) -> String { String(format: "%.0f%%", value * 100) }
         for filename in levels {
@@ -61,6 +70,8 @@ final class LevelBalanceTests: XCTestCase {
             lines.append("| \(filename.replacingOccurrences(of: "_Level_", with: " ")) | \(greedy.difficulty) | \(greedy.moves) "
                 + "| \(percent(greedy.winRate)) | \(percent(greedy.starRates[0])) | \(percent(greedy.starRates[1])) "
                 + "| \(percent(greedy.starRates[2])) | \(greedy.medianMovesLeft) | \(greedy.medianWinScore) "
+                + "| \(greedy.winScoreP40) / \(greedy.winScoreP80) "
+                + "| \(greedy.starThresholds.map(String.init).joined(separator: " / ")) "
                 + "| \(percent(greedy.lossProgress)) | \(greedy.shortfall) "
                 + "| \(percent(random.winRate)) |")
         }
