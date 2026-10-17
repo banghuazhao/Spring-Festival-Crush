@@ -1,5 +1,4 @@
-• See your saved best stars and all three score targets before each level.
-• Preview star chest rewards and the seven-day red envelope reward schedule.
-• Check remaining goals after a loss and chest progress after a win.
-• Access the Rule Handbook from the pause menu and see clearer tool instructions.
-• Enjoy a refreshed festival app icon.
+• Every win earns a star, and star targets now match real scores, so two and three stars reward your best play.
+• Each level remembers your best score. Beat it for a "New best!" celebration.
+• Smoother difficulty across the Tiger, Ox and Rabbit chapters.
+• More reliable loading of your saved progress.

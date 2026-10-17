@@ -1,5 +1,4 @@
-• Consulta tu mejor calificación de estrellas y las tres metas de puntaje antes de cada nivel.
-• Consulta las recompensas de los cofres de estrellas y el calendario de recompensas de los sobres rojos para siete días.
-• Consulta los objetivos pendientes tras una derrota y tu progreso hacia el próximo cofre tras una victoria.
-• Abre el Manual de reglas desde el menú de pausa y consulta instrucciones más claras para las herramientas.
-• Disfruta del ícono festivo renovado de la app.
+• Cada victoria te da una estrella, y las metas de estrellas ahora reflejan puntuaciones reales: dos y tres estrellas premian tu mejor juego.
+• Cada nivel recuerda tu mejor puntuación. Supérala para celebrar un "¡Nuevo récord!".
+• Dificultad más equilibrada en los capítulos del Tigre, el Buey y el Conejo.
+• Carga más confiable de tu progreso guardado.

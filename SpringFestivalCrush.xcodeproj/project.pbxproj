@@ -1287,7 +1287,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2610061019;
+				CURRENT_PROJECT_VERSION = 2610180904;
 				DEVELOPMENT_TEAM = F694X76A5X;
 				INFOPLIST_FILE = SpringFestivalCrush/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -1295,7 +1295,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.4.1;
+				MARKETING_VERSION = 3.5.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.Banghua-Zhao.Spring-Festival-Crush";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -1308,7 +1308,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2610061019;
+				CURRENT_PROJECT_VERSION = 2610180904;
 				DEVELOPMENT_TEAM = F694X76A5X;
 				INFOPLIST_FILE = SpringFestivalCrush/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -1316,7 +1316,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.4.1;
+				MARKETING_VERSION = 3.5.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.Banghua-Zhao.Spring-Festival-Crush";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;

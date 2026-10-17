@@ -1,5 +1,4 @@
-• Consultez votre record d’étoiles et les trois seuils de score avant chaque niveau.
-• Découvrez à l’avance les récompenses des coffres d’étoiles et le programme de récompenses des enveloppes rouges sur sept jours.
-• Consultez les objectifs restants après une défaite et votre progression vers le prochain coffre après une victoire.
-• Accédez au Manuel des règles depuis le menu Pause et profitez d’instructions plus claires pour les outils.
-• Découvrez l’icône festive revisitée de l’app.
+• Chaque victoire rapporte une étoile, et les objectifs d'étoiles correspondent désormais aux vrais scores : deux et trois étoiles récompensent vos meilleures parties.
+• Chaque niveau garde votre meilleur score. Battez-le pour fêter un « Nouveau record ! ».
+• Difficulté plus progressive dans les chapitres du Tigre, du Bœuf et du Lapin.
+• Chargement plus fiable de votre progression sauvegardée.
