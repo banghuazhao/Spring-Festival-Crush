@@ -1,0 +1,41 @@
+{
+  "tiles": [
+    [1, 1, 1, 4, 1, 1, 1],
+    [1, 5, 1, 1, 1, 6, 1],
+    [1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 5, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1],
+    [1, 6, 1, 1, 1, 5, 1],
+    [1, 1, 1, 1, 1, 1, 1]
+  ],
+  "moves": 26,
+  "levelGoal": {
+    "firstStarScore": 1000,
+    "secondStarScore": 23600,
+    "thirdStarScore": 30500,
+    "levelTarget": {
+      "firecracker": 28,
+      "lightningCombos": 6,
+      "enhancedCombos": 6
+    }
+  },
+  "difficulty": 5,
+  "possibleSymbols": [
+    "firecracker",
+    "redPocket",
+    "dumpling",
+    "lantern",
+    "zodiac"
+  ],
+  "snow": true,
+  "ice": [
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 1, 0, 1, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 1, 0, 1, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0]
+  ],
+  "mechanicHint": "Use the Lucky Five to set up the powers you still need while clearing firecrackers from the frozen field."
+}

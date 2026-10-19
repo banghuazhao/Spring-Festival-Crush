@@ -56,7 +56,7 @@ struct SettingsView: View {
                 SettingsCard(title: "A little help", icon: "lightbulb.fill") {
                     Toggle("Gentle move hints", isOn: $settingModel.idleHintsEnabled)
                         .accessibilityIdentifier("settings-idle-hints")
-                    Text("After 7 quiet seconds, briefly highlight a possible move. Hints never spend a move or use a tool.")
+                    Text("After 7 quiet seconds, highlight a possible move that helps your remaining goals when available. Hints never spend a move or use a tool.")
                         .font(.footnote).foregroundStyle(AppTheme.ink.opacity(0.7))
                     Divider()
                     Toggle("Power-up blast previews", isOn: $settingModel.powerUpPreviewsEnabled)

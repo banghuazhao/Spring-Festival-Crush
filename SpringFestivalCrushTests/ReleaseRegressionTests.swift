@@ -1804,6 +1804,49 @@ final class ReleaseRegressionTests: XCTestCase {
         }
     }
 
+    func testMissionBriefingsAndGoalLabelsRenderAcrossLanguages() async throws {
+        let mastery = makeGame()
+        mastery.zodiac = Zodiac.all[3]
+        mastery.selectLevel(18)
+        await mastery.setupNewGame()
+        let delivery = makeGame()
+        delivery.zodiac = Zodiac.all[3]
+        delivery.selectLevel(19)
+        await delivery.setupNewGame()
+        let cases: [(String, CGSize, DynamicTypeSize)] = [
+            ("en", CGSize(width: 320, height: 568), .accessibility3),
+            ("zh-Hans", CGSize(width: 375, height: 812), .large),
+            ("zh-Hant", CGSize(width: 768, height: 1024), .accessibility3),
+            ("en", CGSize(width: 320, height: 568), .accessibility5)
+        ]
+        for (language, size, textSize) in cases {
+            try await snapshot(name: "Mission-goals-\(language)-\(textSize)", size: size) { ready in
+                ScrollView {
+                    VStack(spacing: 16) {
+                        LevelBriefingView(level: mastery.level, levelNumber: 18, zodiac: mastery.zodiac,
+                                          theme: ZodiacChapterTheme(zodiac: .rabbit), savedBestStars: 0)
+                        Text(LocalizedStringKey(GameRule.powerUpGoals.detail)).font(.body)
+                        AttemptRecapView(showsResources: true).environmentObject(mastery)
+                        LevelBriefingView(level: delivery.level, levelNumber: 19, zodiac: delivery.zodiac,
+                                          theme: ZodiacChapterTheme(zodiac: .rabbit), savedBestStars: 0)
+                        Text(LocalizedStringKey(GameRule.giftDelivery.detail)).font(.body)
+                        AttemptRecapView(showsResources: true).environmentObject(delivery)
+                    }
+                    .padding(16)
+                    .frame(maxWidth: 560)
+                    .frame(maxWidth: .infinity)
+                }
+                .background(AppTheme.festivalBackground)
+                .environment(\.locale, Locale(identifier: language))
+                .environment(\.dynamicTypeSize, textSize)
+                .environment(\.gameReducedEffects, true)
+                .onAppear(perform: ready)
+            }
+        }
+        XCTAssertEqual(mastery.gameState, .inProgress)
+        XCTAssertEqual(delivery.gameState, .inProgress)
+    }
+
     private func presentTestScene(_ scene: GameScene) throws -> SKView {
         let windowScene = try XCTUnwrap(UIApplication.shared.connectedScenes.first as? UIWindowScene)
         let previousWindow = windowScene.keyWindow
@@ -1860,7 +1903,7 @@ final class ReleaseRegressionTests: XCTestCase {
         attachment.name = name
         attachment.lifetime = .keepAlways
         add(attachment)
-        if name.hasPrefix("Settings-") {
+        if name.hasPrefix("Settings-") || name.hasPrefix("Mission-") {
             func findSettingsScroll(in view: UIView) -> UIScrollView? {
                 if let scroll = view as? UIScrollView { return scroll }
                 return view.subviews.lazy.compactMap { findSettingsScroll(in: $0) }.first
@@ -1890,7 +1933,7 @@ final class ReleaseRegressionTests: XCTestCase {
         }
         if name.hasPrefix("Defeat-") || name.hasPrefix("New-Victory-")
             || name.hasPrefix("Star-guidance-") || name.hasPrefix("Combo-recipes-")
-            || name.hasPrefix("Recap-") || name.hasPrefix("Expansion-") {
+            || name.hasPrefix("Recap-") || name.hasPrefix("Expansion-") || name.hasPrefix("Mission-") {
             func scrollViews(in view: UIView) -> [UIScrollView] {
                 (view as? UIScrollView).map { [$0] } ?? view.subviews.flatMap { scrollViews(in: $0) }
             }

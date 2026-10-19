@@ -1,0 +1,31 @@
+{
+  "tiles": [
+    [1, 1, 1, 1, 1, 1, 1],
+    [1, 4, 1, 1, 1, 5, 1],
+    [1, 1, 1, 3, 1, 1, 1],
+    [1, 1, 3, 1, 3, 1, 1],
+    [1, 1, 1, 3, 1, 1, 1],
+    [1, 5, 1, 1, 1, 4, 1],
+    [1, 1, 1, 1, 1, 1, 1]
+  ],
+  "moves": 18,
+  "levelGoal": {
+    "firstStarScore": 1000,
+    "secondStarScore": 21100,
+    "thirdStarScore": 35600,
+    "levelTarget": {
+      "lock": 4,
+      "lightningCombos": 6,
+      "fiveCombos": 2
+    }
+  },
+  "difficulty": 5,
+  "possibleSymbols": [
+    "firecracker",
+    "redPocket",
+    "dumpling",
+    "zodiac"
+  ],
+  "snow": false,
+  "mechanicHint": "Master the festival powers: trigger Lightning and Lucky Five tiles, including those reached by combinations and chain reactions."
+}

@@ -7,6 +7,21 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D51022000000000000010001 /* Level+GoalAwareHints.swift in Sources */ = {isa = PBXBuildFile; fileRef = D51022000000000000000001 /* Level+GoalAwareHints.swift */; };
+		D51022000000000000010002 /* GameScene+DeliveryExits.swift in Sources */ = {isa = PBXBuildFile; fileRef = D51022000000000000000002 /* GameScene+DeliveryExits.swift */; };
+		D51022000000000000010003 /* CampaignLevelMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = D51022000000000000000003 /* CampaignLevelMetadata.swift */; };
+		D51022000000000000010004 /* Rat_Level_18.json in Resources */ = {isa = PBXBuildFile; fileRef = D51022000000000000000004 /* Rat_Level_18.json */; };
+		D51022000000000000010005 /* Rat_Level_19.json in Resources */ = {isa = PBXBuildFile; fileRef = D51022000000000000000005 /* Rat_Level_19.json */; };
+		D51022000000000000010006 /* Ox_Level_18.json in Resources */ = {isa = PBXBuildFile; fileRef = D51022000000000000000006 /* Ox_Level_18.json */; };
+		D51022000000000000010007 /* Ox_Level_19.json in Resources */ = {isa = PBXBuildFile; fileRef = D51022000000000000000007 /* Ox_Level_19.json */; };
+		D51022000000000000010008 /* Tiger_Level_18.json in Resources */ = {isa = PBXBuildFile; fileRef = D51022000000000000000008 /* Tiger_Level_18.json */; };
+		D51022000000000000010009 /* Tiger_Level_19.json in Resources */ = {isa = PBXBuildFile; fileRef = D51022000000000000000009 /* Tiger_Level_19.json */; };
+		D5102200000000000001000A /* Rabbit_Level_18.json in Resources */ = {isa = PBXBuildFile; fileRef = D5102200000000000000000A /* Rabbit_Level_18.json */; };
+		D5102200000000000001000B /* Rabbit_Level_19.json in Resources */ = {isa = PBXBuildFile; fileRef = D5102200000000000000000B /* Rabbit_Level_19.json */; };
+		D5102200000000000001000C /* GoalAwareHintTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5102200000000000000000C /* GoalAwareHintTests.swift */; };
+		D5102200000000000001000D /* DeliveryTeachingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5102200000000000000000D /* DeliveryTeachingTests.swift */; };
+		D5102200000000000001000E /* MasteryDeliveryContentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5102200000000000000000E /* MasteryDeliveryContentTests.swift */; };
+		D5102200000000000001000F /* MasteryDeliveryRulesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5102200000000000000000F /* MasteryDeliveryRulesTests.swift */; };
 		D5102100000000000001000E /* ChocolateTurnCadenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5102100000000000000000E /* ChocolateTurnCadenceTests.swift */; };
 		D51021000000000000010001 /* BlastPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = D51021000000000000000001 /* BlastPreview.swift */; };
 		D51021000000000000010002 /* Level+BlastPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = D51021000000000000000002 /* Level+BlastPreview.swift */; };
@@ -236,6 +251,21 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		D51022000000000000000001 /* Level+GoalAwareHints.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SpringFestivalCrush/Model/Level/Level+GoalAwareHints.swift"; sourceTree = SOURCE_ROOT; };
+		D51022000000000000000002 /* GameScene+DeliveryExits.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SpringFestivalCrush/Scene/GameScene+DeliveryExits.swift"; sourceTree = SOURCE_ROOT; };
+		D51022000000000000000003 /* CampaignLevelMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SpringFestivalCrush/Model/Level/CampaignLevelMetadata.swift"; sourceTree = SOURCE_ROOT; };
+		D51022000000000000000004 /* Rat_Level_18.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "SpringFestivalCrush/Levels/Rat/Rat_Level_18.json"; sourceTree = SOURCE_ROOT; };
+		D51022000000000000000005 /* Rat_Level_19.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "SpringFestivalCrush/Levels/Rat/Rat_Level_19.json"; sourceTree = SOURCE_ROOT; };
+		D51022000000000000000006 /* Ox_Level_18.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "SpringFestivalCrush/Levels/Ox/Ox_Level_18.json"; sourceTree = SOURCE_ROOT; };
+		D51022000000000000000007 /* Ox_Level_19.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "SpringFestivalCrush/Levels/Ox/Ox_Level_19.json"; sourceTree = SOURCE_ROOT; };
+		D51022000000000000000008 /* Tiger_Level_18.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "SpringFestivalCrush/Levels/Tiger/Tiger_Level_18.json"; sourceTree = SOURCE_ROOT; };
+		D51022000000000000000009 /* Tiger_Level_19.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "SpringFestivalCrush/Levels/Tiger/Tiger_Level_19.json"; sourceTree = SOURCE_ROOT; };
+		D5102200000000000000000A /* Rabbit_Level_18.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "SpringFestivalCrush/Levels/Rabbit/Rabbit_Level_18.json"; sourceTree = SOURCE_ROOT; };
+		D5102200000000000000000B /* Rabbit_Level_19.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "SpringFestivalCrush/Levels/Rabbit/Rabbit_Level_19.json"; sourceTree = SOURCE_ROOT; };
+		D5102200000000000000000C /* GoalAwareHintTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SpringFestivalCrushTests/GoalAwareHintTests.swift"; sourceTree = SOURCE_ROOT; };
+		D5102200000000000000000D /* DeliveryTeachingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SpringFestivalCrushTests/DeliveryTeachingTests.swift"; sourceTree = SOURCE_ROOT; };
+		D5102200000000000000000E /* MasteryDeliveryContentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SpringFestivalCrushTests/MasteryDeliveryContentTests.swift"; sourceTree = SOURCE_ROOT; };
+		D5102200000000000000000F /* MasteryDeliveryRulesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SpringFestivalCrushTests/MasteryDeliveryRulesTests.swift"; sourceTree = SOURCE_ROOT; };
 		D5102100000000000000000E /* ChocolateTurnCadenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SpringFestivalCrushTests/ChocolateTurnCadenceTests.swift"; sourceTree = SOURCE_ROOT; };
 		D51021000000000000000001 /* BlastPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SpringFestivalCrush/Model/Game/BlastPreview.swift"; sourceTree = SOURCE_ROOT; };
 		D51021000000000000000002 /* Level+BlastPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SpringFestivalCrush/Model/Level/Level+BlastPreview.swift"; sourceTree = SOURCE_ROOT; };
@@ -619,6 +649,21 @@
 		9955DB8923D7E420007786D5 /* SpringFestivalCrush */ = {
 			isa = PBXGroup;
 			children = (
+				D51022000000000000000001 /* Level+GoalAwareHints.swift */,
+				D51022000000000000000002 /* GameScene+DeliveryExits.swift */,
+				D51022000000000000000003 /* CampaignLevelMetadata.swift */,
+				D51022000000000000000004 /* Rat_Level_18.json */,
+				D51022000000000000000005 /* Rat_Level_19.json */,
+				D51022000000000000000006 /* Ox_Level_18.json */,
+				D51022000000000000000007 /* Ox_Level_19.json */,
+				D51022000000000000000008 /* Tiger_Level_18.json */,
+				D51022000000000000000009 /* Tiger_Level_19.json */,
+				D5102200000000000000000A /* Rabbit_Level_18.json */,
+				D5102200000000000000000B /* Rabbit_Level_19.json */,
+				D5102200000000000000000C /* GoalAwareHintTests.swift */,
+				D5102200000000000000000D /* DeliveryTeachingTests.swift */,
+				D5102200000000000000000E /* MasteryDeliveryContentTests.swift */,
+				D5102200000000000000000F /* MasteryDeliveryRulesTests.swift */,
 				D5102100000000000000000E /* ChocolateTurnCadenceTests.swift */,
 				D51021000000000000000001 /* BlastPreview.swift */,
 				D51021000000000000000002 /* Level+BlastPreview.swift */,
@@ -977,6 +1022,14 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D51022000000000000010004 /* Rat_Level_18.json in Resources */,
+				D51022000000000000010005 /* Rat_Level_19.json in Resources */,
+				D51022000000000000010006 /* Ox_Level_18.json in Resources */,
+				D51022000000000000010007 /* Ox_Level_19.json in Resources */,
+				D51022000000000000010008 /* Tiger_Level_18.json in Resources */,
+				D51022000000000000010009 /* Tiger_Level_19.json in Resources */,
+				D5102200000000000001000A /* Rabbit_Level_18.json in Resources */,
+				D5102200000000000001000B /* Rabbit_Level_19.json in Resources */,
 				D51021000000000000010004 /* Rat_Level_16.json in Resources */,
 				D51021000000000000010005 /* Rat_Level_17.json in Resources */,
 				D51021000000000000010006 /* Ox_Level_16.json in Resources */,
@@ -1081,11 +1134,14 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		C20260914000000000000005 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (D5102100000000000001000E /* ChocolateTurnCadenceTests.swift in Sources */, D5102100000000000001000C /* ExpansionContentTests.swift in Sources */, D5102100000000000001000D /* BlastPreviewInteractionTests.swift in Sources */, C20260914000000000000001, C260913D0000000000000001, C2609250B3B3000000000000, 7E127E7FCDD0CC4F55870073 /* LevelSimulator.swift */, 1F282741F9922248CEC7C1AE /* LevelBalanceTests.swift */); runOnlyForDeploymentPostprocessing = 0; };
+		C20260914000000000000005 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (D5102200000000000001000C /* GoalAwareHintTests.swift in Sources */, D5102200000000000001000D /* DeliveryTeachingTests.swift in Sources */, D5102200000000000001000E /* MasteryDeliveryContentTests.swift in Sources */, D5102200000000000001000F /* MasteryDeliveryRulesTests.swift in Sources */, D5102100000000000001000E /* ChocolateTurnCadenceTests.swift in Sources */, D5102100000000000001000C /* ExpansionContentTests.swift in Sources */, D5102100000000000001000D /* BlastPreviewInteractionTests.swift in Sources */, C20260914000000000000001, C260913D0000000000000001, C2609250B3B3000000000000, 7E127E7FCDD0CC4F55870073 /* LevelSimulator.swift */, 1F282741F9922248CEC7C1AE /* LevelBalanceTests.swift */); runOnlyForDeploymentPostprocessing = 0; };
 		9955DB8323D7E420007786D5 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D51022000000000000010001 /* Level+GoalAwareHints.swift in Sources */,
+				D51022000000000000010002 /* GameScene+DeliveryExits.swift in Sources */,
+				D51022000000000000010003 /* CampaignLevelMetadata.swift in Sources */,
 				D51021000000000000010001 /* BlastPreview.swift in Sources */,
 				D51021000000000000010002 /* Level+BlastPreview.swift in Sources */,
 				D51021000000000000010003 /* GameScene+BlastPreview.swift in Sources */,

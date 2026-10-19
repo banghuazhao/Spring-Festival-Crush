@@ -77,5 +77,17 @@
 "Power-up blast previews" = "Power-up blast previews";
 "Drag a power-up to a neighbor to preview its direct hits. Release to swap, or return to the starting tile to cancel. Chain reactions and falling tiles can extend the effect." = "Drag a power-up to a neighbor to preview its direct hits. Release to swap, or return to the starting tile to cancel. Chain reactions and falling tiles can extend the effect.";
 "Direct hits · Release to swap; return to start to cancel." = "Direct hits · Release to swap; return to start to cancel.";
+
+/* Power-up activation goals and gift delivery */
+"Power-up Goals" = "Power-up Goals";
+"Gift Delivery" = "Gift Delivery";
+"Activate the pictured power-ups to meet their goals. Chain reactions count too. Creating a power-up does not count, and swapping two power-ups together is not required." = "Activate the pictured power-ups to meet their goals. Chain reactions count too. Creating a power-up does not count, and swapping two power-ups together is not required.";
+"Clear tiles beneath gifts to help them reach a marked exit on the board's bottom row. A higher ledge is not an exit. Blasts and the Hammer can also collect gifts directly." = "Clear tiles beneath gifts to help them reach a marked exit on the board's bottom row. A higher ledge is not an exit. Blasts and the Hammer can also collect gifts directly.";
+"Lightning activations" = "Lightning activations";
+"Lucky Five activations" = "Lucky Five activations";
+"Blast Tile activations" = "Blast Tile activations";
+"gifts to deliver" = "gifts to deliver";
+"Zodiac tiles" = "Zodiac tiles";
+"After 7 quiet seconds, highlight a possible move that helps your remaining goals when available. Hints never spend a move or use a tool." = "After 7 quiet seconds, highlight a possible move that helps your remaining goals when available. Hints never spend a move or use a tool.";
 "Chocolate" = "Chocolate";
 "Match beside chocolate to clear it. Any chocolate left can spread to one neighboring unprotected tile after each move." = "Match beside chocolate to clear it. Any chocolate left can spread to one neighboring unprotected tile after each move.";

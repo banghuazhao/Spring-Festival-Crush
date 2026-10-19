@@ -1,0 +1,30 @@
+{
+  "tiles": [
+    [1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1],
+    [1, 9, 1, 1, 1, 9, 1],
+    [1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1]
+  ],
+  "moves": 10,
+  "levelGoal": {
+    "firstStarScore": 1000,
+    "secondStarScore": 8100,
+    "thirdStarScore": 15800,
+    "levelTarget": {
+      "redPocket": 16,
+      "ingredient": 2
+    }
+  },
+  "difficulty": 5,
+  "possibleSymbols": [
+    "firecracker",
+    "redPocket",
+    "dumpling",
+    "zodiac"
+  ],
+  "snow": false,
+  "mechanicHint": "Deliver two gifts by clearing beneath them to reach the bottom row. A special blast or Hammer can also collect a gift directly."
+}

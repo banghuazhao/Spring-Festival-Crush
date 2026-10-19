@@ -18,7 +18,7 @@
 ## ✨ Features
 
 * 🎉 **Festive Theme**: Dive into the spirit of the Spring Festival with themed levels and elements that bring the celebration to life.
-* 🧩 **Challenging Gameplay**: Explore 68 levels across four zodiac chapters, including compact tactical boards and alternate guardian arenas.
+* 🧩 **Challenging Gameplay**: Explore 76 levels across four zodiac chapters, including compact tactical boards, alternate guardian arenas, power-up mastery missions and gift deliveries.
 * ⚡ **Smooth Experience**: Enjoy fluid animations and intuitive controls for a seamless gaming experience.
 * 🎵 **Immersive Audio**: Experience traditional Chinese music and sound effects that enhance the festive atmosphere.
 * 🌟 **Multiple Zodiac Themes**: Play through different Chinese zodiac animal themes with unique challenges.
@@ -33,6 +33,9 @@
 * 🎆 **Festival Finale**: Leftover moves burst into fireworks, with guzheng notes that climb with every cascade.
 * 🍫 **Chocolate Garden**: Tend moon blossoms while containing a spreading chocolate pocket in Rabbit 16.
 * 🔍 **Power-Up Blast Previews**: Drag an activating power-up swap to inspect its direct footprint, then release on the neighboring tile to commit.
+* ⚡ **Power-Up Mastery**: Complete activation missions with direct powers, pairings and chain reactions.
+* 🎁 **Gift Delivery**: Open paths to the bottom exits or collect a gift directly with a special blast or Hammer.
+* 💡 **Goal-Aware Hints**: Quiet move outlines consider the goals still unfinished on the board.
 
 ## 📱 Screenshots
 
@@ -161,7 +164,10 @@ SIM_RUNS=400 tools/simulate_levels.sh Rabbit Tiger_Level_12
 ## 📋 Release Notes
 
 ### Next release (In development)
-- 🧩 Eight new levels: three compact 5 × 5 challenges, a chocolate-pressure blossom garden, and four guardian rematches in new arenas
+- 🧩 Sixteen new levels: compact 5 × 5 challenges, a chocolate-pressure blossom garden, guardian rematches, power-up mastery missions and gift deliveries
+- ⚡ Each chapter's level 18 asks you to trigger power-ups; combinations and chain reactions also count
+- 🎁 Each chapter's level 19 introduces gift routes, with bottom-row exit markers and direct collection by special blasts or Hammer
+- 💡 Gentle hints now consider unfinished goals when choosing a move
 - 🔍 Power-up blast previews: inspect the direct affected cells before releasing an activating swap; move back to cancel
 - 🍫 Chocolate now appears in the campaign, with its rule taught on Rabbit 16 and available in the handbook
 - ❤️ Accurate guardian recap: continue offers show remaining guardian health and reserve near-defeat wording for low health
@@ -173,6 +179,7 @@ SIM_RUNS=400 tools/simulate_levels.sh Rabbit Tiger_Level_12
 See [docs/star-guidance-and-combo-recipes.md](docs/star-guidance-and-combo-recipes.md) for scope and verification.
 See [docs/guardian-and-pause-recaps.md](docs/guardian-and-pause-recaps.md) for the continue and pause summaries.
 See [docs/gameplay-expansion.md](docs/gameplay-expansion.md) for the new boards, guardian arenas and blast previews.
+See [docs/mastery-delivery-and-hints.md](docs/mastery-delivery-and-hints.md) for the mastery missions, gift routes and goal-aware hints.
 
 ### Version 3.5
 - ⭐ **Stars that mean something**: any win earns ★, while ★★ and ★★★ now sit at the 40th and 80th percentile of the solver's winning scores, so replays and the last star chest are a real goal

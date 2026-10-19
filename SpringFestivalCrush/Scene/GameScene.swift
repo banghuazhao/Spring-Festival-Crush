@@ -23,6 +23,7 @@ class GameScene: SKScene {
     let symbolsLayer = SKNode()
     let effectsLayer = SKNode()
     let blastPreviewLayer = SKNode()
+    let deliveryExitLayer = SKNode()
     // Jelly backing squares, behind symbolsLayer so they read as "under" the candies.
     let overlayLayer = SKNode()
 
@@ -80,6 +81,10 @@ class GameScene: SKScene {
         cropLayer.maskNode = maskLayer
         gameLayer.addChild(tilesLayer)
         gameLayer.addChild(cropLayer)
+        deliveryExitLayer.name = "deliveryExits"
+        deliveryExitLayer.zPosition = 2
+        deliveryExitLayer.isUserInteractionEnabled = false
+        gameLayer.addChild(deliveryExitLayer)
         cropLayer.addChild(overlayLayer)
         cropLayer.addChild(symbolsLayer)
         effectsLayer.zPosition = 200
@@ -203,6 +208,8 @@ class GameScene: SKScene {
         effectsLayer.position = layerPosition
         overlayLayer.position = layerPosition
         blastPreviewLayer.position = layerPosition
+        deliveryExitLayer.position = layerPosition
+        refreshDeliveryExits()
     }
 
     func shuffle(by newSymbols: Set<Symbol>) async {
@@ -228,6 +235,7 @@ class GameScene: SKScene {
         surface.position = CGPoint(x: CGFloat(gameModel.numColumns) * gameModel.tileSize.width / 2,
                                    y: CGFloat(gameModel.numRows) * gameModel.tileSize.height / 2)
         tilesLayer.addChild(surface)
+        refreshDeliveryExits()
     }
 
     func addSymbols(for symbols: Set<Symbol>, shouldAnimate: Bool = true) async {
@@ -541,6 +549,7 @@ class GameScene: SKScene {
         cancelBlastPreview()
         maskLayer.removeAllChildren()
         tilesLayer.removeAllChildren()
+        deliveryExitLayer.removeAllChildren()
     }
 
     func removeAllSymbols() {

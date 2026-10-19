@@ -1,5 +1,7 @@
 # Tactical boards, chocolate garden and guardian arenas
 
+This document records the first eight-level expansion. The subsequent [mastery and delivery update](mastery-delivery-and-hints.md) extends each chapter to 19 levels.
+
 ## Campaign content
 
 The four playable chapters now contain 17 levels each, for 68 campaign levels. Existing levels 1–15 are preserved. Level 16 offers a new challenge and level 17 ends each chapter with its guardian in a different arena. The original guardian encounters at level 15 remain playable.

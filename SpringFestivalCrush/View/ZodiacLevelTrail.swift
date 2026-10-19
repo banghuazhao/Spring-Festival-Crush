@@ -34,7 +34,7 @@ struct ZodiacLevelTrail: View, Animatable {
                             isUnlocked: record.isUnlocked || unlockAll,
                             isComplete: record.isComplete,
                             isCurrent: record.number == currentLevel,
-                            isFinal: index == records.count - 1,
+                            isBoss: CampaignLevelMetadata.isBoss(zodiac: theme.zodiac, level: record.number),
                             stars: record.stars,
                             theme: theme,
                             celebrationProgress: record.number == celebratingLevel ? revealProgress : nil,

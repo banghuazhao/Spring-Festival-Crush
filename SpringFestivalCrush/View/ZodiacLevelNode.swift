@@ -11,7 +11,7 @@ struct ZodiacLevelNode: View {
     let isUnlocked: Bool
     let isComplete: Bool
     let isCurrent: Bool
-    let isFinal: Bool
+    let isBoss: Bool
     let stars: Int
     let theme: ZodiacChapterTheme
     var celebrationProgress: CGFloat? = nil
@@ -24,7 +24,7 @@ struct ZodiacLevelNode: View {
     var body: some View {
         Button(action: action) {
             VStack(spacing: 5) {
-                Text(isNewUnlock ? "UNLOCKED!" : (isFinal ? "BOSS" : (isCurrent ? "PLAY NEXT" : " ")) as LocalizedStringKey)
+                Text(isNewUnlock ? "UNLOCKED!" : (isBoss ? "BOSS" : (isCurrent ? "PLAY NEXT" : " ")) as LocalizedStringKey)
                     .font(.system(size: min(badgeSize, 14), weight: .black, design: .rounded))
                     .lineLimit(1)
                     .tracking(1)
@@ -57,7 +57,7 @@ struct ZodiacLevelNode: View {
                         .overlay(Circle().stroke(isUnlocked ? AppTheme.festivalGold : .white.opacity(0.55), lineWidth: 3))
                         .overlay(Circle().stroke(.white.opacity(0.4), lineWidth: 1).padding(7))
                     VStack(spacing: 0) {
-                        if isFinal {
+                        if isBoss {
                             Image(systemName: "crown.fill")
                                 .font(.system(size: min(badgeSize + 2, 16), weight: .black))
                         }
@@ -96,7 +96,7 @@ struct ZodiacLevelNode: View {
         .buttonStyle(.gameNode)
         .accessibilityElement(children: .ignore)
         .accessibilityAddTraits(.isButton)
-        .accessibilityLabel(isFinal ? Text("Level \(number), zodiac boss") : Text("Level \(number)"))
+        .accessibilityLabel(isBoss ? Text("Level \(number), zodiac boss") : Text("Level \(number)"))
         .accessibilityValue(isUnlocked
             ? Text("\(isCurrent ? String(localized: "Next level. ") : "")\(isComplete ? String(localized: "Complete. ") : "")\(String(localized: "\(stars) of 3 stars"))")
             : Text("Locked"))

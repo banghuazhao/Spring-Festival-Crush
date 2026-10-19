@@ -107,7 +107,12 @@ fileprivate struct Game {
         level.updateLevelTarget(by: allChains)
         if inProgress { level.boss?.receive(chains: allChains, cascadeDepth: cascadeDepth) }
         _ = level.fillHoles()
-        score += 50 * level.collectIngredientsAtBottom().count
+        while true {
+            let delivered = level.collectIngredientsAtBottom()
+            guard !delivered.isEmpty else { break }
+            score += 50 * delivered.count
+            _ = level.fillHoles()
+        }
         _ = level.topUpSymbols()
     }
 

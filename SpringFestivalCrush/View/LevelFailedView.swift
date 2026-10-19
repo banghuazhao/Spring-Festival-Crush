@@ -204,10 +204,10 @@ struct LevelFailedView: View {
         case "zodiac": String(localized: "\(gameModel.zodiac.zodiacType.localizedName) tiles")
         case "lock": String(localized: "locks")
         case "jelly": String(localized: "moon blossoms")
-        case "ingredient": String(localized: "gifts to bring to the bottom")
-        case "lightningCombos": String(localized: "lightning combos")
-        case "fiveCombos": String(localized: "five-tile combos")
-        case "enhancedCombos": String(localized: "enhanced combos")
+        case "ingredient": String(localized: "gifts to deliver")
+        case "lightningCombos": String(localized: "Lightning activations")
+        case "fiveCombos": String(localized: "Lucky Five activations")
+        case "enhancedCombos": String(localized: "Blast Tile activations")
         default: imageName
         }
     }

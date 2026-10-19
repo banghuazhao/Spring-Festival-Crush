@@ -819,14 +819,21 @@ class GameModel: ObservableObject {
         await invokeCommandAsync?(.onFallingSymbols(columns))
         guard isCurrentAttempt(attempt) else { return }
 
-        let goalsBeforeIngredients = createLevelTargetDatas()
-        let collectedIngredients = level.collectIngredientsAtBottom()
-        if !collectedIngredients.isEmpty {
+        // Exit collection opens new holes. Settle again before refilling so stacked
+        // gifts can leave in the same turn and no empty bottom cells are stranded.
+        while true {
+            let goalsBeforeIngredients = createLevelTargetDatas()
+            let collectedIngredients = level.collectIngredientsAtBottom()
+            guard !collectedIngredients.isEmpty else { break }
             score += Self.ingredientCollectedScore * collectedIngredients.count
             invokeCommand?(.onGoalProgress(GoalProgress.changes(
                 before: goalsBeforeIngredients, after: createLevelTargetDatas(), symbols: collectedIngredients
             )))
             await invokeCommandAsync?(.onIngredientsCollected(collectedIngredients))
+            guard isCurrentAttempt(attempt) else { return }
+
+            let deliveryColumns = level.fillHoles()
+            await invokeCommandAsync?(.onFallingSymbols(deliveryColumns))
             guard isCurrentAttempt(attempt) else { return }
         }
 
@@ -931,10 +938,7 @@ class GameModel: ObservableObject {
     func suggestedIdleSwap() -> Swap? {
         guard gameState == .inProgress, !isResolvingBoard,
               !hammerModeActive, !swapModeActive, !isTutorialHintActive else { return nil }
-        return level.possibleSwaps.min { lhs, rhs in
-            (lhs.symbolA.row, lhs.symbolA.column, lhs.symbolB.row, lhs.symbolB.column)
-                < (rhs.symbolA.row, rhs.symbolA.column, rhs.symbolB.row, rhs.symbolB.column)
-        }
+        return level?.goalAwareHintSwap()
     }
 
     @MainActor

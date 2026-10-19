@@ -1,0 +1,40 @@
+{
+  "tiles": [
+    [1, 1, 1, 6, 1, 1, 1],
+    [1, 9, 1, 1, 1, 9, 1],
+    [1, 1, 1, 5, 1, 1, 1],
+    [1, 1, 2, 1, 2, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1]
+  ],
+  "moves": 16,
+  "levelGoal": {
+    "firstStarScore": 1000,
+    "secondStarScore": 10200,
+    "thirdStarScore": 17500,
+    "levelTarget": {
+      "lantern": 16,
+      "ingredient": 2
+    }
+  },
+  "difficulty": 5,
+  "possibleSymbols": [
+    "firecracker",
+    "redPocket",
+    "dumpling",
+    "lantern",
+    "zodiac"
+  ],
+  "snow": false,
+  "jelly": [
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 2, 1, 1, 1, 2, 0],
+    [0, 1, 1, 1, 1, 1, 0],
+    [0, 2, 1, 1, 1, 2, 0],
+    [0, 0, 0, 0, 0, 0, 0]
+  ],
+  "mechanicHint": "Guide two gifts through the blossom garden. Clearing underneath advances the gifts and tends the flowers at the same time."
+}

@@ -70,10 +70,10 @@ struct AttemptRecapView: View {
         case "zodiac": Text("\(Text(LocalizedStringKey(zodiac.zodiacType.name))) tiles")
         case "lock": Text("locks")
         case "jelly": Text("moon blossoms")
-        case "ingredient": Text("gifts to bring to the bottom")
-        case "lightningCombos": Text("lightning combos")
-        case "fiveCombos": Text("five-tile combos")
-        case "enhancedCombos": Text("enhanced combos")
+        case "ingredient": Text("gifts to deliver")
+        case "lightningCombos": Text("Lightning activations")
+        case "fiveCombos": Text("Lucky Five activations")
+        case "enhancedCombos": Text("Blast Tile activations")
         default: Text(verbatim: imageName)
         }
     }

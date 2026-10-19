@@ -1,0 +1,41 @@
+{
+  "tiles": [
+    [1, 1, 1, 1, 1, 1, 1],
+    [1, 4, 1, 1, 1, 5, 1],
+    [1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 6, 1, 6, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1],
+    [1, 5, 1, 1, 1, 4, 1],
+    [1, 1, 1, 1, 1, 1, 1]
+  ],
+  "moves": 20,
+  "levelGoal": {
+    "firstStarScore": 1000,
+    "secondStarScore": 17900,
+    "thirdStarScore": 26300,
+    "levelTarget": {
+      "lightningCombos": 5,
+      "fiveCombos": 2,
+      "enhancedCombos": 6
+    }
+  },
+  "difficulty": 5,
+  "possibleSymbols": [
+    "firecracker",
+    "redPocket",
+    "dumpling",
+    "lantern",
+    "zodiac"
+  ],
+  "snow": false,
+  "jelly": [
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 2, 1, 1, 1, 2, 0],
+    [0, 1, 1, 1, 1, 1, 0],
+    [0, 2, 1, 1, 1, 2, 0],
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0]
+  ],
+  "mechanicHint": "Master the powers while tending the garden: every activation counts, and blasts can clear the blossoms beneath them."
+}

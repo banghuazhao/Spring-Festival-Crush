@@ -466,5 +466,17 @@
 "Power-up blast previews" = "道具爆破预览";
 "Drag a power-up to a neighbor to preview its direct hits. Release to swap, or return to the starting tile to cancel. Chain reactions and falling tiles can extend the effect." = "将道具拖到相邻格，预览直接命中的范围。松手交换，或拖回起点取消。连锁反应和掉落的方块可能扩大效果。";
 "Direct hits · Release to swap; return to start to cancel." = "直接命中 · 松手交换，拖回起点取消。";
+
+/* Power-up activation goals and gift delivery */
+"Power-up Goals" = "特效目标";
+"Gift Delivery" = "礼物送达";
+"Activate the pictured power-ups to meet their goals. Chain reactions count too. Creating a power-up does not count, and swapping two power-ups together is not required." = "触发图示特效方块以完成目标，连锁触发也计数。制造特效方块不计数，也不必将两个特效方块互相交换。";
+"Clear tiles beneath gifts to help them reach a marked exit on the board's bottom row. A higher ledge is not an exit. Blasts and the Hammer can also collect gifts directly." = "消除礼物下方的方块，帮助它们到达棋盘最底一行的标记出口。高于最底行的格子不是出口。爆破和新春锤也能直接收集礼物。";
+"Lightning activations" = "闪电触发次数";
+"Lucky Five activations" = "幸运五星触发次数";
+"Blast Tile activations" = "爆破方块触发次数";
+"gifts to deliver" = "待送达的礼物";
+"Zodiac tiles" = "生肖方块";
+"After 7 quiet seconds, highlight a possible move that helps your remaining goals when available. Hints never spend a move or use a tool." = "7 秒无操作后，高亮一个可行的移动；有助于完成剩余目标的移动会优先显示。提示不会消耗步数或道具。";
 "Chocolate" = "巧克力";
 "Match beside chocolate to clear it. Any chocolate left can spread to one neighboring unprotected tile after each move." = "在巧克力旁消除即可清除它。每步结束后，剩余巧克力可能蔓延到一个没有保护的相邻方块。";

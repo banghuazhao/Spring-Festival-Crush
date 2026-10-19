@@ -1,0 +1,40 @@
+{
+  "tiles": [
+    [1, 1, 9, 1, 9, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 6, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1]
+  ],
+  "moves": 16,
+  "levelGoal": {
+    "firstStarScore": 1000,
+    "secondStarScore": 5600,
+    "thirdStarScore": 13300,
+    "levelTarget": {
+      "firecracker": 24,
+      "ingredient": 2
+    }
+  },
+  "difficulty": 5,
+  "possibleSymbols": [
+    "firecracker",
+    "redPocket",
+    "dumpling",
+    "lantern",
+    "zodiac"
+  ],
+  "snow": true,
+  "ice": [
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 1, 0, 1, 0, 1, 0],
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 1, 0, 1, 0, 1, 0],
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0]
+  ],
+  "mechanicHint": "Keep both gift lanes moving through the snowfield. Clear beneath a gift or collect it directly with a well-placed blast."
+}

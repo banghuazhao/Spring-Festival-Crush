@@ -45,7 +45,25 @@ struct GoalTargetPill: View {
             .easeOut(duration: 0.14)
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(target.id.replacingOccurrences(of: "Combos", with: " combos"))
+        .accessibilityLabel(goalLabel)
         .accessibilityValue(remaining > 0 ? Text("\(remaining) remaining") : Text("Complete"))
+    }
+
+    private var goalLabel: Text {
+        switch target.id {
+        case "firecracker": Text("firecrackers")
+        case "redPocket": Text("red envelopes")
+        case "dumpling": Text("dumplings")
+        case "bowl": Text("bowls")
+        case "lantern": Text("lanterns")
+        case "zodiac": Text("Zodiac tiles")
+        case "lock": Text("locks")
+        case "jelly": Text("moon blossoms")
+        case "ingredient": Text("gifts to deliver")
+        case "lightningCombos": Text("Lightning activations")
+        case "fiveCombos": Text("Lucky Five activations")
+        case "enhancedCombos": Text("Blast Tile activations")
+        default: Text(verbatim: target.id)
+        }
     }
 }

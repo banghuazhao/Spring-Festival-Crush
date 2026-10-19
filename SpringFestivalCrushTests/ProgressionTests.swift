@@ -304,8 +304,8 @@ final class ProgressionTests: XCTestCase {
         XCTAssertEqual(level.boss?.health, 0)
     }
 
-    func testAllChaptersHaveProgressionSnowAndFinalBoss() throws {
-        for (chapter, count) in [("Rat", 17), ("Ox", 17), ("Tiger", 17), ("Rabbit", 17)] {
+    func testAllChaptersHaveProgressionSnowAndRetainedGuardianEncounters() throws {
+        for (chapter, count) in [("Rat", 19), ("Ox", 19), ("Tiger", 19), ("Rabbit", 19)] {
             var previousTier = 0
             var snowLevels = 0
             for number in 1...count {
@@ -313,8 +313,8 @@ final class ProgressionTests: XCTestCase {
                 XCTAssertGreaterThanOrEqual(level.difficulty, previousTier)
                 previousTier = level.difficulty
                 if level.hasSnow { snowLevels += 1 }
-                XCTAssertEqual(level.boss != nil, number == 15 || number == count,
-                               "Keep the original guardian encounter and end the expansion with its rematch")
+                XCTAssertEqual(level.boss != nil, number == 15 || number == 17,
+                               "Keep both guardian encounters before the mastery and delivery challenges")
                 let pieces = level.shuffle()
                 XCTAssertFalse(level.possibleSwaps.isEmpty)
                 XCTAssertTrue(level.removeMatches().isEmpty)
@@ -329,7 +329,7 @@ final class ProgressionTests: XCTestCase {
 
     func testExpansionContainsCompactChallengesAndDifferentGuardianArenas() throws {
         let playable = Zodiac.all.filter(\.isAvailable)
-        XCTAssertEqual(playable.map(\.numLevels), [17, 17, 17, 17])
+        XCTAssertEqual(playable.map(\.numLevels), [19, 19, 19, 19])
         for chapter in ["Rat", "Ox", "Tiger"] {
             let compact = try XCTUnwrap(Level(filename: "\(chapter)_Level_16"))
             XCTAssertEqual(compact.numColumns, 5)
@@ -392,7 +392,7 @@ final class ProgressionTests: XCTestCase {
         game.initializeRecords(modelContext: context)
 
         for record in game.zodiacRecords {
-            XCTAssertEqual(record.levelRecords.count, 17, "Repeated initialization must not duplicate levels")
+            XCTAssertEqual(record.levelRecords.count, 19, "Repeated initialization must not duplicate levels")
             let previousFinale = try XCTUnwrap(record.levelRecords.first { $0.number == 15 })
             XCTAssertTrue(previousFinale.isComplete)
             XCTAssertEqual(previousFinale.stars, 3)
@@ -400,9 +400,57 @@ final class ProgressionTests: XCTestCase {
             XCTAssertTrue(firstNew.isUnlocked)
             XCTAssertFalse(firstNew.isComplete)
             XCTAssertEqual(firstNew.stars, 0)
-            let rematch = try XCTUnwrap(record.levelRecords.first { $0.number == 17 })
-            XCTAssertFalse(rematch.isUnlocked)
-            XCTAssertFalse(rematch.isComplete)
+            for number in 17...19 {
+                let laterLevel = try XCTUnwrap(record.levelRecords.first { $0.number == number })
+                XCTAssertFalse(laterLevel.isUnlocked)
+                XCTAssertFalse(laterLevel.isComplete)
+            }
+        }
+    }
+
+    func testFinishedSeventeenLevelChaptersOpenOnlyTheMasteryChallenge() throws {
+        let saved = UserDefaults.standard.object(forKey: "firstLaunch")
+        addTeardownBlock {
+            if let saved { UserDefaults.standard.set(saved, forKey: "firstLaunch") }
+            else { UserDefaults.standard.removeObject(forKey: "firstLaunch") }
+        }
+        let container = try ModelContainer(for: ZodiacRecord.self, LevelRecord.self,
+                                           configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let context = container.mainContext
+        for zodiac in Zodiac.all.filter(\.isAvailable) {
+            let record = ZodiacRecord(zodiacType: zodiac.zodiacType, isUnlocked: true)
+            context.insert(record)
+            for number in 1...17 {
+                let level = LevelRecord(number: number, isUnlocked: true, zodiacRecord: record)
+                level.isComplete = true
+                level.stars = 3
+                context.insert(level)
+                record.levelRecords.append(level)
+            }
+        }
+        try context.save()
+        let game = GameModel()
+        game.firstLaunch = false
+        game.initializeRecords(modelContext: context)
+        game.initializeRecords(modelContext: context)
+
+        for record in game.zodiacRecords {
+            XCTAssertEqual(record.levelRecords.count, 19)
+            XCTAssertEqual(Set(record.levelRecords.map(\.number)), Set(1...19),
+                           "Repeated initialization must not add duplicate records")
+            for old in record.levelRecords where old.number <= 17 {
+                XCTAssertTrue(old.isUnlocked)
+                XCTAssertTrue(old.isComplete)
+                XCTAssertEqual(old.stars, 3)
+            }
+            let mastery = try XCTUnwrap(record.levelRecords.first { $0.number == 18 })
+            XCTAssertTrue(mastery.isUnlocked)
+            XCTAssertFalse(mastery.isComplete)
+            XCTAssertEqual(mastery.stars, 0)
+            let delivery = try XCTUnwrap(record.levelRecords.first { $0.number == 19 })
+            XCTAssertFalse(delivery.isUnlocked)
+            XCTAssertFalse(delivery.isComplete)
+            XCTAssertEqual(delivery.stars, 0)
         }
     }
 

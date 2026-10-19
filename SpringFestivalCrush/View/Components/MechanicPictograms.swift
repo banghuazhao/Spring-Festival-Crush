@@ -303,6 +303,33 @@ struct RuleArt: View {
             NeighborMatchPicto(tile: tile, target: PictoTile(asset: "LockTile", size: tile)) {
                 OpenLockPicto(size: tile)
             }
+        case .powerUpGoals:
+            VStack(spacing: 5) {
+                HStack(spacing: 5) {
+                    PictoTile(asset: "LightningTile", size: tile)
+                    PictoTile(asset: "FiveTile", size: tile)
+                    PictoTile(asset: "bowl", overlay: .enhanced, size: tile)
+                }
+                HStack(spacing: 5) {
+                    PictoClear(size: tile * 0.8)
+                    PictoArrow(size: 11)
+                    PictoTag(text: "−1", tint: AppTheme.festivalGoldDark, size: 11)
+                }
+            }
+        case .giftDelivery:
+            HStack(spacing: 8) {
+                VStack(spacing: 3) {
+                    Text(verbatim: "🎁").font(.system(size: tile))
+                    TileRun(asset: "redPocket", count: 3, size: tile * 0.62)
+                }
+                PictoArrow(size: 11)
+                VStack(spacing: 3) {
+                    Text(verbatim: "🎁").font(.system(size: tile))
+                    Image(systemName: "arrow.down.to.line")
+                        .font(.system(size: tile * 0.75, weight: .heavy))
+                        .foregroundStyle(AppTheme.festivalGoldDark)
+                }
+            }
         case .doubleLock:
             HStack(spacing: 4) {
                 PictoTile(asset: "LockTile", overlay: .lockStrength(2), size: tile)

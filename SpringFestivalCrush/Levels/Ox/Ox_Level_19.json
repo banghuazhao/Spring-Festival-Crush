@@ -1,0 +1,41 @@
+{
+  "tiles": [
+    [1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 9, 1, 9, 1, 1],
+    [1, 2, 1, 1, 1, 2, 1],
+    [1, 1, 1, 5, 1, 1, 1],
+    [1, 2, 1, 1, 1, 2, 1],
+    [1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1]
+  ],
+  "moves": 14,
+  "levelGoal": {
+    "firstStarScore": 1000,
+    "secondStarScore": 6700,
+    "thirdStarScore": 12600,
+    "levelTarget": {
+      "zodiac": 18,
+      "lock": 4,
+      "ingredient": 2
+    }
+  },
+  "difficulty": 5,
+  "possibleSymbols": [
+    "firecracker",
+    "redPocket",
+    "dumpling",
+    "bowl",
+    "zodiac"
+  ],
+  "snow": false,
+  "armor": [
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 1, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 1, 0, 0, 0, 1, 0],
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 1, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0]
+  ],
+  "mechanicHint": "Two gift lanes stay open through the forge. Clear beneath the gifts while breaking the side locks and gold frames."
+}

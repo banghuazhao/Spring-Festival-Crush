@@ -17,12 +17,14 @@ enum GameRule: String, CaseIterable, Identifiable {
     case luckyFive
     case armor
     case combos
+    case powerUpGoals
     case ice
     case cascade
     case doubleLock
     case blossom
     case vaultLock
     case chocolate
+    case giftDelivery
     case ratGuardian
     case oxGuardian
     case tigerGuardian
@@ -40,12 +42,14 @@ enum GameRule: String, CaseIterable, Identifiable {
         case .luckyFive: String(localized: "Lucky Five")
         case .armor: String(localized: "Gold Frame")
         case .combos: String(localized: "Power-up Combos")
+        case .powerUpGoals: String(localized: "Power-up Goals")
         case .ice: String(localized: "Ice")
         case .cascade: String(localized: "Chain Reaction")
         case .doubleLock: String(localized: "Double Lock")
         case .blossom: String(localized: "Moon Blossom")
         case .vaultLock: String(localized: "Vault Lock")
         case .chocolate: String(localized: "Chocolate")
+        case .giftDelivery: String(localized: "Gift Delivery")
         case .ratGuardian, .oxGuardian, .tigerGuardian, .rabbitGuardian: guardian!.title
         }
     }
@@ -61,12 +65,14 @@ enum GameRule: String, CaseIterable, Identifiable {
         case .luckyFive: String(localized: "Match 5 in a row to make a Lucky Five. Swap it with a tile to collect every tile of that kind.")
         case .armor: String(localized: "Gold frame · 2 hits: match once to crack the shell, then clear the tile on a later move. Blasts and hammers also crack one layer.")
         case .combos: String(localized: "Swap two power-ups into each other for a much bigger blast.")
+        case .powerUpGoals: String(localized: "Activate the pictured power-ups to meet their goals. Chain reactions count too. Creating a power-up does not count, and swapping two power-ups together is not required.")
         case .ice: String(localized: "Ice: clear a neighboring tile to thaw it before matching.")
         case .cascade: String(localized: "Falling tiles can match on their own. Chain reactions score more and open tight spaces.")
         case .doubleLock: String(localized: "A double lock needs two matches beside it. The first turns it into a normal lock.")
         case .blossom: String(localized: "Moon blossoms grow under tiles. Clear the tile on top to collect one. Deep pink blossoms need two clears.")
         case .vaultLock: String(localized: "A vault lock needs three matches beside it: vault, double lock, lock, then open.")
         case .chocolate: String(localized: "Match beside chocolate to clear it. Any chocolate left can spread to one neighboring unprotected tile after each move.")
+        case .giftDelivery: String(localized: "Clear tiles beneath gifts to help them reach a marked exit on the board's bottom row. A higher ledge is not an exit. Blasts and the Hammer can also collect gifts directly.")
         case .ratGuardian, .oxGuardian, .tigerGuardian, .rabbitGuardian: guardian!.instructions
         }
     }
@@ -98,6 +104,10 @@ enum GameRule: String, CaseIterable, Identifiable {
         case .armor: return any(data.armor)
         case .ice: return any(data.ice)
         case .blossom: return any(data.jelly)
+        case .powerUpGoals:
+            let target = data.levelGoal.levelTarget
+            return [target.lightningCombos, target.fiveCombos, target.enhancedCombos].contains { ($0 ?? 0) > 0 }
+        case .giftDelivery: return has(.ingredient) || (data.levelGoal.levelTarget.ingredient ?? 0) > 0
         case .ratGuardian, .oxGuardian, .tigerGuardian, .rabbitGuardian: return data.boss?.kind == guardian
         case .goals, .swapMatch, .combos, .cascade: return false
         }
