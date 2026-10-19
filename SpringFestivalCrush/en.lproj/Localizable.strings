@@ -21,6 +21,12 @@
 "NEW BEST!" = "NEW BEST!";
 "Best score: %lld" = "Best score: %lld";
 
+/* Star goals and this attempt's next-star recap */
+"Complete the level to earn 1 star." = "Complete the level to earn 1 star.";
+"Next star for this attempt" = "Next star for this attempt";
+"%lld more points for %lld stars" = "%lld more points for %lld stars";
+"Next star score: %@ points" = "Next star score: %@ points";
+
 /* Active tool hints */
 "Tap a tile to clear it; tap Hammer again to cancel." = "Tap a tile to clear it; tap Hammer again to cancel.";
 "Swipe neighbors; tap Ruyi Swap again to cancel." = "Swipe neighbors; tap Ruyi Swap again to cancel.";
@@ -44,3 +50,17 @@
 "7-day rewards" = "7-day rewards";
 "Day %lld" = "Day %lld";
 "Today" = "Today";
+
+/* Illustrated power-up combo recipes */
+"Combo recipes" = "Combo recipes";
+"Swap neighboring power-ups in either order. A regular swap uses one move." = "Swap neighboring power-ups in either order. A regular swap uses one move.";
+"Five + Lightning" = "Five + Lightning";
+"Five + Five" = "Five + Five";
+"Lightning + Lightning" = "Lightning + Lightning";
+"Enhanced Four + Lightning" = "Enhanced Four + Lightning";
+"Enhanced Four + Five" = "Enhanced Four + Five";
+"Turns the most common color into Lightning, then fires every bolt together." = "Turns the most common color into Lightning, then fires every bolt together.";
+"Clears the entire board, including armor, ice, locks, and every jelly layer." = "Clears the entire board, including armor, ice, locks, and every jelly layer.";
+"Sweeps a three-wide cross through both pieces, with diagonal lightning." = "Sweeps a three-wide cross through both pieces, with diagonal lightning.";
+"Sweeps a five-wide cross and a 5 × 5 explosion around the enhanced piece." = "Sweeps a five-wide cross and a 5 × 5 explosion around the enhanced piece.";
+"Turns matching colors into Enhanced Four, then detonates them together." = "Turns matching colors into Enhanced Four, then detonates them together.";

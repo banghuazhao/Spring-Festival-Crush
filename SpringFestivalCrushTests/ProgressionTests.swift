@@ -182,6 +182,68 @@ final class ProgressionTests: XCTestCase {
         XCTAssertEqual(goal.stars(forWinningScore: 50000), 3)
     }
 
+    func testReplayTargetUsesTheImmediateNextStarAtScoreBoundaries() {
+        let goal = LevelGoal(firstStarScore: 1000, secondStarScore: 5000, thirdStarScore: 9000, levelTarget: LevelTarget())
+        let cases: [(score: Int, stars: Int, target: StarReplayTarget?)] = [
+            (0, 1, StarReplayTarget(stars: 2, score: 5000, pointsNeeded: 5000)),
+            (999, 1, StarReplayTarget(stars: 2, score: 5000, pointsNeeded: 4001)),
+            (1000, 1, StarReplayTarget(stars: 2, score: 5000, pointsNeeded: 4000)),
+            (4999, 1, StarReplayTarget(stars: 2, score: 5000, pointsNeeded: 1)),
+            (5000, 2, StarReplayTarget(stars: 3, score: 9000, pointsNeeded: 4000)),
+            (8999, 2, StarReplayTarget(stars: 3, score: 9000, pointsNeeded: 1)),
+            (9000, 3, nil),
+            (50000, 3, nil)
+        ]
+        for testCase in cases {
+            let summary = VictorySummary(zodiac: .rat, level: 1, score: testCase.score, stars: testCase.stars,
+                                         coins: 15, newlyUnlockedLevel: nil)
+            XCTAssertEqual(summary.nextStarTarget(for: goal), testCase.target,
+                           "Final score \(testCase.score) with \(testCase.stars) stars")
+        }
+    }
+
+    func testReplayTargetIgnoresHistoricalBestScore() {
+        let goal = LevelGoal(firstStarScore: 1000, secondStarScore: 5000, thirdStarScore: 9000, levelTarget: LevelTarget())
+        let firstWin = VictorySummary(zodiac: .rat, level: 1, score: 4999, stars: 1, coins: 15,
+                                      newlyUnlockedLevel: nil)
+        let replay = VictorySummary(zodiac: .rat, level: 1, score: 4999, stars: 1, coins: 15,
+                                    newlyUnlockedLevel: nil, previousBest: 100000)
+        XCTAssertEqual(replay.nextStarTarget(for: goal), firstWin.nextStarTarget(for: goal))
+        XCTAssertEqual(replay.nextStarTarget(for: goal), StarReplayTarget(stars: 2, score: 5000, pointsNeeded: 1))
+    }
+
+    func testReplayTargetRejectsMissingOrInvalidThresholds() {
+        let summary = VictorySummary(zodiac: .rat, level: 1, score: 0, stars: 1, coins: 15,
+                                     newlyUnlockedLevel: nil)
+        let thresholds = [
+            (0, 5000, 9000), (1000, 0, 9000), (1000, 5000, 0),
+            (-1, 5000, 9000), (1000, 1000, 9000), (1000, 5000, 5000),
+            (5000, 1000, 9000), (1000, 9000, 5000)
+        ]
+        for (first, second, third) in thresholds {
+            let goal = LevelGoal(firstStarScore: first, secondStarScore: second, thirdStarScore: third,
+                                 levelTarget: LevelTarget())
+            XCTAssertNil(summary.nextStarTarget(for: goal), "Invalid thresholds: \(first), \(second), \(third)")
+        }
+    }
+
+    func testReplayTargetRejectsMismatchedReceiptsAndDebugLevels() {
+        let goal = LevelGoal(firstStarScore: 1000, secondStarScore: 5000, thirdStarScore: 9000, levelTarget: LevelTarget())
+        let cases = [(1, 0, 0), (1, 0, 4), (1, 5000, 1), (1, 4999, 2), (1, -1, 1), (0, 0, 1), (-1, 0, 1)]
+        for (level, score, stars) in cases {
+            let summary = VictorySummary(zodiac: .rat, level: level, score: score, stars: stars, coins: 15,
+                                         newlyUnlockedLevel: nil)
+            XCTAssertNil(summary.nextStarTarget(for: goal), "Invalid receipt: level \(level), score \(score), stars \(stars)")
+        }
+    }
+
+    func testReplayTargetHandlesTheLargestValidScoreWithoutOverflow() {
+        let goal = LevelGoal(firstStarScore: 1, secondStarScore: 2, thirdStarScore: .max, levelTarget: LevelTarget())
+        let summary = VictorySummary(zodiac: .rat, level: 1, score: .max - 1, stars: 2, coins: 15,
+                                     newlyUnlockedLevel: nil)
+        XCTAssertEqual(summary.nextStarTarget(for: goal), StarReplayTarget(stars: 3, score: .max, pointsNeeded: 1))
+    }
+
     func testBestScoreKeepsTheHighestWinPerLevel() throws {
         let suite = "BestScoreStoreTests"
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))

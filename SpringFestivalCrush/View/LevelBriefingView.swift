@@ -95,7 +95,7 @@ struct LevelBriefingView: View {
                     .foregroundStyle(theme.accent)
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("1 star: \(level.levelGoal.firstStarScore.formatted()) points")
+                    Text("Complete the level to earn 1 star.")
                     Text("2 stars: \(level.levelGoal.secondStarScore.formatted()) points")
                     Text("3 stars: \(level.levelGoal.thirdStarScore.formatted()) points")
                 }

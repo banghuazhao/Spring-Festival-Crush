@@ -17,6 +17,14 @@ struct LevelCompleteView: View {
         gameModel.currentLevel >= 1 && gameModel.currentLevel < gameModel.zodiac.numLevels && gameModel.lives > 0
     }
 
+    private var nextStarTarget: StarReplayTarget? {
+        guard let summary = gameModel.victorySummary,
+              summary.level == gameModel.currentLevel,
+              let zodiac = gameModel.zodiac, summary.zodiac == zodiac.zodiacType,
+              let level = gameModel.level else { return nil }
+        return summary.nextStarTarget(for: level.levelGoal)
+    }
+
     /// Saved best stars already include this win, so replays cannot count twice.
     private var chestProgress: (stars: Int, next: StarChestTrack.Chest?)? {
         guard let summary = gameModel.victorySummary, summary.level >= 1,
@@ -82,6 +90,10 @@ struct LevelCompleteView: View {
                         .frame(maxWidth: .infinity)
                         .padding(12)
                         .background(AppTheme.creamHighlight, in: .rect(cornerRadius: 16))
+
+                        if let target = nextStarTarget {
+                            StarReplayTargetView(target: target)
+                        }
 
                         VictoryRewardView(
                             coins: gameModel.victorySummary?.coins ?? 0,

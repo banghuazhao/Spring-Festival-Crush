@@ -158,7 +158,14 @@ SIM_RUNS=400 tools/simulate_levels.sh Rabbit Tiger_Level_12
 
 ## 📋 Release Notes
 
-### Version 3.5 (In development)
+### Next release (In development)
+- ⭐ Clearer star goals: completing a level earns the first star, and the victory screen shows the score gap to the next star for that attempt
+- 📖 Illustrated combo recipes: expand the rule handbook's new guide to learn all five existing power-up pairings
+- 🌏 English, Simplified Chinese, and Traditional Chinese support for the new guidance
+
+See [docs/star-guidance-and-combo-recipes.md](docs/star-guidance-and-combo-recipes.md) for scope and verification.
+
+### Version 3.5
 - ⭐ **Stars that mean something**: any win earns ★, while ★★ and ★★★ now sit at the 40th and 80th percentile of the solver's winning scores, so replays and the last star chest are a real goal
 - 🏆 **Best scores**: the victory screen celebrates a **New best!** and the level briefing shows each level's best score
 - 🐯 Smoother difficulty: Tiger 2, 4, 5, 6, 7, 8, 9, Ox 7, 11, 14 and Rabbit 14 now sit in their difficulty bands

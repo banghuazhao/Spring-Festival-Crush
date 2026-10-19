@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D51019000000000000000011 /* StarReplayTarget.swift in Sources */ = {isa = PBXBuildFile; fileRef = D51019000000000000000001 /* StarReplayTarget.swift */; };
+		D51019000000000000000012 /* StarReplayTargetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D51019000000000000000002 /* StarReplayTargetView.swift */; };
+		D51019000000000000000013 /* PowerUpRecipeGuide.swift in Sources */ = {isa = PBXBuildFile; fileRef = D51019000000000000000003 /* PowerUpRecipeGuide.swift */; };
+		D51019000000000000000014 /* PowerUpRecipeRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D51019000000000000000004 /* PowerUpRecipeRow.swift */; };
 		C673C57DE7609590E1758544 /* Rabbit_Level_15.json in Resources */ = {isa = PBXBuildFile; fileRef = B7375A47C77F34AADB89AE27 /* Rabbit_Level_15.json */; };
 		2EE1B77D18592E1EB589B00E /* Rabbit_Level_14.json in Resources */ = {isa = PBXBuildFile; fileRef = F054F961CCB5A8D7BBE0376E /* Rabbit_Level_14.json */; };
 		1CCF8052FBC3019867828960 /* Rabbit_Level_13.json in Resources */ = {isa = PBXBuildFile; fileRef = 0418DE9EB529418740C1299F /* Rabbit_Level_13.json */; };
@@ -214,6 +218,10 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		D51019000000000000000001 /* StarReplayTarget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringFestivalCrush/Model/Game/StarReplayTarget.swift; sourceTree = SOURCE_ROOT; };
+		D51019000000000000000002 /* StarReplayTargetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringFestivalCrush/View/Components/StarReplayTargetView.swift; sourceTree = SOURCE_ROOT; };
+		D51019000000000000000003 /* PowerUpRecipeGuide.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringFestivalCrush/View/Components/PowerUpRecipeGuide.swift; sourceTree = SOURCE_ROOT; };
+		D51019000000000000000004 /* PowerUpRecipeRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringFestivalCrush/View/Components/PowerUpRecipeRow.swift; sourceTree = SOURCE_ROOT; };
 		B7375A47C77F34AADB89AE27 /* Rabbit_Level_15.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Rabbit_Level_15.json; sourceTree = "<group>"; };
 		F054F961CCB5A8D7BBE0376E /* Rabbit_Level_14.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Rabbit_Level_14.json; sourceTree = "<group>"; };
 		0418DE9EB529418740C1299F /* Rabbit_Level_13.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Rabbit_Level_13.json; sourceTree = "<group>"; };
@@ -575,6 +583,10 @@
 		9955DB8923D7E420007786D5 /* SpringFestivalCrush */ = {
 			isa = PBXGroup;
 			children = (
+				D51019000000000000000001 /* StarReplayTarget.swift */,
+				D51019000000000000000002 /* StarReplayTargetView.swift */,
+				D51019000000000000000003 /* PowerUpRecipeGuide.swift */,
+				D51019000000000000000004 /* PowerUpRecipeRow.swift */,
 				994625A22C720A2800FC2C6A /* Match3GameApp.swift */,
 				99340CE12C715EA50096BBF5 /* Config */,
 				9955DBA223D7E4D2007786D5 /* Util */,
@@ -1012,6 +1024,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D51019000000000000000011 /* StarReplayTarget.swift in Sources */,
+				D51019000000000000000012 /* StarReplayTargetView.swift in Sources */,
+				D51019000000000000000013 /* PowerUpRecipeGuide.swift in Sources */,
+				D51019000000000000000014 /* PowerUpRecipeRow.swift in Sources */,
 				9955DBAE23D7E4E4007786D5 /* LevelData.swift in Sources */,
 				C20260916000000000000026 /* GameReducedEffectsKey.swift in Sources */,
 				C20260916000000000000020 /* VictorySummary.swift in Sources */,

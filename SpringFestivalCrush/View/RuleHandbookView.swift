@@ -26,6 +26,9 @@ struct RuleHandbookView: View {
                         LazyVGrid(columns: [GridItem(.adaptive(minimum: 140), spacing: 10)], spacing: 10) {
                             ForEach(rules.filter { $0.guardian == nil }) { page($0) }
                         }
+                        if isUnlocked(.combos) {
+                            PowerUpRecipeGuide()
+                        }
                         let guardians = rules.filter { $0.guardian != nil }
                         if !guardians.isEmpty {
                             Image(systemName: "crown.fill")

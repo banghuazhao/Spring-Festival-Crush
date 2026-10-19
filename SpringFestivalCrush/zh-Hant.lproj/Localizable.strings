@@ -391,6 +391,12 @@
 "Saved best: %lld of 3 stars" = "歷史最佳：%lld/3 顆星";
 "NEW BEST!" = "新紀錄！";
 "Best score: %lld" = "最高分：%lld";
+
+/* Star goals and this attempt's next-star recap */
+"Complete the level to earn 1 star." = "完成關卡即可獲得 1 顆星。";
+"Next star for this attempt" = "本次挑戰的下一顆星";
+"%lld more points for %lld stars" = "本次還差 %lld 分即可獲得 %lld 顆星";
+"Next star score: %@ points" = "下一顆星所需分數：%@ 分";
 "Complete every goal before you run out of moves." = "在步數用完前完成所有目標。";
 "Earn stars on this chapter's levels. A chest opens when your stars reach its number." = "在本章關卡中贏取星星。星星數量達到寶箱上的數字時即可打開寶箱。";
 
@@ -435,3 +441,17 @@
 "Moon blossoms grow under tiles. Clear the tile on top to collect one. Deep pink blossoms need two clears." = "月下花長在方塊下面。消除上面的方塊即可收集一朵。深粉色的花需要消除兩次。";
 "A vault lock needs three matches beside it: vault, double lock, lock, then open." = "寶庫鎖需要在旁邊消除三次：寶庫鎖、雙重鎖、鎖，然後打開。";
 "moon blossoms" = "月下花";
+
+/* Illustrated power-up combo recipes */
+"Combo recipes" = "組合配方";
+"Swap neighboring power-ups in either order. A regular swap uses one move." = "將兩個相鄰的特效方塊互相交換，順序不限。每次普通交換消耗 1 步。";
+"Five + Lightning" = "幸運五星 + 閃電";
+"Five + Five" = "幸運五星 + 幸運五星";
+"Lightning + Lightning" = "閃電 + 閃電";
+"Enhanced Four + Lightning" = "爆破方塊 + 閃電";
+"Enhanced Four + Five" = "爆破方塊 + 幸運五星";
+"Turns the most common color into Lightning, then fires every bolt together." = "將數量最多的一種顏色的方塊變成閃電，再同時觸發所有閃電。";
+"Clears the entire board, including armor, ice, locks, and every jelly layer." = "清空整個棋盤，包括金框、冰凍、各類鎖和所有月下花層。";
+"Sweeps a three-wide cross through both pieces, with diagonal lightning." = "以兩個方塊為中心，清除三格寬的十字區域，並沿對角線釋放閃電。";
+"Sweeps a five-wide cross and a 5 × 5 explosion around the enhanced piece." = "清除五格寬的十字區域，並在爆破方塊周圍引發 5 × 5 範圍的爆炸。";
+"Turns matching colors into Enhanced Four, then detonates them together." = "將與爆破方塊同色的方塊變成爆破方塊，再同時引爆。";

@@ -1610,7 +1610,10 @@ final class ReleaseRegressionTests: XCTestCase {
         game.movesLeft = 0
         await game.beginNextTurn()
         XCTAssertEqual(game.gameState, .win)
-        XCTAssertLessThan(try XCTUnwrap(game.victorySummary).stars, 3)
+        let summary = try XCTUnwrap(game.victorySummary)
+        XCTAssertLessThan(summary.stars, 3)
+        let replayTarget = try XCTUnwrap(summary.nextStarTarget(for: game.level.levelGoal))
+        XCTAssertEqual(replayTarget.pointsNeeded, replayTarget.score - summary.score)
         XCTAssertEqual(records[0].stars, 3)
         let chapterStars = records.reduce(0) { $0 + $1.stars }
         XCTAssertEqual(chapterStars, 3)
@@ -1634,6 +1637,49 @@ final class ReleaseRegressionTests: XCTestCase {
         }
         XCTAssertEqual(records[0].stars, 3)
         XCTAssertEqual([game.coins, game.hammerCharges, game.shuffleCharges, game.swapCharges, game.lives], victoryInventory)
+    }
+
+    func testStarGuidanceAndComboRecipesRenderAcrossLanguagesAndSizes() async throws {
+        let game = makeGame()
+        let level = try XCTUnwrap(game.level)
+        let theme = ZodiacChapterTheme(zodiac: .rat)
+        let target = StarReplayTarget(stars: 3, score: level.levelGoal.thirdStarScore, pointsNeeded: 800)
+        let cases: [(language: String, size: CGSize, textSize: DynamicTypeSize)] = [
+            ("en", CGSize(width: 320, height: 568), .accessibility3),
+            ("zh-Hans", CGSize(width: 375, height: 812), .large),
+            ("zh-Hant", CGSize(width: 768, height: 1024), .accessibility3)
+        ]
+        for testCase in cases {
+            try await snapshot(name: "Star-guidance-\(testCase.language)", size: testCase.size) { ready in
+                ScrollView {
+                    VStack(spacing: 16) {
+                        LevelBriefingView(level: level, levelNumber: 1, zodiac: game.zodiac,
+                                          theme: theme, savedBestStars: 3)
+                        StarReplayTargetView(target: target)
+                    }
+                    .padding(20)
+                    .frame(maxWidth: 560)
+                    .frame(maxWidth: .infinity)
+                }
+                .background(AppTheme.festivalBackground)
+                .environment(\.locale, Locale(identifier: testCase.language))
+                .environment(\.dynamicTypeSize, testCase.textSize)
+                .onAppear(perform: ready)
+            }
+            try await snapshot(name: "Combo-recipes-\(testCase.language)", size: testCase.size) { ready in
+                ScrollView {
+                    PowerUpRecipeGuide(initiallyExpanded: true)
+                        .padding(20)
+                        .frame(maxWidth: 560)
+                        .frame(maxWidth: .infinity)
+                }
+                .background(AppTheme.festivalBackground)
+                .environment(\.locale, Locale(identifier: testCase.language))
+                .environment(\.dynamicTypeSize, testCase.textSize)
+                .environment(\.gameReducedEffects, true)
+                .onAppear(perform: ready)
+            }
+        }
     }
 
     private func presentTestScene(_ scene: GameScene) throws -> SKView {
@@ -1700,7 +1746,8 @@ final class ReleaseRegressionTests: XCTestCase {
             let scroll = try XCTUnwrap(findScroll(in: host.view))
             XCTAssertGreaterThan(scroll.contentOffset.y, 2000, "Map must open near level 19, not level 1")
         }
-        if name.hasPrefix("Defeat-") || name.hasPrefix("New-Victory-") {
+        if name.hasPrefix("Defeat-") || name.hasPrefix("New-Victory-")
+            || name.hasPrefix("Star-guidance-") || name.hasPrefix("Combo-recipes-") {
             func scrollViews(in view: UIView) -> [UIScrollView] {
                 (view as? UIScrollView).map { [$0] } ?? view.subviews.flatMap { scrollViews(in: $0) }
             }
