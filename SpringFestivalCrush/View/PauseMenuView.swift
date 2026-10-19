@@ -67,6 +67,8 @@ struct PauseMenuView: View {
                     .multilineTextAlignment(.center)
                     .padding(.bottom, 4)
 
+                AttemptRecapView(showsResources: true)
+
                 Button {
                     HapticManager.buttonTap()
                     onResume()

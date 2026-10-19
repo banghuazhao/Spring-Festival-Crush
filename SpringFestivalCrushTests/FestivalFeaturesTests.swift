@@ -312,6 +312,64 @@ final class FestivalFeaturesTests: XCTestCase {
         }
     }
 
+    func testGuardianRecapDistinguishesHealthyNearlyBeatenAndDefeated() throws {
+        let cases: [(health: Int, maximum: Int, almostBeaten: Bool, defeated: Bool)] = [
+            (24, 24, false, false),
+            (19, 24, false, false),
+            (7, 24, false, false),
+            (6, 24, true, false),
+            (1, 24, true, false),
+            (0, 24, false, true),
+            (7, 25, false, false),
+            (6, 25, true, false)
+        ]
+        for testCase in cases {
+            let recap = try XCTUnwrap(GuardianRecap(health: testCase.health, maximumHealth: testCase.maximum))
+            XCTAssertEqual(recap.health, testCase.health)
+            XCTAssertEqual(recap.maximumHealth, testCase.maximum)
+            XCTAssertEqual(recap.isAlmostBeaten, testCase.almostBeaten,
+                           "Guardian has \(testCase.health) of \(testCase.maximum) health")
+            XCTAssertEqual(recap.isDefeated, testCase.defeated)
+        }
+    }
+
+    func testGuardianRecapRejectsInvalidMaximumAndClampsHealth() throws {
+        XCTAssertNil(GuardianRecap(health: 1, maximumHealth: 0))
+        XCTAssertNil(GuardianRecap(health: 1, maximumHealth: -1))
+        XCTAssertNil(GuardianRecap(health: 1, maximumHealth: .min))
+
+        let negative = try XCTUnwrap(GuardianRecap(health: .min, maximumHealth: 24))
+        XCTAssertEqual(negative, GuardianRecap(health: 0, maximumHealth: 24))
+        XCTAssertTrue(negative.isDefeated)
+        XCTAssertFalse(negative.isAlmostBeaten)
+
+        let aboveMaximum = try XCTUnwrap(GuardianRecap(health: .max, maximumHealth: 24))
+        XCTAssertEqual(aboveMaximum, GuardianRecap(health: 24, maximumHealth: 24))
+        XCTAssertFalse(aboveMaximum.isDefeated)
+        XCTAssertFalse(aboveMaximum.isAlmostBeaten)
+    }
+
+    func testGuardianRecapKeepsOneHealthAtFullOrAboveQuarterNeutral() throws {
+        for maximum in 1...3 {
+            let recap = try XCTUnwrap(GuardianRecap(health: 1, maximumHealth: maximum))
+            XCTAssertFalse(recap.isAlmostBeaten, "One health is not low when the maximum is \(maximum)")
+            XCTAssertFalse(recap.isDefeated)
+        }
+        XCTAssertTrue(try XCTUnwrap(GuardianRecap(health: 1, maximumHealth: 4)).isAlmostBeaten)
+    }
+
+    func testGuardianRecapQuarterBoundaryDoesNotOverflowAtLargestMaximum() throws {
+        let quarter = Int.max / 4
+        let low = try XCTUnwrap(GuardianRecap(health: quarter, maximumHealth: .max))
+        let aboveQuarter = try XCTUnwrap(GuardianRecap(health: quarter + 1, maximumHealth: .max))
+        let full = try XCTUnwrap(GuardianRecap(health: .max, maximumHealth: .max))
+        XCTAssertTrue(low.isAlmostBeaten)
+        XCTAssertFalse(low.isDefeated)
+        XCTAssertFalse(aboveQuarter.isAlmostBeaten)
+        XCTAssertFalse(full.isAlmostBeaten)
+        XCTAssertEqual(full.health, Int.max)
+    }
+
     // MARK: - Localization
 
     func testChineseStringsCoverNewFeaturesWithMatchingPlaceholders() throws {

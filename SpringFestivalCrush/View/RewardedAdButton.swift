@@ -9,7 +9,16 @@ import SwiftUI
 struct RewardedAdButton: View {
     let title: String
     let systemImage: String
+    var expandsForLargeText = false
     let onReward: () -> Void
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    private var buttonShape: AnyShape {
+        if expandsForLargeText && dynamicTypeSize.isAccessibilitySize {
+            return AnyShape(RoundedRectangle(cornerRadius: AppTheme.buttonCornerRadius))
+        }
+        return AnyShape(Capsule())
+    }
 
     #if !targetEnvironment(macCatalyst)
     @ObservedObject private var adManager = ToolRewardAdManager.shared
@@ -22,10 +31,22 @@ struct RewardedAdButton: View {
                 HapticManager.buttonTap()
                 adManager.show(onReward: onReward)
             } label: {
-                Label(LocalizedStringKey(title), systemImage: systemImage)
+                Group {
+                    if expandsForLargeText && dynamicTypeSize.isAccessibilitySize {
+                        VStack(spacing: 6) {
+                            Image(systemName: systemImage).accessibilityHidden(true)
+                            Text(LocalizedStringKey(title))
+                                .multilineTextAlignment(.center)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        .frame(maxWidth: .infinity)
+                    } else {
+                        Label(LocalizedStringKey(title), systemImage: systemImage)
+                    }
+                }
                     .font(.subheadline.weight(.semibold))
             }
-            .buttonStyle(.gamePrimary(gradient: AppTheme.successGradient, shape: Capsule()))
+            .buttonStyle(.gamePrimary(gradient: AppTheme.successGradient, shape: buttonShape))
             .disabled(!adManager.isReady || adManager.isPresenting)
             .opacity(adManager.isReady ? 1 : 0.5)
             if adManager.isLoading {

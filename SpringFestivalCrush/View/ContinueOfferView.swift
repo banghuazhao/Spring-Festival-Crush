@@ -4,6 +4,7 @@ import SwiftUI
 /// with coins or a rewarded video, or give up and spend a life.
 struct ContinueOfferView: View {
     let offer: ContinueOffer
+    var onRevealComplete: () -> Void = {}
     @EnvironmentObject private var gameModel: GameModel
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
     @Environment(\.gameReducedEffects) private var reducedEffects
@@ -13,29 +14,37 @@ struct ContinueOfferView: View {
 
     private var canAfford: Bool { gameModel.coins >= offer.coinCost }
 
+    private var guardianRecap: GuardianRecap? {
+        guard let guardian = gameModel.bossStatus else { return nil }
+        return GuardianRecap(health: guardian.health, maximumHealth: guardian.configuration.health)
+    }
+
     private var title: String {
         offer.reason == .outOfTime ? String(localized: "NEED MORE TIME?") : String(localized: "KEEP GOING?")
     }
 
-    private var grantText: String {
+    private var grantText: Text {
         switch (offer.grantsMoves, offer.grantsSeconds) {
         case (true, true):
-            String(localized: "+\(ContinueOffer.extraMoves) moves & +\(ContinueOffer.extraSeconds)s")
+            Text("+\(ContinueOffer.extraMoves) moves & +\(ContinueOffer.extraSeconds)s")
         case (false, true):
-            String(localized: "+\(ContinueOffer.extraSeconds) seconds")
+            Text("+\(ContinueOffer.extraSeconds) seconds")
         default:
-            String(localized: "+\(ContinueOffer.extraMoves) moves")
+            Text("+\(ContinueOffer.extraMoves) moves")
         }
     }
 
-    private var nearMissText: String {
-        if gameModel.bossStatus != nil {
-            return String(localized: "The guardian is almost beaten!")
+    private var nearMissText: Text {
+        if let guardian = guardianRecap {
+            if guardian.isDefeated { return Text("Guardian defeated!") }
+            return guardian.isAlmostBeaten
+                ? Text("The guardian is almost beaten!")
+                : Text("The guardian is still standing.")
         }
         switch offer.piecesRemaining {
-        case 0: return String(localized: "You're so close!")
-        case 1: return String(localized: "Only 1 more piece to go!")
-        default: return String(localized: "Only \(offer.piecesRemaining) more pieces to go!")
+        case 0: return Text("You're so close!")
+        case 1: return Text("Only 1 more piece to go!")
+        default: return Text("Only \(offer.piecesRemaining) more pieces to go!")
         }
     }
 
@@ -46,28 +55,16 @@ struct ContinueOfferView: View {
                     VStack(spacing: 14) {
                         progressRing
 
-                        Text(nearMissText)
+                        nearMissText
                             .font(.headline)
                             .foregroundStyle(AppTheme.festivalRed)
                             .multilineTextAlignment(.center)
 
-                        remainingGoals
+                        AttemptRecapView()
 
                         Button(action: payWithCoins) {
-                            HStack(spacing: 8) {
-                                Image(systemName: offer.grantsMoves ? "plus.circle.fill" : "clock.fill")
-                                Text(grantText)
-                                Spacer(minLength: 4)
-                                HStack(spacing: 3) {
-                                    Image(systemName: "circle.inset.filled")
-                                    Text("\(offer.coinCost)")
-                                        .monospacedDigit()
-                                }
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 4)
-                                .background(.black.opacity(0.22), in: Capsule())
-                            }
-                            .frame(maxWidth: .infinity)
+                            ContinuePurchaseLabel(grant: grantText, coinCost: offer.coinCost,
+                                                  grantsMoves: offer.grantsMoves)
                         }
                         .buttonStyle(.gamePrimary(gradient: AppTheme.successGradient))
                         .opacity(canAfford ? 1 : 0.55)
@@ -79,7 +76,8 @@ struct ContinueOfferView: View {
                             .accessibilityLabel(Text("Balance: \(gameModel.coins)"))
 
                         if offer.allowsRewardedAd {
-                            RewardedAdButton(title: "Watch Ad · Free Continue", systemImage: "play.rectangle.fill") {
+                            RewardedAdButton(title: "Watch Ad · Free Continue", systemImage: "play.rectangle.fill",
+                                             expandsForLargeText: true) {
                                 gameModel.acceptContinueFromRewardedAd()
                             }
                         }
@@ -109,8 +107,11 @@ struct ContinueOfferView: View {
             .scrollIndicators(.hidden)
         }
         .onAppear {
-            withAnimation(reduceMotion ? .easeOut(duration: 0.15) : .spring(response: 0.38, dampingFraction: 0.7)) {
+            withAnimation(reduceMotion ? .easeOut(duration: 0.15) : .spring(response: 0.38, dampingFraction: 0.7),
+                          completionCriteria: .logicallyComplete) {
                 appeared = true
+            } completion: {
+                onRevealComplete()
             }
         }
         .gameNotice(isPresented: $showInsufficientCoins, message: String(localized: "Not enough coins. Try the free ad continue!"),
@@ -139,31 +140,6 @@ struct ContinueOfferView: View {
         .frame(width: 92, height: 92)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text("\(Int((offer.progress * 100).rounded())) percent of the goals done"))
-    }
-
-    @ViewBuilder
-    private var remainingGoals: some View {
-        let open = gameModel.createLevelTargetDatas().filter { $0.targetNum > 0 }
-        if !open.isEmpty {
-            HStack(spacing: 10) {
-                ForEach(open) { target in
-                    HStack(spacing: 4) {
-                        target.image
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 26, height: 26)
-                        Text("\(target.targetNum)")
-                            .font(.subheadline.weight(.black))
-                            .monospacedDigit()
-                    }
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(AppTheme.creamHighlight, in: Capsule())
-                    .overlay(Capsule().stroke(AppTheme.festivalGold, lineWidth: 1.5))
-                }
-            }
-            .accessibilityElement(children: .combine)
-        }
     }
 
     private func payWithCoins() {

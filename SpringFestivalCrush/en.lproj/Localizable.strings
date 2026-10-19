@@ -64,3 +64,11 @@
 "Sweeps a three-wide cross through both pieces, with diagonal lightning." = "Sweeps a three-wide cross through both pieces, with diagonal lightning.";
 "Sweeps a five-wide cross and a 5 × 5 explosion around the enhanced piece." = "Sweeps a five-wide cross and a 5 × 5 explosion around the enhanced piece.";
 "Turns matching colors into Enhanced Four, then detonates them together." = "Turns matching colors into Enhanced Four, then detonates them together.";
+
+/* Guardian continue guidance and pause attempt recap */
+"The guardian is still standing." = "The guardian is still standing.";
+"Guardian health: %lld of %lld" = "Guardian health: %lld of %lld";
+"ATTEMPT RECAP" = "ATTEMPT RECAP";
+"Moves remaining: %lld" = "Moves remaining: %lld";
+"Time remaining: %lld seconds" = "Time remaining: %lld seconds";
+"All collection goals complete!" = "All collection goals complete!";

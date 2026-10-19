@@ -455,3 +455,11 @@
 "Sweeps a three-wide cross through both pieces, with diagonal lightning." = "以兩個方塊為中心，清除三格寬的十字區域，並沿對角線釋放閃電。";
 "Sweeps a five-wide cross and a 5 × 5 explosion around the enhanced piece." = "清除五格寬的十字區域，並在爆破方塊周圍引發 5 × 5 範圍的爆炸。";
 "Turns matching colors into Enhanced Four, then detonates them together." = "將與爆破方塊同色的方塊變成爆破方塊，再同時引爆。";
+
+/* Guardian continue guidance and pause attempt recap */
+"The guardian is still standing." = "守護獸還未被擊敗。";
+"Guardian health: %lld of %lld" = "守護獸生命值：%lld/%lld";
+"ATTEMPT RECAP" = "本次挑戰回顧";
+"Moves remaining: %lld" = "剩餘步數：%lld";
+"Time remaining: %lld seconds" = "剩餘時間：%lld 秒";
+"All collection goals complete!" = "收集目標已全部完成！";

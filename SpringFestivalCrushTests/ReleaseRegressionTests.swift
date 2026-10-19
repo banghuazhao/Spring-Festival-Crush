@@ -1682,6 +1682,86 @@ final class ReleaseRegressionTests: XCTestCase {
         }
     }
 
+    func testPauseAndContinueRecapsPreserveTheAttemptAcrossLanguages() async throws {
+        let game = makeGame()
+        let settings = SettingModel()
+        func boardSymbols() -> [Symbol] {
+            (0..<game.level.numColumns).flatMap { column in
+                (0..<game.level.numRows).compactMap { row in
+                    game.level.symbol(atColumn: column, row: row)
+                }
+            }
+        }
+        let cases: [(language: String, health: Int?, seconds: Int?, size: CGSize, textSize: DynamicTypeSize)] = [
+            ("en", 40, 53, CGSize(width: 320, height: 568), .large),
+            ("zh-Hans", 6, 12, CGSize(width: 320, height: 568), .accessibility3),
+            ("zh-Hant", 0, 25, CGSize(width: 768, height: 1024), .accessibility3),
+            ("en", nil, nil, CGSize(width: 320, height: 568), .accessibility3)
+        ]
+        for (index, testCase) in cases.enumerated() {
+            game.selectLevel(1)
+            game.level.levelGoal.levelTarget = LevelTarget(zodiac: 4, lock: 2)
+            if let health = testCase.health {
+                var guardian = BossEncounter(configuration: .init(kind: .rat, health: 40))
+                let damage = Chain(chainType: .horizontal3)
+                damage.add(symbols: (0..<(40 - health)).map {
+                    Symbol(column: $0 % 9, row: $0 / 9, symbolType: .redPocket)
+                })
+                guardian.receive(chains: [damage], cascadeDepth: 1)
+                game.level.boss = guardian
+            }
+            await game.setupNewGame()
+            XCTAssertEqual(game.bossStatus?.health, testCase.health)
+            game.movesLeft = 12
+            game.secondsLeft = testCase.seconds
+            let inventory = [game.coins, game.lives, game.hammerCharges, game.shuffleCharges, game.swapCharges]
+            let symbols = boardSymbols()
+            let positions = symbols.map { [$0.column, $0.row, $0.armorLayers, $0.iceLayer] }
+            let types = symbols.map(\.type)
+            let name = "\(testCase.language)-\(index)"
+
+            try await snapshot(name: "Recap-Pause-\(name)", size: testCase.size) { ready in
+                PauseMenuView(onResume: { XCTFail("Rendering must not resume play") },
+                              onRestart: { XCTFail("Rendering must not restart play") },
+                              onExit: { XCTFail("Rendering must not leave the game") })
+                    .environmentObject(game)
+                    .environmentObject(settings)
+                    .environment(\.locale, Locale(identifier: testCase.language))
+                    .environment(\.dynamicTypeSize, testCase.textSize)
+                    .onAppear(perform: ready)
+            }
+            XCTAssertEqual(game.gameState, .inProgress)
+            XCTAssertEqual(game.movesLeft, 12)
+            XCTAssertEqual(game.secondsLeft, testCase.seconds)
+            XCTAssertEqual(game.bossStatus?.health, testCase.health)
+
+            game.movesLeft = 0
+            if testCase.seconds != nil { game.secondsLeft = 0 }
+            await game.beginNextTurn()
+            let offer = try XCTUnwrap(game.continueOffer)
+            XCTAssertEqual(game.gameState, .offeringContinue)
+            try await snapshot(name: "Recap-Continue-\(name)", size: testCase.size) { ready in
+                ContinueOfferView(offer: offer, onRevealComplete: ready)
+                    .environmentObject(game)
+                    .environment(\.locale, Locale(identifier: testCase.language))
+                    .environment(\.dynamicTypeSize, testCase.textSize)
+                    .environment(\.gameReducedEffects, true)
+                    .background(AppTheme.festivalRedDark)
+            }
+            XCTAssertEqual(game.gameState, .offeringContinue)
+            XCTAssertEqual(game.continueOffer, offer)
+            XCTAssertEqual(game.movesLeft, 0)
+            XCTAssertEqual(game.secondsLeft, testCase.seconds == nil ? nil : 0)
+            XCTAssertEqual(game.bossStatus?.health, testCase.health)
+            XCTAssertEqual([game.coins, game.lives, game.hammerCharges, game.shuffleCharges, game.swapCharges], inventory)
+            XCTAssertEqual(boardSymbols().map(ObjectIdentifier.init), symbols.map(ObjectIdentifier.init))
+            XCTAssertEqual(symbols.map { [$0.column, $0.row, $0.armorLayers, $0.iceLayer] }, positions)
+            XCTAssertEqual(symbols.map(\.type), types)
+            XCTAssertEqual(game.level.levelGoal.levelTarget.zodiac, 4)
+            XCTAssertEqual(game.level.levelGoal.levelTarget.lock, 2)
+        }
+    }
+
     private func presentTestScene(_ scene: GameScene) throws -> SKView {
         let windowScene = try XCTUnwrap(UIApplication.shared.connectedScenes.first as? UIWindowScene)
         let previousWindow = windowScene.keyWindow
@@ -1747,7 +1827,8 @@ final class ReleaseRegressionTests: XCTestCase {
             XCTAssertGreaterThan(scroll.contentOffset.y, 2000, "Map must open near level 19, not level 1")
         }
         if name.hasPrefix("Defeat-") || name.hasPrefix("New-Victory-")
-            || name.hasPrefix("Star-guidance-") || name.hasPrefix("Combo-recipes-") {
+            || name.hasPrefix("Star-guidance-") || name.hasPrefix("Combo-recipes-")
+            || name.hasPrefix("Recap-") {
             func scrollViews(in view: UIView) -> [UIScrollView] {
                 (view as? UIScrollView).map { [$0] } ?? view.subviews.flatMap { scrollViews(in: $0) }
             }
