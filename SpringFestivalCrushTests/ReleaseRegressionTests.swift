@@ -8,7 +8,7 @@ final class ReleaseRegressionTests: XCTestCase {
     private func makeGame() -> GameModel {
         let keys = ["coins", "lives", "lastLifeLostTimestamp", "shuffleCharges", "hammerCharges", "hasSeenTutorial",
                     "isPlayBackgroundMusic", "playSoundEffect", "musicVolume", "soundEffectsVolume", "hapticsEnabled",
-                    "screenShakeEnabled", "reducedEffects", "idleHintsEnabled", "unlockAllLevels"]
+                    "screenShakeEnabled", "reducedEffects", "idleHintsEnabled", "powerUpPreviewsEnabled", "unlockAllLevels"]
         let saved = keys.map { ($0, UserDefaults.standard.object(forKey: $0)) }
         let savedBestScores = UserDefaults.standard.dictionaryRepresentation().filter { $0.key.hasPrefix("bestScore.") }
         addTeardownBlock {
@@ -179,8 +179,9 @@ final class ReleaseRegressionTests: XCTestCase {
     }
 
     func testReshuffleAlwaysFindsPlayableBoardOnEveryLevel() throws {
-        let levels = [("Rat", 15), ("Ox", 15), ("Tiger", 15), ("Rabbit", 15)]
-            .flatMap { name, count in (1...count).map { "\(name)_Level_\($0)" } }
+        let levels = Zodiac.all.filter { $0.numLevels > 0 }.flatMap { zodiac in
+            (1...zodiac.numLevels).map { "\(zodiac.zodiacType.name)_Level_\($0)" }
+        }
         for filename in levels {
             let level = try XCTUnwrap(Level(filename: filename), filename)
             _ = level.shuffle()
@@ -629,12 +630,15 @@ final class ReleaseRegressionTests: XCTestCase {
 
     func testComfortPreferencesPersistAndHapticsRespectMute() {
         _ = makeGame() // Restore all changed preference keys during teardown.
+        UserDefaults.standard.removeObject(forKey: "powerUpPreviewsEnabled")
         let settings = SettingModel()
+        XCTAssertTrue(settings.powerUpPreviewsEnabled)
         settings.hapticsEnabled = false
         settings.musicVolume = 0.25
         settings.soundEffectsVolume = 0.4
         settings.reducedEffects = true
         settings.idleHintsEnabled = false
+        settings.powerUpPreviewsEnabled = false
         settings.screenShakeEnabled = false
         XCTAssertFalse(HapticManager.isEnabled)
         let restored = SettingModel()
@@ -642,6 +646,7 @@ final class ReleaseRegressionTests: XCTestCase {
         XCTAssertEqual(restored.soundEffectsVolume, 0.4)
         XCTAssertTrue(restored.reducedEffects)
         XCTAssertFalse(restored.idleHintsEnabled)
+        XCTAssertFalse(restored.powerUpPreviewsEnabled)
         XCTAssertFalse(restored.screenShakeEnabled)
         settings.hapticsEnabled = true
         XCTAssertTrue(HapticManager.isEnabled)
@@ -1762,6 +1767,43 @@ final class ReleaseRegressionTests: XCTestCase {
         }
     }
 
+    func testExpansionBriefingsAndChocolateLessonRenderAcrossLanguages() async throws {
+        let zodiac = try XCTUnwrap(Zodiac.all.first { $0.zodiacType == .rabbit })
+        let garden = try XCTUnwrap(Level(filename: "Rabbit_Level_16"))
+        let rematch = try XCTUnwrap(Level(filename: "Rabbit_Level_17"))
+        let cases: [(String, CGSize, DynamicTypeSize)] = [
+            ("en", CGSize(width: 320, height: 568), .accessibility3),
+            ("zh-Hans", CGSize(width: 375, height: 812), .large),
+            ("zh-Hant", CGSize(width: 768, height: 1024), .accessibility3),
+            ("en", CGSize(width: 320, height: 568), .accessibility5)
+        ]
+        for (language, size, textSize) in cases {
+            try await snapshot(name: "Expansion-briefings-\(language)-\(textSize)", size: size) { ready in
+                ScrollView {
+                    VStack(spacing: 16) {
+                        LevelBriefingView(level: garden, levelNumber: 16, zodiac: zodiac,
+                                          theme: ZodiacChapterTheme(zodiac: .rabbit), savedBestStars: 0)
+                        VStack(spacing: 10) {
+                            RuleArt(rule: .chocolate)
+                            Text(GameRule.chocolate.detail).font(.body)
+                        }
+                        .padding(16)
+                        LevelBriefingView(level: rematch, levelNumber: 17, zodiac: zodiac,
+                                          theme: ZodiacChapterTheme(zodiac: .rabbit), savedBestStars: 0)
+                    }
+                    .padding(16)
+                    .frame(maxWidth: 560)
+                    .frame(maxWidth: .infinity)
+                }
+                .background(AppTheme.festivalBackground)
+                .environment(\.locale, Locale(identifier: language))
+                .environment(\.dynamicTypeSize, textSize)
+                .environment(\.gameReducedEffects, true)
+                .onAppear(perform: ready)
+            }
+        }
+    }
+
     private func presentTestScene(_ scene: GameScene) throws -> SKView {
         let windowScene = try XCTUnwrap(UIApplication.shared.connectedScenes.first as? UIWindowScene)
         let previousWindow = windowScene.keyWindow
@@ -1818,6 +1860,26 @@ final class ReleaseRegressionTests: XCTestCase {
         attachment.name = name
         attachment.lifetime = .keepAlways
         add(attachment)
+        if name.hasPrefix("Settings-") {
+            func findSettingsScroll(in view: UIView) -> UIScrollView? {
+                if let scroll = view as? UIScrollView { return scroll }
+                return view.subviews.lazy.compactMap { findSettingsScroll(in: $0) }.first
+            }
+            let scroll = try XCTUnwrap(findSettingsScroll(in: host.view))
+            XCTAssertLessThanOrEqual(scroll.contentSize.width, scroll.bounds.width + 1)
+            let bottom = max(0, scroll.contentSize.height - scroll.bounds.height + scroll.adjustedContentInset.bottom)
+            for fraction in [0.4, 0.7] {
+                scroll.setContentOffset(CGPoint(x: 0, y: bottom * fraction), animated: false)
+                window.layoutIfNeeded()
+                let helpImage = UIGraphicsImageRenderer(bounds: window.bounds).image { _ in
+                    window.drawHierarchy(in: window.bounds, afterScreenUpdates: true)
+                }
+                let helpAttachment = XCTAttachment(image: helpImage)
+                helpAttachment.name = "\(name)-help-\(fraction)"
+                helpAttachment.lifetime = .keepAlways
+                add(helpAttachment)
+            }
+        }
         if name.hasPrefix("Map-progress-19-") {
             func findScroll(in view: UIView) -> UIScrollView? {
                 if let scroll = view as? UIScrollView { return scroll }
@@ -1828,7 +1890,7 @@ final class ReleaseRegressionTests: XCTestCase {
         }
         if name.hasPrefix("Defeat-") || name.hasPrefix("New-Victory-")
             || name.hasPrefix("Star-guidance-") || name.hasPrefix("Combo-recipes-")
-            || name.hasPrefix("Recap-") {
+            || name.hasPrefix("Recap-") || name.hasPrefix("Expansion-") {
             func scrollViews(in view: UIView) -> [UIScrollView] {
                 (view as? UIScrollView).map { [$0] } ?? view.subviews.flatMap { scrollViews(in: $0) }
             }

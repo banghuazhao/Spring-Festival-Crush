@@ -18,7 +18,7 @@
 ## ✨ Features
 
 * 🎉 **Festive Theme**: Dive into the spirit of the Spring Festival with themed levels and elements that bring the celebration to life.
-* 🧩 **Challenging Gameplay**: Overcome a variety of levels that increase in difficulty, offering endless fun and a test of your puzzle-solving skills.
+* 🧩 **Challenging Gameplay**: Explore 68 levels across four zodiac chapters, including compact tactical boards and alternate guardian arenas.
 * ⚡ **Smooth Experience**: Enjoy fluid animations and intuitive controls for a seamless gaming experience.
 * 🎵 **Immersive Audio**: Experience traditional Chinese music and sound effects that enhance the festive atmosphere.
 * 🌟 **Multiple Zodiac Themes**: Play through different Chinese zodiac animal themes with unique challenges.
@@ -31,6 +31,8 @@
 * 🎁 **Star Chests**: Every chapter hides three chests that open as you collect stars.
 * 🔄 **Ruyi Swap**: A new tool that swaps any two neighbouring tiles — no match needed, no move spent.
 * 🎆 **Festival Finale**: Leftover moves burst into fireworks, with guzheng notes that climb with every cascade.
+* 🍫 **Chocolate Garden**: Tend moon blossoms while containing a spreading chocolate pocket in Rabbit 16.
+* 🔍 **Power-Up Blast Previews**: Drag an activating power-up swap to inspect its direct footprint, then release on the neighboring tile to commit.
 
 ## 📱 Screenshots
 
@@ -159,6 +161,9 @@ SIM_RUNS=400 tools/simulate_levels.sh Rabbit Tiger_Level_12
 ## 📋 Release Notes
 
 ### Next release (In development)
+- 🧩 Eight new levels: three compact 5 × 5 challenges, a chocolate-pressure blossom garden, and four guardian rematches in new arenas
+- 🔍 Power-up blast previews: inspect the direct affected cells before releasing an activating swap; move back to cancel
+- 🍫 Chocolate now appears in the campaign, with its rule taught on Rabbit 16 and available in the handbook
 - ❤️ Accurate guardian recap: continue offers show remaining guardian health and reserve near-defeat wording for low health
 - ⏸️ Pause recap: review remaining goals, moves, time, and guardian health before resuming
 - ⭐ Clearer star goals: completing a level earns the first star, and the victory screen shows the score gap to the next star for that attempt
@@ -167,6 +172,7 @@ SIM_RUNS=400 tools/simulate_levels.sh Rabbit Tiger_Level_12
 
 See [docs/star-guidance-and-combo-recipes.md](docs/star-guidance-and-combo-recipes.md) for scope and verification.
 See [docs/guardian-and-pause-recaps.md](docs/guardian-and-pause-recaps.md) for the continue and pause summaries.
+See [docs/gameplay-expansion.md](docs/gameplay-expansion.md) for the new boards, guardian arenas and blast previews.
 
 ### Version 3.5
 - ⭐ **Stars that mean something**: any win earns ★, while ★★ and ★★★ now sit at the 40th and 80th percentile of the solver's winning scores, so replays and the last star chest are a real goal

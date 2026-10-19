@@ -305,7 +305,7 @@ final class ProgressionTests: XCTestCase {
     }
 
     func testAllChaptersHaveProgressionSnowAndFinalBoss() throws {
-        for (chapter, count) in [("Rat", 15), ("Ox", 15), ("Tiger", 15), ("Rabbit", 15)] {
+        for (chapter, count) in [("Rat", 17), ("Ox", 17), ("Tiger", 17), ("Rabbit", 17)] {
             var previousTier = 0
             var snowLevels = 0
             for number in 1...count {
@@ -313,7 +313,8 @@ final class ProgressionTests: XCTestCase {
                 XCTAssertGreaterThanOrEqual(level.difficulty, previousTier)
                 previousTier = level.difficulty
                 if level.hasSnow { snowLevels += 1 }
-                XCTAssertEqual(level.boss != nil, number == count)
+                XCTAssertEqual(level.boss != nil, number == 15 || number == count,
+                               "Keep the original guardian encounter and end the expansion with its rematch")
                 let pieces = level.shuffle()
                 XCTAssertFalse(level.possibleSwaps.isEmpty)
                 XCTAssertTrue(level.removeMatches().isEmpty)
@@ -323,6 +324,85 @@ final class ProgressionTests: XCTestCase {
                 }
             }
             XCTAssertGreaterThan(snowLevels, 0)
+        }
+    }
+
+    func testExpansionContainsCompactChallengesAndDifferentGuardianArenas() throws {
+        let playable = Zodiac.all.filter(\.isAvailable)
+        XCTAssertEqual(playable.map(\.numLevels), [17, 17, 17, 17])
+        for chapter in ["Rat", "Ox", "Tiger"] {
+            let compact = try XCTUnwrap(Level(filename: "\(chapter)_Level_16"))
+            XCTAssertEqual(compact.numColumns, 5)
+            XCTAssertEqual(compact.numRows, 5)
+            XCTAssertEqual(compact.possibleSymbols?.count, 4)
+            XCTAssertTrue((8...12).contains(compact.maximumMoves))
+            XCTAssertNil(compact.boss)
+            XCTAssertNil(compact.timeLimit)
+        }
+        for zodiac in playable {
+            let chapter = zodiac.zodiacType.name
+            let original = try XCTUnwrap(LevelData.loadFrom(file: "\(chapter)_Level_15"))
+            let rematch = try XCTUnwrap(LevelData.loadFrom(file: "\(chapter)_Level_17"))
+            XCTAssertEqual(rematch.boss?.kind, original.boss?.kind)
+            XCTAssertNotNil(rematch.boss)
+            XCTAssertNotEqual(rematch.tiles, original.tiles, "A rematch must offer a different arena")
+            XCTAssertTrue(rematch.tiles.joined().contains(0), "Arena openings create new routes")
+            XCTAssertNil(rematch.timeLimit)
+        }
+    }
+
+    func testChocolateGardenUsesExistingBlossomAndCollectionGoals() throws {
+        let data = try XCTUnwrap(LevelData.loadFrom(file: "Rabbit_Level_16"))
+        let chocolateCount = data.tiles.joined().filter { $0 == Tile.TileType.chocolate.rawValue }.count
+        XCTAssertTrue((1...2).contains(chocolateCount), "Start with a small, containable pocket")
+        let blossomLayers = try XCTUnwrap(data.jelly).joined().reduce(0, +)
+        XCTAssertGreaterThan(blossomLayers, 0)
+        let garden = try XCTUnwrap(Level(filename: "Rabbit_Level_16"))
+        XCTAssertEqual(garden.levelGoal.levelTarget.jelly, blossomLayers)
+        XCTAssertGreaterThan(garden.levelGoal.levelTarget.lantern ?? 0, 0)
+        XCTAssertNil(garden.levelGoal.levelTarget.ingredient)
+        XCTAssertNil(garden.timeLimit)
+        XCTAssertNil(garden.boss)
+    }
+
+    func testFinishedFifteenLevelChaptersOpenOnlyTheFirstExpansionLevel() throws {
+        let saved = UserDefaults.standard.object(forKey: "firstLaunch")
+        addTeardownBlock {
+            if let saved { UserDefaults.standard.set(saved, forKey: "firstLaunch") }
+            else { UserDefaults.standard.removeObject(forKey: "firstLaunch") }
+        }
+        let container = try ModelContainer(for: ZodiacRecord.self, LevelRecord.self,
+                                           configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let context = container.mainContext
+        for zodiac in Zodiac.all.filter(\.isAvailable) {
+            let record = ZodiacRecord(zodiacType: zodiac.zodiacType, isUnlocked: true)
+            context.insert(record)
+            for number in 1...15 {
+                let level = LevelRecord(number: number, isUnlocked: true, zodiacRecord: record)
+                level.isComplete = true
+                level.stars = 3
+                context.insert(level)
+                record.levelRecords.append(level)
+            }
+        }
+        try context.save()
+        let game = GameModel()
+        game.firstLaunch = false
+        game.initializeRecords(modelContext: context)
+        game.initializeRecords(modelContext: context)
+
+        for record in game.zodiacRecords {
+            XCTAssertEqual(record.levelRecords.count, 17, "Repeated initialization must not duplicate levels")
+            let previousFinale = try XCTUnwrap(record.levelRecords.first { $0.number == 15 })
+            XCTAssertTrue(previousFinale.isComplete)
+            XCTAssertEqual(previousFinale.stars, 3)
+            let firstNew = try XCTUnwrap(record.levelRecords.first { $0.number == 16 })
+            XCTAssertTrue(firstNew.isUnlocked)
+            XCTAssertFalse(firstNew.isComplete)
+            XCTAssertEqual(firstNew.stars, 0)
+            let rematch = try XCTUnwrap(record.levelRecords.first { $0.number == 17 })
+            XCTAssertFalse(rematch.isUnlocked)
+            XCTAssertFalse(rematch.isComplete)
         }
     }
 

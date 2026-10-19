@@ -370,6 +370,227 @@ final class FestivalFeaturesTests: XCTestCase {
         XCTAssertEqual(full.health, Int.max)
     }
 
+    // MARK: - Read-only blast preview
+
+    private func blastPreviewFixture(holes: Set<BlastPreview.Cell> = []) throws -> Level {
+        let level = try XCTUnwrap(Level(filename: "Rat_Level_1"))
+        for cell in holes { level.tileAt(column: cell.column, row: cell.row)?.type = .empty }
+        level.noShuffle = true
+        _ = level.shuffle()
+        let types: [SymbolType] = [.firecracker, .redPocket, .dumpling, .bowl, .lantern, .zodiac]
+        for row in 0..<level.numRows {
+            for column in 0..<level.numColumns {
+                guard let symbol = level.symbol(atColumn: column, row: row) else { continue }
+                symbol.type = types[(column + row * 2) % types.count]
+                symbol.iceLayer = 0
+                symbol.armorLayers = 0
+                symbol.armorHitThisTurn = false
+            }
+        }
+        return level
+    }
+
+    private func previewBoardState(_ level: Level) -> [String] {
+        (0..<level.numRows).flatMap { row in
+            (0..<level.numColumns).map { column in
+                let tile = level.tileAt(column: column, row: row)
+                guard let piece = level.symbol(atColumn: column, row: row) else {
+                    return "\(column),\(row):empty:\(tile?.type.rawValue ?? -1):\(tile?.jellyCount ?? 0)"
+                }
+                return "\(column),\(row):\(ObjectIdentifier(piece)):\(piece.column),\(piece.row):\(piece.type.rawValue):"
+                    + "\(piece.convertedFromType?.rawValue ?? "none"):\(piece.iceLayer):\(piece.armorLayers):\(piece.armorHitThisTurn):"
+                    + "\(tile?.type.rawValue ?? -1):\(tile?.jellyCount ?? 0)"
+            }
+        }
+    }
+
+    func testBlastPreviewMatchesEveryCombinationAfterTheVirtualSwapWithoutMutatingState() throws {
+        typealias Cell = BlastPreview.Cell
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .sortedKeys
+        for combination in PowerUpCombination.allCases {
+            for vertical in [false, true] {
+                for edge in [false, true] {
+                    let level = try blastPreviewFixture(holes: [Cell(column: 6, row: 6)])
+                    let coordinate = edge ? 0 : 3
+                    let a = try XCTUnwrap(level.symbol(atColumn: coordinate, row: coordinate))
+                    let b = try XCTUnwrap(level.symbol(atColumn: coordinate + (vertical ? 0 : 1),
+                                                      row: coordinate + (vertical ? 1 : 0)))
+                    a.type = combination.demoTypes.0
+                    b.type = combination.demoTypes.1
+                    level.symbol(atColumn: 6, row: 5)?.armorLayers = 1
+                    level.symbol(atColumn: 5, row: 6)?.iceLayer = 1
+                    level.tileAt(column: 2, row: 2)?.jellyCount = 2
+                    level.levelGoal.levelTarget = LevelTarget(zodiac: 7, jelly: 2, lightningCombos: 3)
+                    level.detectPossibleSwaps()
+                    let before = previewBoardState(level)
+                    let goals = try encoder.encode(level.levelGoal)
+                    let possibleSwaps = level.possibleSwaps
+                    let swap = Swap(symbolA: a, symbolB: b)
+
+                    let preview = try XCTUnwrap(level.blastPreview(for: swap), combination.title)
+                    XCTAssertEqual(level.blastPreview(for: swap), preview, "Repeated reads must agree")
+                    XCTAssertEqual(level.blastPreview(for: Swap(symbolA: b, symbolB: a)), preview,
+                                   "Reversing the same swap must preserve its footprint")
+                    XCTAssertEqual(preview.combination, combination)
+                    XCTAssertEqual(previewBoardState(level), before)
+                    XCTAssertEqual(try encoder.encode(level.levelGoal), goals)
+                    XCTAssertEqual(level.possibleSwaps, possibleSwaps)
+                    XCTAssertNil(level.lastSwappedSymbols)
+                    XCTAssertFalse(preview.affectedCells.contains(Cell(column: 6, row: 6)))
+
+                    // Only the test commits the swap, to compare with the gameplay planner.
+                    level.performSwap(swap)
+                    let chain = level.makeCombinationChain(combination, for: swap)
+                    XCTAssertEqual(preview.affectedCells, Set(chain.symbols.map { Cell(column: $0.column, row: $0.row) }),
+                                   "\(combination.title), vertical \(vertical), edge \(edge)")
+                    XCTAssertEqual(preview.sourceCells, Set(chain.combinationSources.map { Cell(column: $0.column, row: $0.row) }))
+                }
+            }
+        }
+    }
+
+    func testSingleLightningAndFivePreviewUsePostSwapPositionsAndIncludeProtectedHits() throws {
+        typealias Cell = BlastPreview.Cell
+        let hole = Cell(column: 4, row: 6)
+        let level = try blastPreviewFixture(holes: [hole])
+        let a = try XCTUnwrap(level.symbol(atColumn: 3, row: 3))
+        let b = try XCTUnwrap(level.symbol(atColumn: 4, row: 3))
+        let armored = try XCTUnwrap(level.symbol(atColumn: 4, row: 0))
+        let frozen = try XCTUnwrap(level.symbol(atColumn: 0, row: 3))
+        armored.armorLayers = 1
+        frozen.iceLayer = 2
+        a.type = .lightning
+        b.type = .bowl
+        let swap = Swap(symbolA: a, symbolB: b)
+        let before = previewBoardState(level)
+        let lightning = try XCTUnwrap(level.blastPreview(for: swap))
+        let expectedCross = Set((0..<level.numRows).flatMap { row in
+            (0..<level.numColumns).compactMap { column -> Cell? in
+                guard level.symbol(atColumn: column, row: row) != nil, row == 3 || column == 4 else { return nil }
+                return Cell(column: column, row: row)
+            }
+        })
+        XCTAssertEqual(lightning.affectedCells, expectedCross)
+        XCTAssertEqual(lightning.sourceCells, [Cell(column: 4, row: 3)])
+        XCTAssertNil(lightning.combination)
+        XCTAssertTrue(lightning.affectedCells.contains(Cell(column: 4, row: 0)))
+        XCTAssertTrue(lightning.affectedCells.contains(Cell(column: 0, row: 3)))
+        XCTAssertFalse(lightning.affectedCells.contains(hole))
+        XCTAssertEqual(previewBoardState(level), before)
+
+        a.type = .five
+        armored.type = .bowlEnhanced
+        frozen.type = .bowl
+        let fiveBefore = previewBoardState(level)
+        let five = try XCTUnwrap(level.blastPreview(for: swap))
+        var expectedFive = Set((0..<level.numRows).flatMap { row in
+            (0..<level.numColumns).compactMap { column -> Cell? in
+                guard let piece = level.symbol(atColumn: column, row: row),
+                      piece !== a, piece.type.isMatchableTo(.bowl) else { return nil }
+                return piece === b ? Cell(column: 3, row: 3) : Cell(column: column, row: row)
+            }
+        })
+        expectedFive.insert(Cell(column: 4, row: 3))
+        XCTAssertEqual(five.affectedCells, expectedFive)
+        XCTAssertEqual(five.sourceCells, [Cell(column: 4, row: 3)])
+        XCTAssertEqual(level.blastPreview(for: Swap(symbolA: b, symbolB: a)), five)
+        XCTAssertEqual(previewBoardState(level), fiveBefore)
+    }
+
+    func testEnhancedPreviewRequiresItsOwnMatchAndUsesClippedThreeByThreeAreas() throws {
+        typealias Cell = BlastPreview.Cell
+        let level = try blastPreviewFixture(holes: [Cell(column: 1, row: 1)])
+        let enhanced = try XCTUnwrap(level.symbol(atColumn: 1, row: 0))
+        let partner = try XCTUnwrap(level.symbol(atColumn: 0, row: 0))
+        enhanced.type = .bowlEnhanced
+        partner.type = .redPocket
+        let swap = Swap(symbolA: enhanced, symbolB: partner)
+        XCTAssertNil(level.blastPreview(for: swap), "Swapping an enhanced tile without matching it does not fire it")
+        level.symbol(atColumn: 0, row: 1)?.type = .bowl
+        level.symbol(atColumn: 0, row: 2)?.type = .bowl
+        let before = previewBoardState(level)
+        let preview = try XCTUnwrap(level.blastPreview(for: swap))
+        XCTAssertEqual(preview.sourceCells, [Cell(column: 0, row: 0)])
+        XCTAssertEqual(preview.affectedCells, [Cell(column: 0, row: 0), Cell(column: 1, row: 0), Cell(column: 0, row: 1)])
+        XCTAssertEqual(previewBoardState(level), before)
+
+        let otherLevel = try blastPreviewFixture()
+        let a = try XCTUnwrap(otherLevel.symbol(atColumn: 3, row: 3))
+        let b = try XCTUnwrap(otherLevel.symbol(atColumn: 4, row: 3))
+        a.type = .bowlEnhanced
+        b.type = .redPocket
+        otherLevel.symbol(atColumn: 3, row: 2)?.type = .redPocket
+        otherLevel.symbol(atColumn: 3, row: 4)?.type = .redPocket
+        otherLevel.symbol(atColumn: 4, row: 2)?.type = .lantern
+        otherLevel.symbol(atColumn: 4, row: 4)?.type = .lantern
+        XCTAssertNil(otherLevel.blastPreview(for: Swap(symbolA: a, symbolB: b)),
+                     "Matching only the normal partner must not forecast an enhanced blast")
+    }
+
+    func testTwoEnhancedPreviewsUnionOnlyTheSourcesThatActuallyMatch() throws {
+        typealias Cell = BlastPreview.Cell
+        let level = try blastPreviewFixture()
+        let a = try XCTUnwrap(level.symbol(atColumn: 3, row: 3))
+        let b = try XCTUnwrap(level.symbol(atColumn: 4, row: 3))
+        a.type = .bowlEnhanced
+        b.type = .redPocketEnhanced
+        for row in [2, 4] {
+            level.symbol(atColumn: 4, row: row)?.type = .bowl
+            level.symbol(atColumn: 3, row: row)?.type = .redPocket
+        }
+        let swap = Swap(symbolA: a, symbolB: b)
+        let preview = try XCTUnwrap(level.blastPreview(for: swap))
+        XCTAssertEqual(preview.sourceCells, [Cell(column: 3, row: 3), Cell(column: 4, row: 3)])
+        XCTAssertEqual(preview.affectedCells, Set((2...4).flatMap { row in (2...5).map { Cell(column: $0, row: row) } }))
+        XCTAssertEqual(level.blastPreview(for: Swap(symbolA: b, symbolB: a)), preview)
+
+        level.symbol(atColumn: 3, row: 2)?.type = .lantern
+        level.symbol(atColumn: 3, row: 4)?.type = .lantern
+        let onlyBowl = try XCTUnwrap(level.blastPreview(for: swap))
+        XCTAssertEqual(onlyBowl.sourceCells, [Cell(column: 4, row: 3)])
+        XCTAssertEqual(onlyBowl.affectedCells, Set((2...4).flatMap { row in (3...5).map { Cell(column: $0, row: row) } }))
+    }
+
+    func testBlastPreviewRejectsInvalidStaleAndProtectedInputs() throws {
+        let level = try blastPreviewFixture()
+        let a = try XCTUnwrap(level.symbol(atColumn: 3, row: 3))
+        let b = try XCTUnwrap(level.symbol(atColumn: 4, row: 3))
+        let swap = Swap(symbolA: a, symbolB: b)
+        XCTAssertNil(level.blastPreview(for: swap))
+        a.type = .lightning
+        XCTAssertNotNil(level.blastPreview(for: swap))
+        for protection in 0..<4 {
+            a.armorLayers = protection == 0 ? 1 : 0
+            a.armorHitThisTurn = protection == 1
+            a.iceLayer = protection == 2 ? 1 : 0
+            b.iceLayer = protection == 3 ? 1 : 0
+            XCTAssertNil(level.blastPreview(for: swap))
+        }
+        a.armorLayers = 0
+        a.armorHitThisTurn = false
+        a.iceLayer = 0
+        b.iceLayer = 0
+        b.type = .lock
+        XCTAssertNil(level.blastPreview(for: swap))
+        b.type = .bowlEnhanced
+        b.armorLayers = 1
+        XCTAssertNil(level.blastPreview(for: swap), "A protected combination source does not get a preview")
+        b.armorLayers = 0
+        XCTAssertNil(level.blastPreview(for: Swap(symbolA: a, symbolB: a)))
+        let far = try XCTUnwrap(level.symbol(atColumn: 6, row: 6))
+        XCTAssertNil(level.blastPreview(for: Swap(symbolA: a, symbolB: far)))
+        let stale = Symbol(column: a.column, row: a.row, symbolType: .lightning)
+        XCTAssertNil(level.blastPreview(for: Swap(symbolA: stale, symbolB: b)))
+        stale.column = .max
+        stale.row = .min
+        XCTAssertNil(level.blastPreview(for: Swap(symbolA: stale, symbolB: b)))
+        a.column = 2
+        XCTAssertNil(level.blastPreview(for: swap), "Coordinates must still identify the live source")
+        a.column = 3
+        XCTAssertNotNil(level.blastPreview(for: swap))
+    }
+
     // MARK: - Localization
 
     func testChineseStringsCoverNewFeaturesWithMatchingPlaceholders() throws {

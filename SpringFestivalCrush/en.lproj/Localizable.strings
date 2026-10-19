@@ -72,3 +72,10 @@
 "Moves remaining: %lld" = "Moves remaining: %lld";
 "Time remaining: %lld seconds" = "Time remaining: %lld seconds";
 "All collection goals complete!" = "All collection goals complete!";
+
+/* Gameplay expansion */
+"Power-up blast previews" = "Power-up blast previews";
+"Drag a power-up to a neighbor to preview its direct hits. Release to swap, or return to the starting tile to cancel. Chain reactions and falling tiles can extend the effect." = "Drag a power-up to a neighbor to preview its direct hits. Release to swap, or return to the starting tile to cancel. Chain reactions and falling tiles can extend the effect.";
+"Direct hits · Release to swap; return to start to cancel." = "Direct hits · Release to swap; return to start to cancel.";
+"Chocolate" = "Chocolate";
+"Match beside chocolate to clear it. Any chocolate left can spread to one neighboring unprotected tile after each move." = "Match beside chocolate to clear it. Any chocolate left can spread to one neighboring unprotected tile after each move.";

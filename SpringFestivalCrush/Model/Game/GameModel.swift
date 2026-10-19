@@ -864,7 +864,7 @@ class GameModel: ObservableObject {
     }
 
     /// The between-turn world step: boss hazards, spreading chocolate and dead-board repair.
-    /// A continue replays it for the move that ran out, so buying moves never skips a raid.
+    /// A continue replays it for the paid move that ran out; free tools only repair dead boards.
     private func advanceWorld(advancesBoss: Bool) async {
         let attempt = attemptID
         if advancesBoss {
@@ -878,7 +878,7 @@ class GameModel: ObservableObject {
                 bossEvent = BossEvent(kind: .windUp)
             }
         }
-        if let spread = level.spreadChocolateIfNeeded() {
+        if advancesBoss, let spread = level.spreadChocolateIfNeeded() {
             invokeCommand?(.onChocolateSpread(spread))
         }
         level.detectPossibleSwaps()

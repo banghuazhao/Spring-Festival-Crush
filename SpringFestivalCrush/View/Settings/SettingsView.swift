@@ -59,6 +59,11 @@ struct SettingsView: View {
                     Text("After 7 quiet seconds, briefly highlight a possible move. Hints never spend a move or use a tool.")
                         .font(.footnote).foregroundStyle(AppTheme.ink.opacity(0.7))
                     Divider()
+                    Toggle("Power-up blast previews", isOn: $settingModel.powerUpPreviewsEnabled)
+                        .accessibilityIdentifier("settings-blast-previews")
+                    Text("Drag a power-up to a neighbor to preview its direct hits. Release to swap, or return to the starting tile to cancel. Chain reactions and falling tiles can extend the effect.")
+                        .font(.footnote).foregroundStyle(AppTheme.ink.opacity(0.7))
+                    Divider()
                     Label("Match 3 or more to collect goals. Match 4 or make a special shape to create a power-up.", systemImage: "sparkles").font(.subheadline)
                     Label("Hammer, Shuffle and Ruyi Swap never spend a move: the Hammer clears one tile, Shuffle rearranges the board, and Ruyi Swap trades any two neighbours.", systemImage: "info.circle").font(.subheadline)
                 }

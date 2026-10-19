@@ -1,0 +1,59 @@
+{
+  "tiles": [
+    [
+      2,
+      1,
+      1,
+      1,
+      2
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      6,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1
+    ]
+  ],
+  "moves": 8,
+  "levelGoal": {
+    "firstStarScore": 500,
+    "secondStarScore": 2700,
+    "thirdStarScore": 5500,
+    "levelTarget": {
+      "lock": 2,
+      "redPocket": 13,
+      "dumpling": 13
+    }
+  },
+  "difficulty": 5,
+  "possibleSymbols": [
+    "redPocket",
+    "dumpling",
+    "firecracker",
+    "zodiac"
+  ],
+  "snow": false,
+  "mechanicHint": "A compact treasury: open both corner locks and collect the tribute colors in eight moves."
+}

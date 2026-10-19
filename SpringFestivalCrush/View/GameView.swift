@@ -60,6 +60,9 @@ struct GameView: View {
         if gameModel.swapModeActive {
             return HUDBanner(id: "swap", text: String(localized: "Swipe neighbors; tap Ruyi Swap again to cancel."), icon: "arrow.left.arrow.right", tint: AppTheme.festivalGoldDark)
         }
+        if feedback.blastPreviewVisible {
+            return HUDBanner(id: "blast-preview", text: String(localized: "Direct hits · Release to swap; return to start to cancel."), icon: "scope", tint: AppTheme.festivalGoldDark)
+        }
         if gameModel.isTutorialHintActive {
             return HUDBanner(id: "tutorial", text: String(localized: "Swipe two tiles to match 3 or more!"), icon: nil, tint: .black)
         }
@@ -209,6 +212,7 @@ struct GameView: View {
             if state == .win { gameScene?.playVictoryAccent() }
             if state != .inProgress {
                 feedback.clear()
+                gameScene?.cancelBlastPreview()
                 gameScene?.cancelIdleHint()
             }
         }
@@ -216,13 +220,23 @@ struct GameView: View {
             gameScene?.reduceMotion = value
             gameScene?.applyMotionPreferences()
             feedback.clear()
+            gameScene?.cancelBlastPreview()
             gameScene?.scheduleIdleHint()
         }
         .onChange(of: settingModel.idleHintsEnabled) { _, _ in gameScene?.scheduleIdleHint() }
-        .onChange(of: gameModel.hammerModeActive) { _, _ in gameScene?.scheduleIdleHint() }
-        .onChange(of: gameModel.swapModeActive) { _, _ in gameScene?.scheduleIdleHint() }
+        .onChange(of: settingModel.powerUpPreviewsEnabled) { _, _ in gameScene?.cancelBlastPreview() }
+        .onChange(of: gameModel.hammerModeActive) { _, _ in
+            gameScene?.cancelBlastPreview()
+            gameScene?.scheduleIdleHint()
+        }
+        .onChange(of: gameModel.swapModeActive) { _, _ in
+            gameScene?.cancelBlastPreview()
+            gameScene?.scheduleIdleHint()
+        }
+        .onChange(of: gameModel.isTutorialHintActive) { _, _ in gameScene?.cancelBlastPreview() }
         .onDisappear {
             feedback.clear()
+            gameScene?.cancelBlastPreview()
             gameScene?.cancelIdleHint()
         }
         .sheet(item: $refillTool) { tool in

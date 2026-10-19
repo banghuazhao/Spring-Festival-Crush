@@ -6,6 +6,7 @@ import SwiftUI
 final class GameFeedback: ObservableObject {
     @Published private(set) var flights: [GoalFlight] = []
     @Published private(set) var impacts: [String: Int] = [:]
+    @Published var blastPreviewVisible = false
     var goalFrames: [String: CGRect] = [:]
     var viewport: CGRect = .zero
 
@@ -34,6 +35,7 @@ final class GameFeedback: ObservableObject {
     }
 
     func clear() {
+        blastPreviewVisible = false
         flights.removeAll()
         impacts.removeAll()
     }

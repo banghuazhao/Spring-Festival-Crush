@@ -6,6 +6,7 @@ struct LevelBriefingView: View {
     let zodiac: Zodiac
     let theme: ZodiacChapterTheme
     let savedBestStars: Int?
+    @ScaledMetric(relativeTo: .subheadline) private var goalMinimumWidth: CGFloat = 72
 
     private var ref: LevelRef { LevelRef(zodiac: zodiac.zodiacType, number: levelNumber) }
     private var bestScore: Int { BestScoreStore.best(for: zodiac.zodiacType, level: levelNumber) }
@@ -92,6 +93,7 @@ struct LevelBriefingView: View {
 
             HStack(alignment: .top, spacing: 10) {
                 Image(systemName: "star.fill")
+                    .font(.system(size: 18, weight: .bold))
                     .foregroundStyle(theme.accent)
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 6) {
@@ -113,7 +115,7 @@ struct LevelBriefingView: View {
                         .font(.system(size: 22, weight: .bold))
                         .foregroundStyle(theme.accent)
                         .accessibilityLabel(level.boss == nil ? Text("COMPLETE EVERY GOAL") : Text("Defeat the guardian AND complete every goal."))
-                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 60), spacing: 8)], spacing: 8) {
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: goalMinimumWidth), spacing: 8)], spacing: 8) {
                         if let boss = level.boss {
                             goalCell {
                                 Text(verbatim: boss.configuration.kind.avatar).font(.system(size: 26))
@@ -121,6 +123,7 @@ struct LevelBriefingView: View {
                             } count: {
                                 Label("\(boss.configuration.health)", systemImage: "heart.fill")
                                     .labelStyle(.titleAndIcon)
+                                    .fixedSize(horizontal: true, vertical: false)
                                     .foregroundStyle(AppTheme.festivalRed)
                             }
                             .accessibilityLabel(Text("Boss health") + Text(verbatim: " \(boss.configuration.health)"))

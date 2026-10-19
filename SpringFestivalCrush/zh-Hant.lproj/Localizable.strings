@@ -463,3 +463,10 @@
 "Moves remaining: %lld" = "剩餘步數：%lld";
 "Time remaining: %lld seconds" = "剩餘時間：%lld 秒";
 "All collection goals complete!" = "收集目標已全部完成！";
+
+/* Gameplay expansion */
+"Power-up blast previews" = "道具爆破預覽";
+"Drag a power-up to a neighbor to preview its direct hits. Release to swap, or return to the starting tile to cancel. Chain reactions and falling tiles can extend the effect." = "將道具拖到相鄰格，預覽直接命中的範圍。放手交換，或拖回起點取消。連鎖反應和掉落的方塊可能擴大效果。";
+"Direct hits · Release to swap; return to start to cancel." = "直接命中 · 放手交換，拖回起點取消。";
+"Chocolate" = "巧克力";
+"Match beside chocolate to clear it. Any chocolate left can spread to one neighboring unprotected tile after each move." = "在巧克力旁消除即可清除它。每步結束後，剩餘巧克力可能蔓延到一個沒有保護的相鄰方塊。";

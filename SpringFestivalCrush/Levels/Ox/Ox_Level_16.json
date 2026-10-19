@@ -1,0 +1,95 @@
+{
+  "tiles": [
+    [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      2,
+      1,
+      5,
+      1,
+      2
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1
+    ]
+  ],
+  "moves": 8,
+  "levelGoal": {
+    "firstStarScore": 500,
+    "secondStarScore": 4100,
+    "thirdStarScore": 8100,
+    "levelTarget": {
+      "lock": 2,
+      "zodiac": 18
+    }
+  },
+  "difficulty": 5,
+  "possibleSymbols": [
+    "firecracker",
+    "redPocket",
+    "bowl",
+    "zodiac"
+  ],
+  "snow": false,
+  "armor": [
+    [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      1,
+      0,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      1,
+      0,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "mechanicHint": "A compact forge: line up Lightning with the two locks, then collect zodiac tiles around the gold frames."
+}

@@ -1,0 +1,155 @@
+{
+  "tiles": [
+    [
+      1,
+      1,
+      1,
+      0,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      3,
+      0,
+      3,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      2,
+      1,
+      5,
+      1,
+      2,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      0,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      0,
+      1,
+      1,
+      1
+    ]
+  ],
+  "moves": 13,
+  "levelGoal": {
+    "firstStarScore": 1400,
+    "secondStarScore": 10600,
+    "thirdStarScore": 17500,
+    "levelTarget": {
+      "lock": 4,
+      "redPocket": 16
+    }
+  },
+  "difficulty": 5,
+  "possibleSymbols": [
+    "redPocket",
+    "dumpling",
+    "bowl",
+    "zodiac"
+  ],
+  "snow": false,
+  "armor": [
+    [
+      0,
+      1,
+      0,
+      0,
+      0,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      1,
+      0,
+      0,
+      0,
+      1,
+      0
+    ]
+  ],
+  "boss": {
+    "kind": "rat",
+    "health": 40
+  },
+  "mechanicHint": "A divided treasury: route the current tribute through the bridges and break the locks between chambers."
+}

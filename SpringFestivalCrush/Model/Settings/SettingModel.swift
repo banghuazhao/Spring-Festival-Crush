@@ -45,4 +45,8 @@ final class SettingModel: ObservableObject {
         ? true : UserDefaults.standard.bool(forKey: "idleHintsEnabled") {
         didSet { UserDefaults.standard.set(idleHintsEnabled, forKey: "idleHintsEnabled") }
     }
+    @Published var powerUpPreviewsEnabled: Bool = UserDefaults.standard.object(forKey: "powerUpPreviewsEnabled") == nil
+        ? true : UserDefaults.standard.bool(forKey: "powerUpPreviewsEnabled") {
+        didSet { UserDefaults.standard.set(powerUpPreviewsEnabled, forKey: "powerUpPreviewsEnabled") }
+    }
 }

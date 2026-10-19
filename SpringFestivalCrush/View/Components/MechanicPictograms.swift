@@ -321,6 +321,17 @@ struct RuleArt: View {
                 PictoArrow(size: 10)
                 OpenLockPicto(size: tile * 0.9)
             }
+        case .chocolate:
+            HStack(spacing: 5) {
+                VStack(spacing: 2) {
+                    HStack(spacing: 2) {
+                        ForEach(0..<3, id: \.self) { _ in PictoTile(asset: "redPocket", size: tile * 0.8) }
+                    }
+                    Text(verbatim: "🍫").font(.system(size: tile))
+                }
+                PictoArrow(size: 11)
+                Image(systemName: "checkmark.circle.fill").foregroundStyle(AppTheme.festivalGoldDark)
+            }
         case .blossom:
             VStack(spacing: 5) {
                 HStack(spacing: 4) {

@@ -22,13 +22,20 @@ class GameScene: SKScene {
     let cropLayer = SKCropNode()
     let symbolsLayer = SKNode()
     let effectsLayer = SKNode()
+    let blastPreviewLayer = SKNode()
     // Jelly backing squares, behind symbolsLayer so they read as "under" the candies.
     let overlayLayer = SKNode()
 
     // MARK: - State
-    private var swipeFromColumn: Int?
-    private var swipeFromRow: Int?
-    private var selectionSprite = SKNode()
+    var swipeFromColumn: Int?
+    var swipeFromRow: Int?
+    var swipeFromSymbol: Symbol?
+    var swipeLevel: Level?
+    var boardTouchID: ObjectIdentifier?
+    var boardInputGeneration: UInt = 0
+    var boardSwapDispatchPending = false
+    var pendingBlastPreview: BlastPreviewCandidate?
+    var selectionSprite = SKNode()
     private var tutorialHintNodes: [SKNode] = []
     var removingSprites = Set<ObjectIdentifier>()
 
@@ -77,6 +84,9 @@ class GameScene: SKScene {
         cropLayer.addChild(symbolsLayer)
         effectsLayer.zPosition = 200
         cropLayer.addChild(effectsLayer)
+        blastPreviewLayer.name = "blastPreview"
+        blastPreviewLayer.zPosition = 350
+        cropLayer.addChild(blastPreviewLayer)
         for sound in GameSound.allCases {
             let voice = SKAudioNode(fileNamed: sound.rawValue)
             voice.autoplayLooped = false
@@ -136,6 +146,7 @@ class GameScene: SKScene {
     }
 
     private func executeCommandAsync(_ command: GameModel.CommandAsync) async {
+        cancelBlastPreview()
         switch command {
         case let .setupSymbols(newSprites):
             removeAllSymbols()
@@ -179,6 +190,7 @@ class GameScene: SKScene {
     }
 
     func setupLayerPosition() {
+        cancelBlastPreview()
         let boardHeight = gameModel.tileSize.height * CGFloat(gameModel.numRows)
         // Boss instructions need a predictable clear area above the board, including on SE.
         let bossOffset = gameModel.level.boss == nil ? 0 : min(0, size.height / 2 - boardHeight / 2 - 280)
@@ -190,9 +202,11 @@ class GameScene: SKScene {
         symbolsLayer.position = layerPosition
         effectsLayer.position = layerPosition
         overlayLayer.position = layerPosition
+        blastPreviewLayer.position = layerPosition
     }
 
     func shuffle(by newSymbols: Set<Symbol>) async {
+        cancelBlastPreview()
         await animateShuffle(newSymbols)
     }
 
@@ -280,98 +294,39 @@ class GameScene: SKScene {
     }
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        cancelIdleHint()
+        guard boardTouchID == nil else { return }
         guard let touch = touches.first else { return }
-
         let location = touch.location(in: symbolsLayer)
-
         let (success, column, row) = convertPoint(location)
-
-        if success {
-            if gameModel.hammerModeActive {
-                Task { @MainActor in
-                    await gameModel.useHammer(atColumn: column, row: row)
-                }
-                return
-            }
-            if let symbol = gameModel.level.symbol(atColumn: column, row: row),
-               symbol.isMovable() {
-                swipeFromColumn = column
-                swipeFromRow = row
-                showSelectionIndicator(of: symbol)
-                HapticManager.tileSelected()
-            }
+        if success, beginBoardTouch(column: column, row: row) {
+            boardTouchID = ObjectIdentifier(touch)
         }
     }
 
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        // 1
-        guard swipeFromColumn != nil else { return }
-
-        // 2
-        guard let touch = touches.first else { return }
+        guard let touch = touches.first(where: { ObjectIdentifier($0) == boardTouchID }) else { return }
         let location = touch.location(in: symbolsLayer)
-
         let (success, column, row) = convertPoint(location)
-        if success {
-            // 3
-            var horizontalDelta = 0, verticalDelta = 0
-            if column < swipeFromColumn! { // swipe left
-                horizontalDelta = -1
-            } else if column > swipeFromColumn! { // swipe right
-                horizontalDelta = 1
-            } else if row < swipeFromRow! { // swipe down
-                verticalDelta = -1
-            } else if row > swipeFromRow! { // swipe up
-                verticalDelta = 1
-            }
-
-            // 4
-            if horizontalDelta != 0 || verticalDelta != 0 {
-                trySwap(horizontalDelta: horizontalDelta, verticalDelta: verticalDelta)
-                hideSelectionIndicator()
-                // 5
-                swipeFromColumn = nil
-            }
-        }
+        moveBoardTouch(column: success ? column : nil, row: success ? row : nil)
     }
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if selectionSprite.parent != nil && swipeFromColumn != nil {
-            hideSelectionIndicator()
-        }
-
-        swipeFromColumn = nil
-        swipeFromRow = nil
-        scheduleIdleHint()
+        guard let touch = touches.first(where: { ObjectIdentifier($0) == boardTouchID }) else { return }
+        let location = touch.location(in: symbolsLayer)
+        let (success, column, row) = convertPoint(location)
+        endBoardTouch(column: success ? column : nil, row: success ? row : nil)
     }
 
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
-        touchesEnded(touches, with: event)
+        guard boardTouchID == nil || touches.contains(where: { ObjectIdentifier($0) == boardTouchID }) else { return }
+        cancelBlastPreview()
+        scheduleIdleHint()
     }
 
-    private func trySwap(horizontalDelta: Int, verticalDelta: Int) {
-        // 1
-        let toColumn = swipeFromColumn! + horizontalDelta
-        let toRow = swipeFromRow! + verticalDelta
-        // 2
-        guard toColumn >= 0 && toColumn < gameModel.numColumns else { return }
-        guard toRow >= 0 && toRow < gameModel.numRows else { return }
-        // 3
-        if let toSymbol = gameModel.level.symbol(atColumn: toColumn, row: toRow),
-           toSymbol.isMovable(),
-           let fromSymbol = gameModel.level.symbol(atColumn: swipeFromColumn!, row: swipeFromRow!),
-           fromSymbol.isMovable() {
-            // 4
-            let swap = Swap(symbolA: fromSymbol, symbolB: toSymbol)
-            Task { @MainActor in
-                if gameModel.swapModeActive {
-                    await gameModel.useRuyiSwap(swap)
-                } else {
-                    await gameModel.handleSwipe(swap)
-                }
-            }
-        }
+    override func willMove(from view: SKView) {
+        cancelBlastPreview()
+        cancelIdleHint()
+        super.willMove(from: view)
     }
 
     func animateSwap(_ swap: Swap) async {
@@ -560,6 +515,7 @@ class GameScene: SKScene {
     }
 
     func animateBeginGame() async {
+        cancelBlastPreview()
         cancelHitStop()
         childNode(withName: "festivalFinale")?.removeFromParent()
         gameLayer.removeAction(forKey: "screenShake")
@@ -582,16 +538,19 @@ class GameScene: SKScene {
     }
 
     func removeAllTiles() {
+        cancelBlastPreview()
         maskLayer.removeAllChildren()
         tilesLayer.removeAllChildren()
     }
 
     func removeAllSymbols() {
+        cancelBlastPreview()
         symbolsLayer.removeAllChildren()
         effectsLayer.removeAllChildren()
     }
 
     func setUserInteraction(enabled: Bool) {
+        if !enabled { cancelBlastPreview() }
         isUserInteractionEnabled = enabled
         if enabled { scheduleIdleHint() }
         else { cancelIdleHint() }
@@ -601,6 +560,7 @@ class GameScene: SKScene {
 
     /// Draws pulsing rings around the two hinted tiles plus a hand icon miming the swipe.
     private func showTutorialHint(for swap: Swap) {
+        cancelBlastPreview()
         hideTutorialHint()
         guard let spriteA = swap.symbolA.sprite, let spriteB = swap.symbolB.sprite else { return }
         let posA = spriteA.position

@@ -1,0 +1,95 @@
+{
+  "tiles": [
+    [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      2,
+      1,
+      4,
+      1,
+      2
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1
+    ]
+  ],
+  "moves": 8,
+  "levelGoal": {
+    "firstStarScore": 500,
+    "secondStarScore": 4400,
+    "thirdStarScore": 7000,
+    "levelTarget": {
+      "lock": 2,
+      "firecracker": 18
+    }
+  },
+  "difficulty": 5,
+  "possibleSymbols": [
+    "firecracker",
+    "dumpling",
+    "bowl",
+    "zodiac"
+  ],
+  "snow": true,
+  "ice": [
+    [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      1,
+      0,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      1,
+      0,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "mechanicHint": "A compact snowfield: spend the Lucky Five carefully while opening the two side locks."
+}

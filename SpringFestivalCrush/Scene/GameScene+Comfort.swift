@@ -47,6 +47,7 @@ extension GameScene {
 
     func setFeedbackPaused(_ paused: Bool) {
         feedbackPaused = paused
+        if paused { cancelBlastPreview() }
         cancelIdleHint()
         if !paused { scheduleIdleHint() }
     }
@@ -59,6 +60,7 @@ extension GameScene {
     func scheduleIdleHint() {
         cancelIdleHint()
         guard !feedbackPaused, settingModel.idleHintsEnabled,
+              swipeFromColumn == nil,
               gameModel.suggestedIdleSwap() != nil else { return }
         // Scene-time pauses with gameplay. Resume starts a fresh quiet interval.
         run(.sequence([
@@ -69,6 +71,7 @@ extension GameScene {
 
     func showIdleHint() {
         guard !feedbackPaused, settingModel.idleHintsEnabled,
+              swipeFromColumn == nil,
               let swap = gameModel.suggestedIdleSwap() else { return }
         idleHintLayer.removeAllChildren()
         for symbol in [swap.symbolA, swap.symbolB] {
