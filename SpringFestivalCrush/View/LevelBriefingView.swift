@@ -6,7 +6,18 @@ struct LevelBriefingView: View {
     let zodiac: Zodiac
     let theme: ZodiacChapterTheme
     let savedBestStars: Int?
+    private let scoutingLayout: BoardScoutingLayout?
     @ScaledMetric(relativeTo: .subheadline) private var goalMinimumWidth: CGFloat = 72
+
+    init(level: Level, levelNumber: Int, zodiac: Zodiac, theme: ZodiacChapterTheme, savedBestStars: Int?) {
+        self.level = level
+        self.levelNumber = levelNumber
+        self.zodiac = zodiac
+        self.theme = theme
+        self.savedBestStars = savedBestStars
+        scoutingLayout = LevelData.loadFrom(file: "\(zodiac.zodiacType.name)_Level_\(levelNumber)")
+            .flatMap { BoardScoutingLayout(data: $0) }
+    }
 
     private var ref: LevelRef { LevelRef(zodiac: zodiac.zodiacType, number: levelNumber) }
     private var bestScore: Int { BestScoreStore.best(for: zodiac.zodiacType, level: levelNumber) }
@@ -73,6 +84,10 @@ struct LevelBriefingView: View {
                 .background(AppTheme.creamHighlight, in: .rect(cornerRadius: 12))
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("level-briefing-best-stars")
+            }
+
+            if let scoutingLayout {
+                BoardScoutingView(layout: scoutingLayout)
             }
 
             if let boss = level.boss {

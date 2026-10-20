@@ -1,0 +1,41 @@
+{
+  "tiles": [
+    [1, 1, 9, 1, 9, 1, 1],
+    [1, 5, 1, 1, 1, 6, 1],
+    [1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 4, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1],
+    [1, 6, 1, 1, 1, 5, 1],
+    [1, 1, 1, 1, 1, 1, 1]
+  ],
+  "moves": 28,
+  "levelGoal": {
+    "firstStarScore": 1200,
+    "secondStarScore": 21800,
+    "thirdStarScore": 27900,
+    "levelTarget": {
+      "ingredient": 2,
+      "lightningCombos": 5,
+      "enhancedCombos": 5
+    }
+  },
+  "difficulty": 5,
+  "possibleSymbols": [
+    "firecracker",
+    "redPocket",
+    "dumpling",
+    "lantern",
+    "zodiac"
+  ],
+  "snow": true,
+  "ice": [
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0],
+    [1, 0, 0, 1, 0, 0, 1],
+    [0, 0, 0, 0, 0, 0, 0],
+    [1, 0, 0, 1, 0, 0, 1],
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0]
+  ],
+  "mechanicHint": "Keep the gift lanes moving while creating Lightning and Blast Tile activations across the snowfield."
+}

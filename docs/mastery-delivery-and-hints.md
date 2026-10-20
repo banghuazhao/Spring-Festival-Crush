@@ -1,5 +1,7 @@
 # Power-up mastery, gift deliveries and goal-aware hints
 
+This document records the expansion to 19 levels per chapter. The subsequent [capstone update](capstone-levels.md) extends each chapter to 20 levels.
+
 ## Campaign content
 
 Each playable chapter gains levels 18 and 19, bringing the campaign to 76 levels: 19 each for Rat, Ox, Tiger and Rabbit. Existing levels 1–17 stay unchanged, including guardian encounters at levels 15 and 17. The appended challenges use existing power activation, protection, falling, collection and blossom rules, without a new timer or guardian attack.

@@ -1,0 +1,42 @@
+{
+  "tiles": [
+    [1, 9, 1, 4, 1, 9, 1],
+    [2, 1, 1, 1, 1, 1, 2],
+    [1, 1, 5, 1, 6, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 6, 1, 5, 1, 1],
+    [2, 1, 1, 1, 1, 1, 2],
+    [1, 1, 1, 1, 1, 1, 1]
+  ],
+  "moves": 24,
+  "levelGoal": {
+    "firstStarScore": 1200,
+    "secondStarScore": 19600,
+    "thirdStarScore": 26400,
+    "levelTarget": {
+      "lock": 4,
+      "ingredient": 2,
+      "lightningCombos": 4,
+      "enhancedCombos": 5
+    }
+  },
+  "difficulty": 5,
+  "possibleSymbols": [
+    "firecracker",
+    "redPocket",
+    "dumpling",
+    "bowl",
+    "zodiac"
+  ],
+  "snow": false,
+  "armor": [
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 1, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0],
+    [1, 0, 0, 0, 0, 0, 1],
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 1, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0]
+  ],
+  "mechanicHint": "Deliver the forge's gifts while opening the side locks and activating Lightning and Blast Tiles around the gold frames."
+}

@@ -305,7 +305,7 @@ final class ProgressionTests: XCTestCase {
     }
 
     func testAllChaptersHaveProgressionSnowAndRetainedGuardianEncounters() throws {
-        for (chapter, count) in [("Rat", 19), ("Ox", 19), ("Tiger", 19), ("Rabbit", 19)] {
+        for (chapter, count) in [("Rat", 20), ("Ox", 20), ("Tiger", 20), ("Rabbit", 20)] {
             var previousTier = 0
             var snowLevels = 0
             for number in 1...count {
@@ -329,7 +329,7 @@ final class ProgressionTests: XCTestCase {
 
     func testExpansionContainsCompactChallengesAndDifferentGuardianArenas() throws {
         let playable = Zodiac.all.filter(\.isAvailable)
-        XCTAssertEqual(playable.map(\.numLevels), [19, 19, 19, 19])
+        XCTAssertEqual(playable.map(\.numLevels), [20, 20, 20, 20])
         for chapter in ["Rat", "Ox", "Tiger"] {
             let compact = try XCTUnwrap(Level(filename: "\(chapter)_Level_16"))
             XCTAssertEqual(compact.numColumns, 5)
@@ -392,7 +392,7 @@ final class ProgressionTests: XCTestCase {
         game.initializeRecords(modelContext: context)
 
         for record in game.zodiacRecords {
-            XCTAssertEqual(record.levelRecords.count, 19, "Repeated initialization must not duplicate levels")
+            XCTAssertEqual(record.levelRecords.count, 20, "Repeated initialization must not duplicate levels")
             let previousFinale = try XCTUnwrap(record.levelRecords.first { $0.number == 15 })
             XCTAssertTrue(previousFinale.isComplete)
             XCTAssertEqual(previousFinale.stars, 3)
@@ -400,7 +400,7 @@ final class ProgressionTests: XCTestCase {
             XCTAssertTrue(firstNew.isUnlocked)
             XCTAssertFalse(firstNew.isComplete)
             XCTAssertEqual(firstNew.stars, 0)
-            for number in 17...19 {
+            for number in 17...20 {
                 let laterLevel = try XCTUnwrap(record.levelRecords.first { $0.number == number })
                 XCTAssertFalse(laterLevel.isUnlocked)
                 XCTAssertFalse(laterLevel.isComplete)
@@ -435,8 +435,8 @@ final class ProgressionTests: XCTestCase {
         game.initializeRecords(modelContext: context)
 
         for record in game.zodiacRecords {
-            XCTAssertEqual(record.levelRecords.count, 19)
-            XCTAssertEqual(Set(record.levelRecords.map(\.number)), Set(1...19),
+            XCTAssertEqual(record.levelRecords.count, 20)
+            XCTAssertEqual(Set(record.levelRecords.map(\.number)), Set(1...20),
                            "Repeated initialization must not add duplicate records")
             for old in record.levelRecords where old.number <= 17 {
                 XCTAssertTrue(old.isUnlocked)
@@ -451,6 +451,70 @@ final class ProgressionTests: XCTestCase {
             XCTAssertFalse(delivery.isUnlocked)
             XCTAssertFalse(delivery.isComplete)
             XCTAssertEqual(delivery.stars, 0)
+            let capstone = try XCTUnwrap(record.levelRecords.first { $0.number == 20 })
+            XCTAssertFalse(capstone.isUnlocked)
+            XCTAssertFalse(capstone.isComplete)
+            XCTAssertEqual(capstone.stars, 0)
+        }
+    }
+
+    func testFinishedNineteenLevelChaptersKeepStarsAndClaimsWhenCapstonesUnlock() throws {
+        let playable = Zodiac.all.filter(\.isAvailable)
+        let preferenceKeys = ["firstLaunch"] + playable.map { "starChestsClaimed.\($0.zodiacType.name)" }
+        let savedPreferences = preferenceKeys.map { ($0, UserDefaults.standard.object(forKey: $0)) }
+        addTeardownBlock {
+            for (key, saved) in savedPreferences {
+                if let saved { UserDefaults.standard.set(saved, forKey: key) }
+                else { UserDefaults.standard.removeObject(forKey: key) }
+            }
+        }
+        let container = try ModelContainer(for: ZodiacRecord.self, LevelRecord.self,
+                                           configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let context = container.mainContext
+        let previouslyClaimed: Set<Int> = [0, 2]
+        for zodiac in playable {
+            let type = zodiac.zodiacType
+            UserDefaults.standard.removeObject(forKey: "starChestsClaimed.\(type.name)")
+            for index in previouslyClaimed { XCTAssertTrue(StarChestStore.markClaimed(index, for: type)) }
+            let record = ZodiacRecord(zodiacType: type, isUnlocked: true)
+            context.insert(record)
+            for number in 1...19 {
+                let level = LevelRecord(number: number, isUnlocked: true, zodiacRecord: record)
+                level.isComplete = true
+                level.stars = 3
+                context.insert(level)
+                record.levelRecords.append(level)
+            }
+        }
+        try context.save()
+        let game = GameModel()
+        game.firstLaunch = false
+        game.initializeRecords(modelContext: context)
+        game.initializeRecords(modelContext: context)
+
+        let expandedTrack = StarChestTrack(levelCount: 20)
+        XCTAssertEqual(expandedTrack.chests.map(\.threshold), [20, 40, 60])
+        let savedStars = 19 * 3
+        for record in game.zodiacRecords {
+            XCTAssertEqual(record.levelRecords.count, 20)
+            XCTAssertEqual(Set(record.levelRecords.map(\.number)), Set(1...20))
+            for old in record.levelRecords where old.number <= 19 {
+                XCTAssertTrue(old.isUnlocked)
+                XCTAssertTrue(old.isComplete)
+                XCTAssertEqual(old.stars, 3)
+            }
+            let capstone = try XCTUnwrap(record.levelRecords.first { $0.number == 20 })
+            XCTAssertTrue(capstone.isUnlocked)
+            XCTAssertFalse(capstone.isComplete)
+            XCTAssertEqual(capstone.stars, 0)
+            let claims = StarChestStore.claimed(for: record.zodiacType)
+            XCTAssertEqual(claims, previouslyClaimed)
+            XCTAssertEqual(expandedTrack.chests.map { expandedTrack.state(of: $0, stars: savedStars, claimed: claims) },
+                           [.opened, .ready, .opened])
+            for index in previouslyClaimed {
+                XCTAssertFalse(StarChestStore.markClaimed(index, for: record.zodiacType),
+                               "An old chest cannot award a second reward after the chapter grows")
+            }
         }
     }
 

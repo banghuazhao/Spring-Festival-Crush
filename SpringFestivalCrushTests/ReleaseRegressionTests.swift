@@ -1847,6 +1847,90 @@ final class ReleaseRegressionTests: XCTestCase {
         XCTAssertEqual(delivery.gameState, .inProgress)
     }
 
+    func testScoutingBriefingsRenderAcrossChaptersAndSizes() async throws {
+        let cases: [(Int, Int, String, CGSize, DynamicTypeSize)] = [
+            (0, 20, "en", CGSize(width: 320, height: 568), .large),
+            (1, 17, "en", CGSize(width: 375, height: 812), .large),
+            (2, 20, "zh-Hans", CGSize(width: 375, height: 812), .accessibility3),
+            (3, 20, "zh-Hant", CGSize(width: 768, height: 1024), .accessibility3),
+            (3, 20, "en", CGSize(width: 320, height: 568), .accessibility5)
+        ]
+        for (index, number, language, size, textSize) in cases {
+            let zodiac = Zodiac.all[index]
+            let level = try XCTUnwrap(Level(filename: "\(zodiac.zodiacType.name)_Level_\(number)"))
+            try await snapshot(name: "Mission-scout-\(zodiac.zodiacType.name)-\(language)-\(textSize)", size: size) { ready in
+                ScrollView {
+                    LevelBriefingView(level: level, levelNumber: number, zodiac: zodiac,
+                                      theme: ZodiacChapterTheme(zodiac: zodiac.zodiacType), savedBestStars: nil)
+                        .padding(16)
+                        .frame(maxWidth: 560)
+                        .frame(maxWidth: .infinity)
+                }
+                .background(AppTheme.festivalBackground)
+                .environment(\.locale, Locale(identifier: language))
+                .environment(\.dynamicTypeSize, textSize)
+                .environment(\.gameReducedEffects, true)
+                .onAppear(perform: ready)
+            }
+            XCTAssertNil(level.symbol(atColumn: 0, row: 0), "Scouting must not populate a live board")
+            XCTAssertEqual(level.levelGoal.levelTarget.ingredient, number == 20 ? 2 : nil)
+        }
+    }
+
+    func testFocusedRetryAdviceRendersAcrossLanguagesAndSizes() async throws {
+        let game = makeGame()
+        game.zodiac = Zodiac.all[3]
+        game.selectLevel(20)
+        await game.setupNewGame()
+        game.gameState = .lose
+        let inventory = [game.coins, game.hammerCharges, game.shuffleCharges, game.swapCharges, game.lives]
+        let cases: [(String, CGSize, DynamicTypeSize, LevelTarget)] = [
+            ("en", CGSize(width: 320, height: 568), .accessibility3, LevelTarget(ingredient: 2)),
+            ("zh-Hans", CGSize(width: 375, height: 812), .large, LevelTarget(lightningCombos: 3)),
+            ("zh-Hant", CGSize(width: 768, height: 1024), .accessibility3, LevelTarget(jelly: 3)),
+            ("en", CGSize(width: 320, height: 568), .accessibility5, LevelTarget(ingredient: 1))
+        ]
+        for (language, size, textSize, remaining) in cases {
+            game.level.levelGoal.levelTarget = remaining
+            let goalsBefore = game.createLevelTargetDatas().map { "\($0.id):\($0.targetNum)" }
+            try await snapshot(name: "Mission-retry-\(language)-\(textSize)", size: size) { ready in
+                LevelFailedView(onRevealComplete: ready)
+                    .environmentObject(game)
+                    .environment(\.locale, Locale(identifier: language))
+                    .environment(\.dynamicTypeSize, textSize)
+                    .environment(\.gameReducedEffects, true)
+                    .background(AppTheme.festivalRedDark)
+            }
+            XCTAssertEqual(game.createLevelTargetDatas().map { "\($0.id):\($0.targetNum)" }, goalsBefore)
+            XCTAssertEqual([game.coins, game.hammerCharges, game.shuffleCharges, game.swapCharges, game.lives], inventory)
+            XCTAssertEqual(game.gameState, .lose)
+        }
+    }
+
+    func testPlanningAndRetryCopyExistsInEveryShippedLanguage() throws {
+        let keys = RetryAdvice.allCases.map(\.rawValue) + [
+            "Board scout",
+            "Layout only. Plain spaces receive random tiles when you play.",
+            "Rows: %lld. Columns: %lld. Playable spaces: %lld. Holes: %lld.",
+            "Random tile spaces: %lld.", "Locks: %lld. Ice tiles: %lld. Gold frames: %lld.",
+            "Moon blossom layers: %lld.", "Pre-placed power-ups: %lld.",
+            "Gifts: %lld. Bottom-row exits: %lld.", "Chocolate tiles: %lld."
+        ]
+        for language in ["en", "zh-Hans", "zh-Hant"] {
+            let url = try XCTUnwrap(Bundle.main.url(forResource: "Localizable", withExtension: "strings",
+                                                   subdirectory: nil, localization: language))
+            let strings = try XCTUnwrap(PropertyListSerialization.propertyList(from: Data(contentsOf: url),
+                                                                               format: nil) as? [String: String])
+            for key in keys {
+                let value = try XCTUnwrap(strings[key], "\(language): \(key)")
+                XCTAssertFalse(value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                XCTAssertEqual(value.components(separatedBy: "%lld").count, key.components(separatedBy: "%lld").count,
+                               "Localized accessibility counts must retain every argument")
+                if language != "en" { XCTAssertNotEqual(value, key, "\(language): \(key)") }
+            }
+        }
+    }
+
     private func presentTestScene(_ scene: GameScene) throws -> SKView {
         let windowScene = try XCTUnwrap(UIApplication.shared.connectedScenes.first as? UIWindowScene)
         let previousWindow = windowScene.keyWindow

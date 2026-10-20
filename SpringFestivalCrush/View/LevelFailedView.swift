@@ -19,6 +19,12 @@ struct LevelFailedView: View {
         max(0, gameModel.bossStatus?.health ?? 0)
     }
 
+    private var retryAdvice: RetryAdvice? {
+        guard gameModel.currentLevel >= 1, gameModel.level != nil, gameModel.zodiac != nil else { return nil }
+        let remaining = unfinishedTargets.reduce(into: [String: Int]()) { $0[$1.id] = $1.targetNum }
+        return RetryAdvice.choose(remainingGoals: remaining, guardian: gameModel.bossStatus)
+    }
+
     var body: some View {
         GeometryReader { geometry in
             ScrollView {
@@ -45,10 +51,39 @@ struct LevelFailedView: View {
 
                         remainingGoals
 
+                        if let advice = retryAdvice {
+                            Group {
+                                if dynamicTypeSize.isAccessibilitySize {
+                                    VStack(alignment: .leading, spacing: 8) {
+                                        Image(systemName: "lightbulb.fill")
+                                            .foregroundStyle(AppTheme.festivalGoldDark)
+                                            .accessibilityHidden(true)
+                                        Text(LocalizedStringKey(advice.rawValue))
+                                            .fixedSize(horizontal: false, vertical: true)
+                                    }
+                                } else {
+                                    Label {
+                                        Text(LocalizedStringKey(advice.rawValue))
+                                            .fixedSize(horizontal: false, vertical: true)
+                                    } icon: {
+                                        Image(systemName: "lightbulb.fill")
+                                            .foregroundStyle(AppTheme.festivalGoldDark)
+                                            .accessibilityHidden(true)
+                                    }
+                                }
+                            }
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(AppTheme.ink)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(12)
+                            .background(AppTheme.creamHighlight, in: .rect(cornerRadius: 14))
+                            .accessibilityElement(children: .combine)
+                            .accessibilityIdentifier("defeat-retry-tip")
+                        }
+
                         if gameModel.lives > 0 {
                             Button(action: retry) {
-                                Label("Try Again", systemImage: "arrow.counterclockwise")
-                                    .frame(maxWidth: .infinity)
+                                actionLabel("Try Again", systemImage: "arrow.counterclockwise")
                             }
                             .buttonStyle(.gamePrimary(gradient: AppTheme.successGradient))
                             .accessibilityIdentifier("defeat-retry")
@@ -63,7 +98,7 @@ struct LevelFailedView: View {
                         }
 
                         Button(action: backToMap) {
-                            Label("Back to Levels", systemImage: "map.fill").frame(maxWidth: .infinity)
+                            actionLabel("Back to Levels", systemImage: "map.fill")
                         }
                         .buttonStyle(.gamePrimary(gradient: AppTheme.neutralGradient))
                         .accessibilityIdentifier("defeat-map")
@@ -146,7 +181,7 @@ struct LevelFailedView: View {
                             .resizable()
                             .scaledToFit()
                     } name: {
-                        Text(goalName(target.imageName))
+                        Text(LocalizedStringKey(goalName(target.imageName)))
                     }
                 }
             }
@@ -191,6 +226,21 @@ struct LevelFailedView: View {
         .padding(.horizontal, 10)
         .background(AppTheme.creamHighlight, in: .rect(cornerRadius: 12))
         .accessibilityElement(children: .combine)
+    }
+
+    @ViewBuilder
+    private func actionLabel(_ title: LocalizedStringKey, systemImage: String) -> some View {
+        if dynamicTypeSize.isAccessibilitySize {
+            VStack(spacing: 6) {
+                Image(systemName: systemImage).accessibilityHidden(true)
+                Text(title)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .frame(maxWidth: .infinity)
+        } else {
+            Label(title, systemImage: systemImage).frame(maxWidth: .infinity)
+        }
     }
 
     /// Matches the existing names on the pre-level briefing without changing goal data.

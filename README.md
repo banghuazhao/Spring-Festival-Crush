@@ -18,7 +18,7 @@
 ## ✨ Features
 
 * 🎉 **Festive Theme**: Dive into the spirit of the Spring Festival with themed levels and elements that bring the celebration to life.
-* 🧩 **Challenging Gameplay**: Explore 76 levels across four zodiac chapters, including compact tactical boards, alternate guardian arenas, power-up mastery missions and gift deliveries.
+* 🧩 **Challenging Gameplay**: Explore 80 levels across four zodiac chapters, including compact tactical boards, alternate guardian arenas, power-up mastery missions, gift deliveries and mixed-goal capstones.
 * ⚡ **Smooth Experience**: Enjoy fluid animations and intuitive controls for a seamless gaming experience.
 * 🎵 **Immersive Audio**: Experience traditional Chinese music and sound effects that enhance the festive atmosphere.
 * 🌟 **Multiple Zodiac Themes**: Play through different Chinese zodiac animal themes with unique challenges.
@@ -36,6 +36,9 @@
 * ⚡ **Power-Up Mastery**: Complete activation missions with direct powers, pairings and chain reactions.
 * 🎁 **Gift Delivery**: Open paths to the bottom exits or collect a gift directly with a special blast or Hammer.
 * 💡 **Goal-Aware Hints**: Quiet move outlines consider the goals still unfinished on the board.
+* 🏮 **Chapter Capstones**: Put gift delivery and power-up mastery together in each chapter's level 20.
+* 🗺️ **Board Scouting**: Inspect fixed obstacles, overlays, gifts and starting powers before playing; random tile spaces stay neutral.
+* 💬 **Focused Retry Advice**: Get one practical tip based on the goals or guardian left unfinished.
 
 ## 📱 Screenshots
 
@@ -163,10 +166,13 @@ SIM_RUNS=400 tools/simulate_levels.sh Rabbit Tiger_Level_12
 
 ## 📋 Release Notes
 
-### Next release (In development)
-- 🧩 Sixteen new levels: compact 5 × 5 challenges, a chocolate-pressure blossom garden, guardian rematches, power-up mastery missions and gift deliveries
+### Version 3.6.0
+- 🧩 Twenty new levels: compact 5 × 5 challenges, a chocolate-pressure blossom garden, guardian rematches, power-up mastery missions, gift deliveries and mixed-goal capstones
 - ⚡ Each chapter's level 18 asks you to trigger power-ups; combinations and chain reactions also count
 - 🎁 Each chapter's level 19 introduces gift routes, with bottom-row exit markers and direct collection by special blasts or Hammer
+- 🏮 Each chapter's level 20 combines gift delivery and power-up activation goals in one capstone board
+- 🗺️ A static board scout shows the authored layout before Play, with neutral spaces for random tiles
+- 💬 Defeat screens offer one relevant strategy tip for the unfinished goals or living guardian
 - 💡 Gentle hints now consider unfinished goals when choosing a move
 - 🔍 Power-up blast previews: inspect the direct affected cells before releasing an activating swap; move back to cancel
 - 🍫 Chocolate now appears in the campaign, with its rule taught on Rabbit 16 and available in the handbook
@@ -180,6 +186,8 @@ See [docs/star-guidance-and-combo-recipes.md](docs/star-guidance-and-combo-recip
 See [docs/guardian-and-pause-recaps.md](docs/guardian-and-pause-recaps.md) for the continue and pause summaries.
 See [docs/gameplay-expansion.md](docs/gameplay-expansion.md) for the new boards, guardian arenas and blast previews.
 See [docs/mastery-delivery-and-hints.md](docs/mastery-delivery-and-hints.md) for the mastery missions, gift routes and goal-aware hints.
+See [docs/capstone-levels.md](docs/capstone-levels.md) for the four mixed-goal chapter capstones.
+See [docs/board-scouting-and-retry-advice.md](docs/board-scouting-and-retry-advice.md) for planning previews and focused retry tips.
 
 ### Version 3.5
 - ⭐ **Stars that mean something**: any win earns ★, while ★★ and ★★★ now sit at the 40th and 80th percentile of the solver's winning scores, so replays and the last star chest are a real goal

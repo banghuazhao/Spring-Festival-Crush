@@ -1,0 +1,41 @@
+{
+  "tiles": [
+    [1, 9, 1, 1, 1, 9, 1],
+    [1, 1, 5, 1, 6, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 4, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 6, 1, 5, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1]
+  ],
+  "moves": 24,
+  "levelGoal": {
+    "firstStarScore": 1200,
+    "secondStarScore": 19200,
+    "thirdStarScore": 24600,
+    "levelTarget": {
+      "ingredient": 2,
+      "lightningCombos": 4,
+      "enhancedCombos": 5
+    }
+  },
+  "difficulty": 5,
+  "possibleSymbols": [
+    "firecracker",
+    "redPocket",
+    "dumpling",
+    "lantern",
+    "zodiac"
+  ],
+  "snow": false,
+  "jelly": [
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 2, 1, 1, 1, 2, 0],
+    [0, 1, 1, 1, 1, 1, 0],
+    [0, 2, 1, 1, 1, 2, 0],
+    [0, 0, 0, 0, 0, 0, 0]
+  ],
+  "mechanicHint": "Finish the garden relay: deliver both gifts, tend the blossoms and activate the powers that open a path for both."
+}

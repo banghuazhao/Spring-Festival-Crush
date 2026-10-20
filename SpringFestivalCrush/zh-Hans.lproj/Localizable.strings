@@ -480,3 +480,25 @@
 "After 7 quiet seconds, highlight a possible move that helps your remaining goals when available. Hints never spend a move or use a tool." = "7 秒无操作后，高亮一个可行的移动；有助于完成剩余目标的移动会优先显示。提示不会消耗步数或道具。";
 "Chocolate" = "巧克力";
 "Match beside chocolate to clear it. Any chocolate left can spread to one neighboring unprotected tile after each move." = "在巧克力旁消除即可清除它。每步结束后，剩余巧克力可能蔓延到一个没有保护的相邻方块。";
+
+/* Focused retry advice */
+"Clear below gifts to reach marked exits; blasts or the Hammer can also collect them directly." = "消除礼物下方的方块，让礼物到达标记出口；爆破或新春锤也能直接收集礼物。";
+"Activate the required power-ups; creating them alone does not count." = "触发目标所需的特效方块；仅生成特效方块不计入目标。";
+"Match the Rat's shown tribute: it alternates between red envelopes and dumplings." = "消除金库鼠当前显示的贡品：红包和饺子会轮流出现。";
+"Crack gold frames or activate power-ups to damage the Ox." = "击裂金框或触发特效方块，对铁甲牛造成伤害。";
+"Match firecrackers to hurt the Tiger; later cascades deal extra damage." = "消除鞭炮可伤害雪牙虎；后续连锁消除还能造成额外伤害。";
+"Collect lanterns or break locks to damage the Rabbit." = "收集灯笼或打破锁，对玉兔造成伤害。";
+"Match beside locks to weaken them; power-ups can clear them directly." = "在锁旁消除可削弱锁；特效方块能直接清除锁。";
+"Clear tiles on moon blossoms; deep pink blossoms need two clears." = "消除月下花上方的方块；深粉色的花需要消除两次。";
+"Prioritize matches of the tiles still shown in your goals." = "优先消除剩余目标中显示的方块。";
+
+/* Board scouting */
+"Board scout" = "棋盘预览";
+"Layout only. Plain spaces receive random tiles when you play." = "仅展示布局。普通格中的方块会在开局时随机生成。";
+"Rows: %lld. Columns: %lld. Playable spaces: %lld. Holes: %lld." = "共 %lld 行、%lld 列。可用格：%lld。空洞：%lld。";
+"Random tile spaces: %lld." = "随机方块格：%lld。";
+"Locks: %lld. Ice tiles: %lld. Gold frames: %lld." = "锁：%lld。冰冻格：%lld。金框：%lld。";
+"Moon blossom layers: %lld." = "月下花层数：%lld。";
+"Pre-placed power-ups: %lld." = "预置特效方块：%lld。";
+"Gifts: %lld. Bottom-row exits: %lld." = "礼物：%lld。最底行出口：%lld。";
+"Chocolate tiles: %lld." = "巧克力方块：%lld。";

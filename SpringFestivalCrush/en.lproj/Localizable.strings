@@ -91,3 +91,25 @@
 "After 7 quiet seconds, highlight a possible move that helps your remaining goals when available. Hints never spend a move or use a tool." = "After 7 quiet seconds, highlight a possible move that helps your remaining goals when available. Hints never spend a move or use a tool.";
 "Chocolate" = "Chocolate";
 "Match beside chocolate to clear it. Any chocolate left can spread to one neighboring unprotected tile after each move." = "Match beside chocolate to clear it. Any chocolate left can spread to one neighboring unprotected tile after each move.";
+
+/* Focused retry advice */
+"Clear below gifts to reach marked exits; blasts or the Hammer can also collect them directly." = "Clear below gifts to reach marked exits; blasts or the Hammer can also collect them directly.";
+"Activate the required power-ups; creating them alone does not count." = "Activate the required power-ups; creating them alone does not count.";
+"Match the Rat's shown tribute: it alternates between red envelopes and dumplings." = "Match the Rat's shown tribute: it alternates between red envelopes and dumplings.";
+"Crack gold frames or activate power-ups to damage the Ox." = "Crack gold frames or activate power-ups to damage the Ox.";
+"Match firecrackers to hurt the Tiger; later cascades deal extra damage." = "Match firecrackers to hurt the Tiger; later cascades deal extra damage.";
+"Collect lanterns or break locks to damage the Rabbit." = "Collect lanterns or break locks to damage the Rabbit.";
+"Match beside locks to weaken them; power-ups can clear them directly." = "Match beside locks to weaken them; power-ups can clear them directly.";
+"Clear tiles on moon blossoms; deep pink blossoms need two clears." = "Clear tiles on moon blossoms; deep pink blossoms need two clears.";
+"Prioritize matches of the tiles still shown in your goals." = "Prioritize matches of the tiles still shown in your goals.";
+
+/* Board scouting */
+"Board scout" = "Board scout";
+"Layout only. Plain spaces receive random tiles when you play." = "Layout only. Plain spaces receive random tiles when you play.";
+"Rows: %lld. Columns: %lld. Playable spaces: %lld. Holes: %lld." = "Rows: %lld. Columns: %lld. Playable spaces: %lld. Holes: %lld.";
+"Random tile spaces: %lld." = "Random tile spaces: %lld.";
+"Locks: %lld. Ice tiles: %lld. Gold frames: %lld." = "Locks: %lld. Ice tiles: %lld. Gold frames: %lld.";
+"Moon blossom layers: %lld." = "Moon blossom layers: %lld.";
+"Pre-placed power-ups: %lld." = "Pre-placed power-ups: %lld.";
+"Gifts: %lld. Bottom-row exits: %lld." = "Gifts: %lld. Bottom-row exits: %lld.";
+"Chocolate tiles: %lld." = "Chocolate tiles: %lld.";

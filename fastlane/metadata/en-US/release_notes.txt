@@ -1,4 +1,4 @@
-• Every win earns a star, and star targets now match real scores, so two and three stars reward your best play.
-• Each level remembers your best score. Beat it for a "New best!" celebration.
-• Smoother difficulty across the Tiger, Ox and Rabbit chapters.
-• More reliable loading of your saved progress.
+- Play 20 new levels, including guardian rematches, power-up mastery, gift deliveries and mixed-goal challenges.
+- Plan ahead with board scouting, power-up blast previews and goal-aware hints.
+- Get focused retry tips and illustrated power-up combo guides.
+- See clearer star targets, pause summaries and continue details, with improved large-text layouts.

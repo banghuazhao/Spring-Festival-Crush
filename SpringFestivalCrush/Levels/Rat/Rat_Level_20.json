@@ -1,0 +1,31 @@
+{
+  "tiles": [
+    [1, 9, 1, 1, 1, 9, 1],
+    [1, 1, 4, 1, 5, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 5, 1, 4, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1]
+  ],
+  "moves": 20,
+  "levelGoal": {
+    "firstStarScore": 1200,
+    "secondStarScore": 24800,
+    "thirdStarScore": 37300,
+    "levelTarget": {
+      "ingredient": 2,
+      "lightningCombos": 6,
+      "fiveCombos": 2
+    }
+  },
+  "difficulty": 5,
+  "possibleSymbols": [
+    "firecracker",
+    "redPocket",
+    "dumpling",
+    "zodiac"
+  ],
+  "snow": false,
+  "mechanicHint": "Put the lessons together: deliver both gifts while triggering Lightning and Lucky Five powers. A direct special clear can collect a gift too."
+}
