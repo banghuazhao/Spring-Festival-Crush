@@ -504,3 +504,50 @@
 "Pre-placed power-ups: %lld." = "預置特效方塊：%lld。";
 "Gifts: %lld. Bottom-row exits: %lld." = "禮物：%lld。最底行出口：%lld。";
 "Chocolate tiles: %lld." = "巧克力方塊：%lld。";
+
+/* VoiceOver puzzle board */
+"Puzzle board. Rows are numbered from top to bottom and columns from left to right. Double-tap a tile to select it, then double-tap a neighboring tile to swap. Double-tap the selected tile to cancel. You can also choose Swap up, Swap down, Swap left, or Swap right in the Actions rotor. With the Hammer active, double-tap a tile to hit it." = "拼圖棋盤。行從上到下編號，列從左到右編號。點兩下方塊將其選取，再點兩下相鄰方塊進行交換。再次點兩下已選方塊可取消。你也可以在「動作」轉輪中選擇向上交換、向下交換、向左交換或向右交換。啟用新春錘時，點兩下方塊即可敲擊。";
+"Row %lld, Column %lld" = "第 %lld 行，第 %lld 列";
+"Empty space" = "空洞";
+"Empty tile" = "空格";
+"Unknown tile" = "未知方塊";
+"Firecracker" = "鞭炮";
+"Red envelope" = "紅包";
+"Dumpling" = "餃子";
+"Bowl" = "碗";
+"Lantern" = "燈籠";
+"%@ zodiac tile" = "%@生肖方塊";
+"Lock, hits remaining: %lld" = "鎖，剩餘命中次數：%lld";
+"Gift" = "禮物";
+"Lightning" = "閃電";
+"%@, Blast Tile" = "%@，爆破方塊";
+"Ice layers: %lld" = "冰層：%lld";
+"Gold frame layers: %lld" = "金框層數：%lld";
+"Moon blossom layers: %lld" = "月下花層數：%lld";
+"Cannot be swapped" = "無法交換";
+"Gift delivery exit" = "禮物送達出口";
+
+/* VoiceOver board actions and feedback */
+"Double-tap to use Festival Hammer on this tile." = "點兩下以對這個方塊使用新春錘。";
+"Double-tap to select, then double-tap a neighboring tile to swap. Or use the Actions rotor." = "點兩下選取，再點兩下相鄰方塊以交換。也可使用「動作」轉輪。";
+"Festival Hammer selected. Double-tap a tile to clear it." = "已選取新春錘。點兩下方塊即可清除。";
+"Ruyi Swap selected. Select two neighboring tiles or use a swap action." = "已選取如意交換。請選取兩個相鄰方塊，或使用交換動作。";
+"Tool cancelled." = "已取消道具。";
+"This tile cannot be cleared with Festival Hammer." = "新春錘無法清除這個方塊。";
+"This tile cannot be swapped. Clear it with a nearby match or Festival Hammer." = "這個方塊無法交換。請在它旁邊消除，或使用新春錘清除。";
+"Selection cancelled." = "已取消選取。";
+"New selection." = "已重新選取。";
+"Selected." = "已選取。";
+"No movable neighboring tile in that direction." = "該方向沒有可移動的相鄰方塊。";
+"No match. Move not used." = "未形成消除，未消耗步數。";
+"Swap up" = "向上交換";
+"Swap down" = "向下交換";
+"Swap left" = "向左交換";
+"Swap right" = "向右交換";
+"Cancel selection" = "取消選取";
+"Read board status" = "朗讀棋盤狀態";
+"Suggest a move" = "提示下一步";
+"Try swapping %@ with %@." = "試試將%@與%@交換。";
+"Score %lld. %lld moves left. %lld goal pieces remaining." = "得分 %lld。剩餘 %lld 步。還需完成 %lld 個目標單位。";
+"%lld seconds left." = "剩餘 %lld 秒。";
+"Guardian health %lld." = "守護獸生命值 %lld。";

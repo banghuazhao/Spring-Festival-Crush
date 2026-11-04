@@ -12,7 +12,7 @@ extension GameScene {
         let preview: BlastPreview
     }
 
-    private var canHandleBoardTouch: Bool {
+    var canHandleBoardTouch: Bool {
         isUserInteractionEnabled && !isPaused && !feedbackPaused
             && gameModel.gameState == .inProgress && !gameModel.isResolvingBoard
             && gameModel.movesLeft > 0 && (gameModel.secondsLeft.map { $0 > 0 } ?? true)
@@ -179,7 +179,7 @@ extension GameScene {
         return level.symbol(atColumn: column, row: row) === symbol && symbol.isMovable()
     }
 
-    private func isLiveSwap(_ swap: Swap, in level: Level,
+    func isLiveSwap(_ swap: Swap, in level: Level,
                             fromColumn: Int, fromRow: Int, toColumn: Int, toRow: Int) -> Bool {
         guard isBoardCell(column: fromColumn, row: fromRow, in: level),
               isBoardCell(column: toColumn, row: toRow, in: level),
@@ -190,7 +190,7 @@ extension GameScene {
             && swap.symbolA.sprite?.parent === symbolsLayer && swap.symbolB.sprite?.parent === symbolsLayer
     }
 
-    private func dispatchBoardSwap(_ swap: Swap, in level: Level,
+    func dispatchBoardSwap(_ swap: Swap, in level: Level,
                                    fromColumn: Int, fromRow: Int, toColumn: Int, toRow: Int,
                                    requiresPreview: Bool) -> Task<Void, Never> {
         let usingRuyiSwap = gameModel.swapModeActive

@@ -7,6 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D51105000000000000010006 /* BoardAccessibilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D51105000000000000000006 /* BoardAccessibilityTests.swift */; };
+		D51105000000000000010005 /* GameBoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D51105000000000000000005 /* GameBoardView.swift */; };
+		D51105000000000000010004 /* BoardAccessibilityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D51105000000000000000004 /* BoardAccessibilityView.swift */; };
+		D51105000000000000010003 /* BoardAccessibilityElement.swift in Sources */ = {isa = PBXBuildFile; fileRef = D51105000000000000000003 /* BoardAccessibilityElement.swift */; };
+		D51105000000000000010002 /* GameScene+Accessibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = D51105000000000000000002 /* GameScene+Accessibility.swift */; };
+		D51105000000000000010001 /* BoardAccessibilityCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = D51105000000000000000001 /* BoardAccessibilityCell.swift */; };
 		D51023000000000000010001 /* RetryAdvice.swift in Sources */ = {isa = PBXBuildFile; fileRef = D51023000000000000000001 /* RetryAdvice.swift */; };
 		D51023000000000000010002 /* BoardScoutingLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = D51023000000000000000002 /* BoardScoutingLayout.swift */; };
 		D51023000000000000010003 /* BoardScoutingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D51023000000000000000003 /* BoardScoutingView.swift */; };
@@ -263,6 +269,12 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		D51105000000000000000006 /* BoardAccessibilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SpringFestivalCrushTests/BoardAccessibilityTests.swift"; sourceTree = SOURCE_ROOT; };
+		D51105000000000000000005 /* GameBoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Components/GameBoardView.swift"; sourceTree = "<group>"; };
+		D51105000000000000000004 /* BoardAccessibilityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Components/BoardAccessibilityView.swift"; sourceTree = "<group>"; };
+		D51105000000000000000003 /* BoardAccessibilityElement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Components/BoardAccessibilityElement.swift"; sourceTree = "<group>"; };
+		D51105000000000000000002 /* GameScene+Accessibility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GameScene+Accessibility.swift"; sourceTree = "<group>"; };
+		D51105000000000000000001 /* BoardAccessibilityCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BoardAccessibilityCell.swift"; sourceTree = "<group>"; };
 		D51023000000000000000001 /* RetryAdvice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SpringFestivalCrush/Model/Game/RetryAdvice.swift"; sourceTree = SOURCE_ROOT; };
 		D51023000000000000000002 /* BoardScoutingLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SpringFestivalCrush/Model/Level/BoardScoutingLayout.swift"; sourceTree = SOURCE_ROOT; };
 		D51023000000000000000003 /* BoardScoutingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SpringFestivalCrush/View/Components/BoardScoutingView.swift"; sourceTree = SOURCE_ROOT; };
@@ -652,6 +664,7 @@
 			isa = PBXGroup;
 			children = (
 				D5102300000000000000000A /* RetryAdviceTests.swift */,
+				D51105000000000000000006 /* BoardAccessibilityTests.swift */,
 				D5102300000000000000000B /* BoardScoutingLayoutTests.swift */,
 				D5102300000000000000000C /* CapstoneContentTests.swift */,
 				9955DB8923D7E420007786D5 /* SpringFestivalCrush */,
@@ -808,6 +821,7 @@
 		9955DBB923D7E50C007786D5 /* Scene */ = {
 			isa = PBXGroup;
 			children = (
+				D51105000000000000000002 /* GameScene+Accessibility.swift */,
 				9955DBAD23D7E4E4007786D5 /* GameScene.swift */,
 			);
 			path = Scene;
@@ -928,6 +942,9 @@
 				C2609250A1A100000000000F /* MechanicPictograms.swift */,
 				B2C3D4E501234567AABBCC17 /* RewardedAdButton.swift */,
 				B2C3D4E501234567AABBCC23 /* HUDComponents.swift */,
+				D51105000000000000000005 /* GameBoardView.swift */,
+				D51105000000000000000004 /* BoardAccessibilityView.swift */,
+				D51105000000000000000003 /* BoardAccessibilityElement.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -943,6 +960,7 @@
 		9980C05C2C83CDD4001C7EA5 /* Game */ = {
 			isa = PBXGroup;
 			children = (
+				D51105000000000000000001 /* BoardAccessibilityCell.swift */,
 				994625AB2C720E5600FC2C6A /* GameModel.swift */,
 				C20260913000000000000101 /* GameTool.swift */,
 				9955DBAB23D7E4E4007786D5 /* Symbol.swift */,
@@ -1174,11 +1192,16 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		C20260914000000000000005 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (D5102300000000000001000A /* RetryAdviceTests.swift in Sources */, D5102300000000000001000B /* BoardScoutingLayoutTests.swift in Sources */, D5102300000000000001000C /* CapstoneContentTests.swift in Sources */, D5102200000000000001000C /* GoalAwareHintTests.swift in Sources */, D5102200000000000001000D /* DeliveryTeachingTests.swift in Sources */, D5102200000000000001000E /* MasteryDeliveryContentTests.swift in Sources */, D5102200000000000001000F /* MasteryDeliveryRulesTests.swift in Sources */, D5102100000000000001000E /* ChocolateTurnCadenceTests.swift in Sources */, D5102100000000000001000C /* ExpansionContentTests.swift in Sources */, D5102100000000000001000D /* BlastPreviewInteractionTests.swift in Sources */, C20260914000000000000001, C260913D0000000000000001, C2609250B3B3000000000000, 7E127E7FCDD0CC4F55870073 /* LevelSimulator.swift */, 1F282741F9922248CEC7C1AE /* LevelBalanceTests.swift */); runOnlyForDeploymentPostprocessing = 0; };
+		C20260914000000000000005 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (D51105000000000000010006 /* BoardAccessibilityTests.swift in Sources */, D5102300000000000001000A /* RetryAdviceTests.swift in Sources */, D5102300000000000001000B /* BoardScoutingLayoutTests.swift in Sources */, D5102300000000000001000C /* CapstoneContentTests.swift in Sources */, D5102200000000000001000C /* GoalAwareHintTests.swift in Sources */, D5102200000000000001000D /* DeliveryTeachingTests.swift in Sources */, D5102200000000000001000E /* MasteryDeliveryContentTests.swift in Sources */, D5102200000000000001000F /* MasteryDeliveryRulesTests.swift in Sources */, D5102100000000000001000E /* ChocolateTurnCadenceTests.swift in Sources */, D5102100000000000001000C /* ExpansionContentTests.swift in Sources */, D5102100000000000001000D /* BlastPreviewInteractionTests.swift in Sources */, C20260914000000000000001, C260913D0000000000000001, C2609250B3B3000000000000, 7E127E7FCDD0CC4F55870073 /* LevelSimulator.swift */, 1F282741F9922248CEC7C1AE /* LevelBalanceTests.swift */); runOnlyForDeploymentPostprocessing = 0; };
 		9955DB8323D7E420007786D5 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D51105000000000000010005 /* GameBoardView.swift in Sources */,
+				D51105000000000000010004 /* BoardAccessibilityView.swift in Sources */,
+				D51105000000000000010003 /* BoardAccessibilityElement.swift in Sources */,
+				D51105000000000000010002 /* GameScene+Accessibility.swift in Sources */,
+				D51105000000000000010001 /* BoardAccessibilityCell.swift in Sources */,
 				D51023000000000000010001 /* RetryAdvice.swift in Sources */,
 				D51023000000000000010002 /* BoardScoutingLayout.swift in Sources */,
 				D51023000000000000010003 /* BoardScoutingView.swift in Sources */,

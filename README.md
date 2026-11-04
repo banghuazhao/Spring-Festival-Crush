@@ -86,6 +86,14 @@ The game is available for download on the App Store. Click the link below to dow
 3. **Progress Through Levels**: Advance through increasingly difficult levels and unlock new challenges as you go.
 4. **Unlock Zodiac Themes**: Complete levels to unlock different Chinese zodiac animal themes.
 
+### VoiceOver
+
+The puzzle board exposes tiles in reading order, with rows numbered from the top and columns from the left. Each tile announces its type, protection layers, moon blossoms, and gift exits. Double-tap a tile to select it, then double-tap a neighbor to swap; double-tap the selected tile again to cancel. The Actions rotor also offers **Swap up/down/left/right**, **Suggest a move**, and **Read board status**. With Festival Hammer selected, double-tap a tile to use it. Ruyi Swap uses the same selection and directional actions as a normal move.
+
+Board controls pause during cascades and are hidden behind pause, refill, and result screens. A completed move announces the score, remaining moves, and goal progress. Labels and actions support English, Simplified Chinese, and Traditional Chinese.
+
+For release verification, enable VoiceOver on an iPhone or iPad and play a normal level plus a shaped guardian board. Check touch exploration against tile positions, reading order, selection/cancellation, the Actions rotor, power-ups, both targeting tools, settled-move feedback, and focus after pause, restart, and results. Automated coverage lives in `BoardAccessibilityTests` and `BlastPreviewInteractionTests`.
+
 ### 💥 Special Tiles
 
 | Match | Tile | Effect |

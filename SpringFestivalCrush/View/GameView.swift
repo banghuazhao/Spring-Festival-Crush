@@ -117,9 +117,9 @@ struct GameView: View {
     var body: some View {
         ZStack {
             if let gameScene {
-                SpriteView(scene: gameScene, isPaused: isGameplayPaused)
+                GameBoardView(gameModel: gameModel, scene: gameScene, isPaused: isGameplayPaused)
                     .allowsHitTesting(!isGameplayPaused)
-                    .accessibilityHidden(showingPause)
+                    .accessibilityHidden(isShowingResult || isGameplayPaused)
                     .ignoresSafeArea(.all)
                     .blur(radius: isShowingResult ? 2 : 0)
                     .scaleEffect(isShowingResult && !reduceMotion ? 0.99 : 1)
