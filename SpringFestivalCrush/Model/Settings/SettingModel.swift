@@ -49,4 +49,7 @@ final class SettingModel: ObservableObject {
         ? true : UserDefaults.standard.bool(forKey: "powerUpPreviewsEnabled") {
         didSet { UserDefaults.standard.set(powerUpPreviewsEnabled, forKey: "powerUpPreviewsEnabled") }
     }
+    @Published var timedLevelTimerMode: TimedLevelTimerMode = .saved {
+        didSet { UserDefaults.standard.set(timedLevelTimerMode.rawValue, forKey: TimedLevelTimerMode.preferenceKey) }
+    }
 }

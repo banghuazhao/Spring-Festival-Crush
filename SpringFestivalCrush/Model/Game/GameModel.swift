@@ -168,7 +168,9 @@ class GameModel: ObservableObject {
     @Published var currentLevel: Int = 0
     @Published var movesLeft: Int = 0
     @Published var score: Int = 0
-    // Set from level.timeLimit at the start of a timed level; nil for ordinary moves-only levels.
+    // Sample the saved timer preference at setup. It stays fixed until a new attempt.
+    @Published private(set) var attemptTimerMode: TimedLevelTimerMode = .standard
+    // Nil for ordinary moves-only levels and attempts started with the Untimed setting.
     @Published var secondsLeft: Int?
 
     // MARK: - Boosters & currency
@@ -385,7 +387,8 @@ class GameModel: ObservableObject {
         movesLeft = level.maximumMoves + pendingExtraMoves
         pendingExtraMoves = 0
         score = 0
-        secondsLeft = level.timeLimit
+        attemptTimerMode = .saved
+        secondsLeft = attemptTimerMode.seconds(for: level.timeLimit)
         bossStatus = level.boss
         bossTurnPending = false
         initialGoalPieces = remainingGoalPieces

@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D51105000000000000010009 /* TimedLevelAccessibilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D51105000000000000000009 /* TimedLevelAccessibilityTests.swift */; };
+		D51105000000000000010008 /* TimedLevelTimerMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = D51105000000000000000008 /* TimedLevelTimerMode.swift */; };
+		D51105000000000000010007 /* BoardAccessibilityRotor.swift in Sources */ = {isa = PBXBuildFile; fileRef = D51105000000000000000007 /* BoardAccessibilityRotor.swift */; };
 		D51105000000000000010006 /* BoardAccessibilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D51105000000000000000006 /* BoardAccessibilityTests.swift */; };
 		D51105000000000000010005 /* GameBoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D51105000000000000000005 /* GameBoardView.swift */; };
 		D51105000000000000010004 /* BoardAccessibilityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D51105000000000000000004 /* BoardAccessibilityView.swift */; };
@@ -269,6 +272,9 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		D51105000000000000000009 /* TimedLevelAccessibilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SpringFestivalCrushTests/TimedLevelAccessibilityTests.swift"; sourceTree = SOURCE_ROOT; };
+		D51105000000000000000008 /* TimedLevelTimerMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TimedLevelTimerMode.swift"; sourceTree = "<group>"; };
+		D51105000000000000000007 /* BoardAccessibilityRotor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BoardAccessibilityRotor.swift"; sourceTree = "<group>"; };
 		D51105000000000000000006 /* BoardAccessibilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SpringFestivalCrushTests/BoardAccessibilityTests.swift"; sourceTree = SOURCE_ROOT; };
 		D51105000000000000000005 /* GameBoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Components/GameBoardView.swift"; sourceTree = "<group>"; };
 		D51105000000000000000004 /* BoardAccessibilityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Components/BoardAccessibilityView.swift"; sourceTree = "<group>"; };
@@ -665,6 +671,7 @@
 			children = (
 				D5102300000000000000000A /* RetryAdviceTests.swift */,
 				D51105000000000000000006 /* BoardAccessibilityTests.swift */,
+				D51105000000000000000009 /* TimedLevelAccessibilityTests.swift */,
 				D5102300000000000000000B /* BoardScoutingLayoutTests.swift */,
 				D5102300000000000000000C /* CapstoneContentTests.swift */,
 				9955DB8923D7E420007786D5 /* SpringFestivalCrush */,
@@ -960,6 +967,7 @@
 		9980C05C2C83CDD4001C7EA5 /* Game */ = {
 			isa = PBXGroup;
 			children = (
+				D51105000000000000000007 /* BoardAccessibilityRotor.swift */,
 				D51105000000000000000001 /* BoardAccessibilityCell.swift */,
 				994625AB2C720E5600FC2C6A /* GameModel.swift */,
 				C20260913000000000000101 /* GameTool.swift */,
@@ -975,6 +983,7 @@
 		9980C05D2C83CDEB001C7EA5 /* Settings */ = {
 			isa = PBXGroup;
 			children = (
+				D51105000000000000000008 /* TimedLevelTimerMode.swift */,
 				994625BE2C784CCB00FC2C6A /* ThemeModel.swift */,
 				994625C02C7860CD00FC2C6A /* SettingModel.swift */,
 				9971C95D25FC6753008CFCF9 /* AppItem.swift */,
@@ -1192,11 +1201,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		C20260914000000000000005 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (D51105000000000000010006 /* BoardAccessibilityTests.swift in Sources */, D5102300000000000001000A /* RetryAdviceTests.swift in Sources */, D5102300000000000001000B /* BoardScoutingLayoutTests.swift in Sources */, D5102300000000000001000C /* CapstoneContentTests.swift in Sources */, D5102200000000000001000C /* GoalAwareHintTests.swift in Sources */, D5102200000000000001000D /* DeliveryTeachingTests.swift in Sources */, D5102200000000000001000E /* MasteryDeliveryContentTests.swift in Sources */, D5102200000000000001000F /* MasteryDeliveryRulesTests.swift in Sources */, D5102100000000000001000E /* ChocolateTurnCadenceTests.swift in Sources */, D5102100000000000001000C /* ExpansionContentTests.swift in Sources */, D5102100000000000001000D /* BlastPreviewInteractionTests.swift in Sources */, C20260914000000000000001, C260913D0000000000000001, C2609250B3B3000000000000, 7E127E7FCDD0CC4F55870073 /* LevelSimulator.swift */, 1F282741F9922248CEC7C1AE /* LevelBalanceTests.swift */); runOnlyForDeploymentPostprocessing = 0; };
+		C20260914000000000000005 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (D51105000000000000010009 /* TimedLevelAccessibilityTests.swift in Sources */, D51105000000000000010006 /* BoardAccessibilityTests.swift in Sources */, D5102300000000000001000A /* RetryAdviceTests.swift in Sources */, D5102300000000000001000B /* BoardScoutingLayoutTests.swift in Sources */, D5102300000000000001000C /* CapstoneContentTests.swift in Sources */, D5102200000000000001000C /* GoalAwareHintTests.swift in Sources */, D5102200000000000001000D /* DeliveryTeachingTests.swift in Sources */, D5102200000000000001000E /* MasteryDeliveryContentTests.swift in Sources */, D5102200000000000001000F /* MasteryDeliveryRulesTests.swift in Sources */, D5102100000000000001000E /* ChocolateTurnCadenceTests.swift in Sources */, D5102100000000000001000C /* ExpansionContentTests.swift in Sources */, D5102100000000000001000D /* BlastPreviewInteractionTests.swift in Sources */, C20260914000000000000001, C260913D0000000000000001, C2609250B3B3000000000000, 7E127E7FCDD0CC4F55870073 /* LevelSimulator.swift */, 1F282741F9922248CEC7C1AE /* LevelBalanceTests.swift */); runOnlyForDeploymentPostprocessing = 0; };
 		9955DB8323D7E420007786D5 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D51105000000000000010008 /* TimedLevelTimerMode.swift in Sources */,
+				D51105000000000000010007 /* BoardAccessibilityRotor.swift in Sources */,
 				D51105000000000000010005 /* GameBoardView.swift in Sources */,
 				D51105000000000000010004 /* BoardAccessibilityView.swift in Sources */,
 				D51105000000000000010003 /* BoardAccessibilityElement.swift in Sources */,

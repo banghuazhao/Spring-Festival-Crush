@@ -90,9 +90,13 @@ The game is available for download on the App Store. Click the link below to dow
 
 The puzzle board exposes tiles in reading order, with rows numbered from the top and columns from the left. Each tile announces its type, protection layers, moon blossoms, and gift exits. Double-tap a tile to select it, then double-tap a neighbor to swap; double-tap the selected tile again to cancel. The Actions rotor also offers **Swap up/down/left/right**, **Suggest a move**, and **Read board status**. With Festival Hammer selected, double-tap a tile to use it. Ruyi Swap uses the same selection and directional actions as a normal move.
 
+Choose **Rows**, **Power-ups**, or **Goal tiles** in the VoiceOver rotor to explore faster. Swipe up or down to jump to the next or previous matching position. Rows preserve the closest playable column on shaped boards, and Goal tiles skips objectives that are already complete. Navigation stops at the edge and never spends a move or uses a tool.
+
+In **Settings → Accessibility → Timed levels**, choose **Standard**, **Extra time (2×)**, or **Untimed**. The choice applies when starting or restarting an attempt; changing it during a level or continue offer keeps that attempt's current clock. Untimed removes the countdown while keeping the level's move limit. The level briefing shows the chosen time, and untimed attempts display an Untimed label in the HUD.
+
 Board controls pause during cascades and are hidden behind pause, refill, and result screens. A completed move announces the score, remaining moves, and goal progress. Labels and actions support English, Simplified Chinese, and Traditional Chinese.
 
-For release verification, enable VoiceOver on an iPhone or iPad and play a normal level plus a shaped guardian board. Check touch exploration against tile positions, reading order, selection/cancellation, the Actions rotor, power-ups, both targeting tools, settled-move feedback, and focus after pause, restart, and results. Automated coverage lives in `BoardAccessibilityTests` and `BlastPreviewInteractionTests`.
+For release verification, enable VoiceOver on an iPhone or iPad and play a normal level plus a shaped guardian board. Check touch exploration against tile positions, reading order, selection/cancellation, the Actions and navigation rotors, power-ups, both targeting tools, settled-move feedback, and focus after pause, restart, and results. Check each timer option when starting, restarting, and continuing a timed level. Automated coverage lives in `BoardAccessibilityTests`, `BlastPreviewInteractionTests`, and `TimedLevelAccessibilityTests`.
 
 ### 💥 Special Tiles
 

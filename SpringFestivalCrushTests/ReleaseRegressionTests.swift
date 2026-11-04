@@ -8,7 +8,8 @@ final class ReleaseRegressionTests: XCTestCase {
     private func makeGame() -> GameModel {
         let keys = ["coins", "lives", "lastLifeLostTimestamp", "shuffleCharges", "hammerCharges", "hasSeenTutorial",
                     "isPlayBackgroundMusic", "playSoundEffect", "musicVolume", "soundEffectsVolume", "hapticsEnabled",
-                    "screenShakeEnabled", "reducedEffects", "idleHintsEnabled", "powerUpPreviewsEnabled", "unlockAllLevels"]
+                    "screenShakeEnabled", "reducedEffects", "idleHintsEnabled", "powerUpPreviewsEnabled", "unlockAllLevels",
+                    TimedLevelTimerMode.preferenceKey]
         let saved = keys.map { ($0, UserDefaults.standard.object(forKey: $0)) }
         let savedBestScores = UserDefaults.standard.dictionaryRepresentation().filter { $0.key.hasPrefix("bestScore.") }
         addTeardownBlock {
@@ -22,6 +23,7 @@ final class ReleaseRegressionTests: XCTestCase {
             }
             for (key, value) in savedBestScores { UserDefaults.standard.set(value, forKey: key) }
         }
+        UserDefaults.standard.removeObject(forKey: TimedLevelTimerMode.preferenceKey)
         let game = GameModel()
         game.zodiac = Zodiac.all[0]
         game.selectLevel(1)
@@ -662,9 +664,11 @@ final class ReleaseRegressionTests: XCTestCase {
         for accessible in [false, true] {
             let size = CGSize(width: 375, height: 812)
             let name = accessible ? "accessible" : "regular"
+            let settings = SettingModel()
+            settings.timedLevelTimerMode = accessible ? .untimed : .extraTime
             try await snapshot(name: "Settings-\(name)", size: size) { ready in
                 NavigationStack {
-                    SettingsView().environmentObject(SettingModel())
+                    SettingsView().environmentObject(settings)
                 }
                 .environment(\.dynamicTypeSize, accessible ? .accessibility3 : .large)
                 .environment(\.colorScheme, .light)

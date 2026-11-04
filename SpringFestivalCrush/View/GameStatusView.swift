@@ -60,6 +60,13 @@ struct GameStatusView: View {
             HStack(spacing: 8) {
                 if let secondsLeft = gameModel.secondsLeft {
                     HUDTimerPill(secondsLeft: secondsLeft)
+                } else if gameModel.level.timeLimit != nil, gameModel.attemptTimerMode == .untimed {
+                    Label("Untimed", systemImage: "timer")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(AppTheme.ink)
+                        .padding(.horizontal, 10)
+                        .frame(height: 34)
+                        .background(AppTheme.creamHighlight, in: Capsule())
                 }
 
                 Text("GOALS")

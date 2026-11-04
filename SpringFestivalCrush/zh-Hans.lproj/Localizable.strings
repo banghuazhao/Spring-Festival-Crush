@@ -549,3 +549,16 @@
 "Score %lld. %lld moves left. %lld goal pieces remaining." = "得分 %lld。剩余 %lld 步。还需完成 %lld 个目标单位。";
 "%lld seconds left." = "剩余 %lld 秒。";
 "Guardian health %lld." = "守护兽生命值 %lld。";
+
+/* Relaxed timers and VoiceOver navigation */
+"Accessibility" = "辅助功能";
+"Timed levels" = "限时关卡";
+"Standard" = "标准";
+"Extra time (2×)" = "双倍时间（2×）";
+"Untimed" = "不限时";
+"Choose the usual timer, twice as much time, or no timer. Applies when you start or restart a level. Move limits still apply." = "选择标准时间、双倍时间或不限时。开始或重新开始关卡时生效，步数限制仍然适用。";
+"Extra time: double the usual limit." = "双倍时间：时限为标准的两倍。";
+"Rows" = "行";
+"Power-ups" = "强化方块";
+"Goal tiles" = "目标方块";
+"Choose Rows, Power-ups, or Goal tiles in the rotor to explore the board faster. Swipe up or down to move between matches." = "在转子中选择“行”、“强化方块”或“目标方块”，更快地探索棋盘。向上或向下轻扫即可在相应位置间移动。";

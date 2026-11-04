@@ -227,6 +227,211 @@ final class BoardAccessibilityTests: XCTestCase {
         XCTAssertTrue(fixture.game.regularSwaps.isEmpty)
     }
 
+    func testNativeRotorsStayStableAndMoveFocusWithoutActivatingTiles() async throws {
+        let fixture = try await makeFixture()
+        fixture.source.type = .lightning
+        fixture.view.refreshAccessibility()
+        let original = try XCTUnwrap(fixture.view.accessibilityCustomRotors)
+        XCTAssertEqual(original.map(\.name), BoardAccessibilityRotor.allCases.map(\.title))
+        fixture.view.refreshAccessibility()
+        let refreshed = try XCTUnwrap(fixture.view.accessibilityCustomRotors)
+        XCTAssertTrue(zip(original, refreshed).allSatisfy { $0 === $1 })
+
+        let powerRotor = try XCTUnwrap(original.first { $0.name == BoardAccessibilityRotor.powerUps.title })
+        let predicate = UIAccessibilityCustomRotorSearchPredicate()
+        predicate.currentItem = UIAccessibilityCustomRotorItemResult(targetElement: fixture.view, targetRange: nil)
+        predicate.searchDirection = .next
+        let result = try XCTUnwrap(powerRotor.itemSearchBlock(predicate))
+        let target = try XCTUnwrap(result.targetElement as? BoardAccessibilityElement)
+        XCTAssertEqual(target.cell, fixture.sourceCell)
+        XCTAssertTrue(fixture.view.tileElements.contains { $0 === target })
+        let moves = fixture.game.movesLeft
+        XCTAssertTrue(fixture.view.activate(fixture.sourceCell))
+        _ = fixture.view.rotorElement(for: .rows, from: target, forward: false)
+        XCTAssertTrue(target.accessibilityTraits.contains(.selected), "Exploration must preserve the selected swap origin")
+        XCTAssertEqual(fixture.game.movesLeft, moves)
+        XCTAssertTrue(fixture.game.regularSwaps.isEmpty)
+        XCTAssertTrue(fixture.game.ruyiSwaps.isEmpty)
+        XCTAssertTrue(fixture.game.hammerTargets.isEmpty)
+        XCTAssertNil(fixture.view.pendingAction)
+    }
+
+    func testRowsRotorKeepsTheClosestColumnAcrossShapedRowsAndStopsAtEdges() async throws {
+        let fixture = try await makeFixture(zodiacIndex: 3, levelNumber: 17)
+        let elements = fixture.view.tileElements
+        let rows = Set(elements.map { $0.cell.row }).sorted(by: >)
+        XCTAssertEqual(fixture.view.rotorElement(for: .rows, from: nil, forward: true)?.cell, elements.first?.cell)
+        XCTAssertEqual(fixture.view.rotorElement(for: .rows, from: nil, forward: false)?.cell, elements.last?.cell)
+        for element in elements {
+            let index = try XCTUnwrap(rows.firstIndex(of: element.cell.row))
+            for forward in [true, false] {
+                let nextIndex = index + (forward ? 1 : -1)
+                let actual = fixture.view.rotorElement(for: .rows, from: element, forward: forward)
+                guard rows.indices.contains(nextIndex) else {
+                    XCTAssertNil(actual, "Row navigation must not wrap around the board")
+                    continue
+                }
+                let targetRow = rows[nextIndex]
+                let expected = elements.filter { $0.cell.row == targetRow }.min {
+                    let firstDistance = abs($0.cell.column - element.cell.column)
+                    let secondDistance = abs($1.cell.column - element.cell.column)
+                    return firstDistance == secondDistance ? $0.cell.column < $1.cell.column : firstDistance < secondDistance
+                }
+                XCTAssertEqual(actual?.cell, expected?.cell)
+            }
+        }
+        XCTAssertTrue(fixture.game.regularSwaps.isEmpty)
+    }
+
+    func testPowerUpRotorUsesLiveTypesInReadingOrderFromAnyFocusedTile() async throws {
+        let fixture = try await makeFixture()
+        let elements = fixture.view.tileElements
+        for element in elements {
+            fixture.game.level.symbol(atColumn: element.cell.column, row: element.cell.row)?.type = .bowl
+        }
+        let powers = [elements[1], elements[elements.count / 2], try XCTUnwrap(elements.last)]
+        for (element, type) in zip(powers, [SymbolType.five, .redPocketEnhanced, .lightning]) {
+            fixture.game.level.symbol(atColumn: element.cell.column, row: element.cell.row)?.type = type
+        }
+        fixture.view.refreshAccessibility()
+        XCTAssertEqual(rotorCells(.powerUps, in: fixture.view, forward: true), powers.map(\.cell))
+        XCTAssertEqual(rotorCells(.powerUps, in: fixture.view, forward: false), powers.reversed().map(\.cell))
+        XCTAssertTrue(fixture.view.rotorElement(for: .powerUps, from: elements[0], forward: true) === powers[0])
+        XCTAssertNil(fixture.view.rotorElement(for: .powerUps, from: elements[0], forward: false))
+        fixture.game.level.symbol(atColumn: powers[0].cell.column, row: powers[0].cell.row)?.type = .bowl
+        XCTAssertTrue(fixture.view.rotorElement(for: .powerUps, from: nil, forward: true) === powers[1],
+                      "Rotors must search live pieces, even before labels refresh")
+    }
+
+    func testGoalRotorIncludesEnhancedConvertedAndProtectedCollectionTiles() async throws {
+        let fixture = try await makeFixture()
+        let level = try XCTUnwrap(fixture.game.level)
+        let elements = fixture.view.tileElements
+        for element in elements {
+            level.symbol(atColumn: element.cell.column, row: element.cell.row)?.type = .bowl
+            level.tileAt(column: element.cell.column, row: element.cell.row)?.jellyCount = 0
+        }
+        level.levelGoal.levelTarget = LevelTarget(redPocket: 3)
+        let enhanced = try XCTUnwrap(level.symbol(atColumn: elements[1].cell.column, row: elements[1].cell.row))
+        enhanced.type = .redPocketEnhanced
+        enhanced.iceLayer = 2
+        enhanced.armorLayers = 1
+        let converted = try XCTUnwrap(level.symbol(atColumn: elements[3].cell.column, row: elements[3].cell.row))
+        converted.type = .lightning
+        converted.convertedFromType = .redPocket
+        fixture.view.refreshAccessibility()
+        XCTAssertEqual(rotorCells(.goalTiles, in: fixture.view, forward: true), [elements[1].cell, elements[3].cell])
+        XCTAssertTrue(fixture.view.rotorElement(for: .goalTiles, from: elements[2], forward: true) === elements[3])
+        XCTAssertTrue(fixture.view.rotorElement(for: .goalTiles, from: elements[2], forward: false) === elements[1])
+        level.levelGoal.levelTarget.redPocket = 0
+        XCTAssertNil(fixture.view.rotorElement(for: .goalTiles, from: nil, forward: true))
+        level.levelGoal.levelTarget.redPocket = -2
+        XCTAssertNil(fixture.view.rotorElement(for: .goalTiles, from: nil, forward: false))
+    }
+
+    func testGoalRotorFindsBlockersBlossomsGiftsAndActivationGoals() async throws {
+        let fixture = try await makeFixture()
+        let level = try XCTUnwrap(fixture.game.level)
+        let elements = fixture.view.tileElements
+        for element in elements {
+            level.symbol(atColumn: element.cell.column, row: element.cell.row)?.type = .bowl
+            level.tileAt(column: element.cell.column, row: element.cell.row)?.jellyCount = 0
+        }
+        let types: [SymbolType] = [.lock, .heavyLock, .vaultLock, .chocolate, .ingredient, .lightning, .five, .lanternEnhanced]
+        for (element, type) in zip(elements, types) {
+            level.symbol(atColumn: element.cell.column, row: element.cell.row)?.type = type
+        }
+        level.tileAt(column: elements[8].cell.column, row: elements[8].cell.row)?.jellyCount = 2
+        let scenarios: [(LevelTarget, [Int])] = [
+            (LevelTarget(lock: 1), [0, 1, 2]),
+            (LevelTarget(jelly: 1), [8]),
+            (LevelTarget(ingredient: 1), [4]),
+            (LevelTarget(lightningCombos: 1), [5]),
+            (LevelTarget(fiveCombos: 1), [6]),
+            (LevelTarget(enhancedCombos: 1), [7]),
+            (LevelTarget(lock: 0, jelly: 0, ingredient: 0, lightningCombos: 0, fiveCombos: 0, enhancedCombos: 0), [])
+        ]
+        for (target, indices) in scenarios {
+            level.levelGoal.levelTarget = target
+            XCTAssertEqual(rotorCells(.goalTiles, in: fixture.view, forward: true), indices.map { elements[$0].cell })
+        }
+    }
+
+    func testGoalRotorIncludesDirectGuardianTargetsOnlyWhileGuardianIsAlive() async throws {
+        let fixture = try await makeFixture()
+        let level = try XCTUnwrap(fixture.game.level)
+        let elements = fixture.view.tileElements
+        level.levelGoal.levelTarget = LevelTarget()
+        let scenarios: [(BossConfiguration.Kind, [SymbolType])] = [
+            (.rat, [.redPocket, .redPocketEnhanced]),
+            (.ox, [.lightning, .five, .lanternEnhanced]),
+            (.tiger, [.firecracker, .firecrackerEnhanced]),
+            (.rabbit, [.lantern, .lanternEnhanced, .lock, .heavyLock, .vaultLock])
+        ]
+        for (kind, types) in scenarios {
+            for element in elements {
+                let piece = try XCTUnwrap(level.symbol(atColumn: element.cell.column, row: element.cell.row))
+                piece.type = .bowl
+                piece.convertedFromType = nil
+                piece.armorLayers = 0
+                level.tileAt(column: element.cell.column, row: element.cell.row)?.jellyCount = 0
+            }
+            for (element, type) in zip(elements, types) {
+                level.symbol(atColumn: element.cell.column, row: element.cell.row)?.type = type
+            }
+            let armored = elements[types.count]
+            if kind == .ox {
+                level.symbol(atColumn: armored.cell.column, row: armored.cell.row)?.armorLayers = 1
+            } else {
+                level.symbol(atColumn: armored.cell.column, row: armored.cell.row)?.type = .chocolate
+            }
+            level.boss = BossEncounter(configuration: BossConfiguration(kind: kind, health: 10))
+            let expected = elements.prefix(types.count + (kind == .ox ? 1 : 0)).map(\.cell)
+            XCTAssertEqual(rotorCells(.goalTiles, in: fixture.view, forward: true), expected)
+            level.boss = BossEncounter(configuration: BossConfiguration(kind: kind, health: 0))
+            XCTAssertNil(fixture.view.rotorElement(for: .goalTiles, from: nil, forward: true))
+        }
+    }
+
+    func testRotorsRejectPausedBusyExpiredAndObsoleteBoards() async throws {
+        let fixture = try await makeFixture()
+        let element = try XCTUnwrap(fixture.view.tileElements.first)
+        fixture.view.gameplayPaused = true
+        XCTAssertNil(fixture.view.rotorElement(for: .rows, from: nil, forward: true))
+        fixture.view.gameplayPaused = false
+        fixture.view.isPaused = true
+        XCTAssertNil(fixture.view.rotorElement(for: .rows, from: nil, forward: true))
+        fixture.view.isPaused = false
+        fixture.game.movesLeft = 0
+        XCTAssertNil(fixture.view.rotorElement(for: .rows, from: element, forward: true))
+        fixture.game.movesLeft = 20
+        fixture.game.secondsLeft = 0
+        XCTAssertNil(fixture.view.rotorElement(for: .rows, from: nil, forward: true))
+        fixture.game.secondsLeft = nil
+        XCTAssertTrue(fixture.view.swap(fixture.sourceCell, columnDelta: 1, rowDelta: 0))
+        XCTAssertNil(fixture.view.rotorElement(for: .rows, from: nil, forward: true))
+        await fixture.view.pendingAction?.value
+        fixture.game.gameState = .win
+        XCTAssertNil(fixture.view.rotorElement(for: .rows, from: nil, forward: true))
+        fixture.game.selectLevel(2)
+        _ = fixture.game.level.shuffle()
+        fixture.game.gameState = .inProgress
+        XCTAssertNil(fixture.view.rotorElement(for: .rows, from: element, forward: true))
+    }
+
+    private func rotorCells(_ kind: BoardAccessibilityRotor, in board: BoardAccessibilityView,
+                            forward: Bool) -> [BoardAccessibilityCell] {
+        var result: [BoardAccessibilityCell] = []
+        var current: BoardAccessibilityElement?
+        for _ in 0...board.tileElements.count {
+            guard let next = board.rotorElement(for: kind, from: current, forward: forward) else { return result }
+            result.append(next.cell)
+            current = next
+        }
+        XCTFail("Rotor navigation must stop at the edge instead of cycling")
+        return result
+    }
+
     func testHammerCanTargetAGiftWithoutUsingAMove() async throws {
         let fixture = try await makeFixture()
         fixture.game.runsGameplay = true

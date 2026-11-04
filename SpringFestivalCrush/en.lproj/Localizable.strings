@@ -173,3 +173,16 @@
 "Score %lld. %lld moves left. %lld goal pieces remaining." = "Score %lld. %lld moves left. %lld goal pieces remaining.";
 "%lld seconds left." = "%lld seconds left.";
 "Guardian health %lld." = "Guardian health %lld.";
+
+/* Relaxed timers and VoiceOver navigation */
+"Accessibility" = "Accessibility";
+"Timed levels" = "Timed levels";
+"Standard" = "Standard";
+"Extra time (2×)" = "Extra time (2×)";
+"Untimed" = "Untimed";
+"Choose the usual timer, twice as much time, or no timer. Applies when you start or restart a level. Move limits still apply." = "Choose the usual timer, twice as much time, or no timer. Applies when you start or restart a level. Move limits still apply.";
+"Extra time: double the usual limit." = "Extra time: double the usual limit.";
+"Rows" = "Rows";
+"Power-ups" = "Power-ups";
+"Goal tiles" = "Goal tiles";
+"Choose Rows, Power-ups, or Goal tiles in the rotor to explore the board faster. Swipe up or down to move between matches." = "Choose Rows, Power-ups, or Goal tiles in the rotor to explore the board faster. Swipe up or down to move between matches.";

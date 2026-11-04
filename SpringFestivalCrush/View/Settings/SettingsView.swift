@@ -53,6 +53,18 @@ struct SettingsView: View {
                         .font(.footnote).foregroundStyle(AppTheme.ink.opacity(0.7))
                 }
 
+                SettingsCard(title: "Accessibility", icon: "accessibility") {
+                    Picker("Timed levels", selection: $settingModel.timedLevelTimerMode) {
+                        ForEach(TimedLevelTimerMode.allCases) { mode in
+                            Text(mode.title).tag(mode)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .accessibilityIdentifier("settings-timed-levels")
+                    Text("Choose the usual timer, twice as much time, or no timer. Applies when you start or restart a level. Move limits still apply.")
+                        .font(.footnote).foregroundStyle(AppTheme.ink.opacity(0.7))
+                }
+
                 SettingsCard(title: "A little help", icon: "lightbulb.fill") {
                     Toggle("Gentle move hints", isOn: $settingModel.idleHintsEnabled)
                         .accessibilityIdentifier("settings-idle-hints")

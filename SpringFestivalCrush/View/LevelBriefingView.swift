@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct LevelBriefingView: View {
+    @AppStorage(TimedLevelTimerMode.preferenceKey) private var timerModeRawValue = TimedLevelTimerMode.standard.rawValue
     let level: Level
     let levelNumber: Int
     let zodiac: Zodiac
@@ -21,6 +22,7 @@ struct LevelBriefingView: View {
 
     private var ref: LevelRef { LevelRef(zodiac: zodiac.zodiacType, number: levelNumber) }
     private var bestScore: Int { BestScoreStore.best(for: zodiac.zodiacType, level: levelNumber) }
+    private var timerMode: TimedLevelTimerMode { TimedLevelTimerMode(rawValue: timerModeRawValue) ?? .standard }
 
     /// Only the rules this level teaches: each is shown on the first level or two where it
     /// appears, then left to the rule handbook. A guardian's rules have their own card.
@@ -100,10 +102,19 @@ struct LevelBriefingView: View {
             HStack(spacing: 8) {
                 statChip(systemImage: "arrow.left.arrow.right", value: "\(level.maximumMoves)")
                     .accessibilityLabel(Text("\(level.maximumMoves) moves"))
-                if let seconds = level.timeLimit {
-                    statChip(systemImage: "timer", value: "\(seconds)s")
-                        .accessibilityLabel(Text("\(seconds) seconds"))
+                if level.timeLimit != nil {
+                    if let seconds = timerMode.seconds(for: level.timeLimit) {
+                        statChip(systemImage: "timer", value: "\(seconds)s")
+                            .accessibilityLabel(Text("\(seconds) seconds"))
+                    } else {
+                        statChip(systemImage: "timer", value: timerMode.title)
+                            .accessibilityLabel(Text("Untimed"))
+                    }
                 }
+            }
+            if level.timeLimit != nil, timerMode == .extraTime {
+                Text("Extra time: double the usual limit.")
+                    .font(.footnote).foregroundStyle(AppTheme.ink.opacity(0.7))
             }
 
             HStack(alignment: .top, spacing: 10) {
@@ -174,8 +185,12 @@ struct LevelBriefingView: View {
             HelpTipRow(Text(rule.detail), systemImage: "lightbulb.fill", tint: theme.accent)
         }
         HelpTipRow(Text("\(level.maximumMoves) moves"), systemImage: "arrow.left.arrow.right", tint: theme.accent)
-        if let seconds = level.timeLimit {
-            HelpTipRow(Text("\(seconds) seconds"), systemImage: "timer", tint: theme.accent)
+        if level.timeLimit != nil {
+            if let seconds = timerMode.seconds(for: level.timeLimit) {
+                HelpTipRow(Text("\(seconds) seconds"), systemImage: "timer", tint: theme.accent)
+            } else {
+                HelpTipRow(Text("Untimed"), systemImage: "timer", tint: theme.accent)
+            }
         }
         HelpTipRow(level.boss == nil ? Text("Complete every goal before you run out of moves.")
                                      : Text("Defeat the guardian AND complete every goal."),

@@ -22,6 +22,16 @@ final class BoardAccessibilityView: SKView {
     private weak var displayedLevel: Level?
     private var lastHammerMode = false
     private var lastSwapMode = false
+    private lazy var boardRotors = BoardAccessibilityRotor.allCases.map { kind in
+        UIAccessibilityCustomRotor(name: kind.title) { [weak self] predicate in
+            // UIKit documents an absent current item as a search from the beginning/end.
+            let currentItem: UIAccessibilityCustomRotorItemResult? = predicate.currentItem
+            let current = currentItem?.targetElement as? BoardAccessibilityElement
+            guard let element = self?.rotorElement(for: kind, from: current,
+                                                   forward: predicate.searchDirection == .next) else { return nil }
+            return UIAccessibilityCustomRotorItemResult(targetElement: element, targetRange: nil)
+        }
+    }
 
     override func layoutSubviews() {
         super.layoutSubviews()
@@ -31,6 +41,7 @@ final class BoardAccessibilityView: SKView {
     func refreshAccessibility() {
         isAccessibilityElement = false
         accessibilityContainerType = .semanticGroup
+        accessibilityCustomRotors = boardRotors
         guard let scene = scene as? GameScene, let level = scene.gameModel.level else {
             accessibilityElements = []
             return
@@ -92,6 +103,7 @@ final class BoardAccessibilityView: SKView {
         }
         tileElements = elements
         instructionsElement.accessibilityLabel = BoardAccessibilityCell.instructions
+        instructionsElement.accessibilityHint = String(localized: "Choose Rows, Power-ups, or Goal tiles in the rotor to explore the board faster. Swipe up or down to move between matches.")
         instructionsElement.accessibilityTraits = [.header, .staticText]
         if let boardFrame = elements.map(\.accessibilityFrameInContainerSpace).reduce(nil as CGRect?, { result, frame in
             result.map { $0.union(frame) } ?? frame
@@ -119,6 +131,47 @@ final class BoardAccessibilityView: SKView {
     private var canAct: Bool {
         guard !gameplayPaused, !actionInFlight, let scene = scene as? GameScene else { return false }
         return scene.canHandleBoardTouch && !scene.boardSwapDispatchPending
+    }
+
+    /// Returns a live, existing element for VoiceOver to focus. Searches never wrap,
+    /// select a tile, or dispatch gameplay, including while a turn is still resolving.
+    func rotorElement(for kind: BoardAccessibilityRotor, from current: BoardAccessibilityElement?,
+                      forward: Bool) -> BoardAccessibilityElement? {
+        guard canAct, !isPaused, !accessibilityElementsHidden,
+              let scene = scene as? GameScene, let level = scene.gameModel.level,
+              displayedLevel === level else { return nil }
+        let elements = tileElements.filter { element in
+            let cell = element.cell
+            return element.level === level
+                && cell.column >= 0 && cell.column < level.numColumns
+                && cell.row >= 0 && cell.row < level.numRows
+                && level.tileAt(column: cell.column, row: cell.row) != nil
+                && level.symbol(atColumn: cell.column, row: cell.row) != nil
+        }
+        guard let current else {
+            let matches = elements.filter { kind.matches($0.cell, in: level) }
+            return forward ? matches.first : matches.last
+        }
+        guard let index = elements.firstIndex(where: { $0 === current }) else { return nil }
+        if kind == .rows {
+            let rows = Set(elements.map { $0.cell.row })
+            let nextRow = forward
+                ? rows.filter { $0 < current.cell.row }.max()
+                : rows.filter { $0 > current.cell.row }.min()
+            guard let nextRow else { return nil }
+            // Shaped boards can have holes. Keep the column when possible, otherwise
+            // use the closest playable cell, breaking an equal-distance tie to the left.
+            return elements.filter { $0.cell.row == nextRow }.min { first, second in
+                let firstDistance = abs(first.cell.column - current.cell.column)
+                let secondDistance = abs(second.cell.column - current.cell.column)
+                return firstDistance == secondDistance
+                    ? first.cell.column < second.cell.column : firstDistance < secondDistance
+            }
+        }
+        if forward {
+            return elements.dropFirst(index + 1).first { kind.matches($0.cell, in: level) }
+        }
+        return elements.prefix(index).reversed().first { kind.matches($0.cell, in: level) }
     }
 
     @discardableResult
@@ -273,7 +326,11 @@ final class BoardAccessibilityView: SKView {
     private func statusDescription() -> String {
         guard let game = (scene as? GameScene)?.gameModel else { return "" }
         var parts = [String(localized: "Score \(game.score). \(game.movesLeft) moves left. \(game.remainingGoalPieces) goal pieces remaining.")]
-        if let seconds = game.secondsLeft { parts.append(String(localized: "\(seconds) seconds left.")) }
+        if let seconds = game.secondsLeft {
+            parts.append(String(localized: "\(seconds) seconds left."))
+        } else if game.level.timeLimit != nil, game.attemptTimerMode == .untimed {
+            parts.append(String(localized: "Untimed"))
+        }
         if let boss = game.bossStatus {
             parts.append(String(localized: "Guardian health \(boss.health)."))
             parts.append(boss.cue)
