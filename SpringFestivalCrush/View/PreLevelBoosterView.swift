@@ -6,13 +6,13 @@ import SwiftUI
 
 struct PreLevelBoosterView: View {
     @EnvironmentObject var gameModel: GameModel
-    @Environment(\.dismiss) private var dismiss
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
     @Environment(\.gameReducedEffects) private var reducedEffects
     private var reduceMotion: Bool { systemReduceMotion || reducedEffects }
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     let levelNumber: Int
+    let onClose: () -> Void
     let onStart: () -> Void
 
     @State private var buyExtraMoves = false
@@ -148,7 +148,7 @@ struct PreLevelBoosterView: View {
                 }
                 .foregroundStyle(AppTheme.ink)
                 Spacer(minLength: 0)
-                Button("Close", systemImage: "xmark", action: { dismiss() })
+                Button("Close", systemImage: "xmark", action: onClose)
                     .labelStyle(.iconOnly)
                     .font(.system(size: 20, weight: .bold))
                     .foregroundStyle(theme.accent)
@@ -211,7 +211,7 @@ struct PreLevelBoosterView: View {
         if buyHammer { gameModel.applyHammerBooster() }
         if buySwap { gameModel.applySwapBooster() }
         onStart()
-        dismiss()
+        onClose()
     }
 
     private func boosterRow<Art: View>(

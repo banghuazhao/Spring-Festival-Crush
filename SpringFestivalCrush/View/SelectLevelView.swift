@@ -3,6 +3,7 @@ import SwiftUI
 struct SelectLevelView: View {
     @EnvironmentObject private var gameModel: GameModel
     @EnvironmentObject private var settingModel: SettingModel
+    @EnvironmentObject private var themeModel: ThemeModel
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
     @Environment(\.gameReducedEffects) private var reducedEffects
     private var reduceMotion: Bool { systemReduceMotion || reducedEffects }
@@ -167,17 +168,48 @@ struct SelectLevelView: View {
                 .zIndex(20)
             }
         }
+        #if targetEnvironment(macCatalyst)
+        .disabled(selectedLevel != nil)
+        .accessibilityHidden(selectedLevel != nil)
+        .allowsHitTesting(selectedLevel == nil)
+        #endif
         .fullScreenCover(isPresented: $gameModel.shouldPresentGame, onDismiss: {
             gameDismissalCount += 1
         }) {
             GeometryReader { geometry in GameView(screenSize: geometry.size) }
+                .environmentObject(gameModel)
+                .environmentObject(settingModel)
+                .environmentObject(themeModel)
+                .environment(\.gameReducedEffects, settingModel.reducedEffects)
         }
-        // Start only after sheet dismissal, avoiding overlapping UIKit presentations.
-        .sheet(item: $selectedLevel, onDismiss: startPendingLevel) { record in
-            PreLevelBoosterView(levelNumber: record.number) {
-                levelToStart = record.number
+        #if targetEnvironment(macCatalyst)
+        // Keep the briefing in the navigation hierarchy on Mac Catalyst so its
+        // model and presentation state remain attached to the level map.
+        .overlay {
+            if let record = selectedLevel {
+                PreLevelBoosterView(levelNumber: record.number, onClose: {
+                    selectedLevel = nil
+                    startPendingLevel()
+                }) {
+                    levelToStart = record.number
+                }
+                .environmentObject(gameModel)
+                .environment(\.gameReducedEffects, settingModel.reducedEffects)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .accessibilityAddTraits(.isModal)
             }
         }
+        .toolbar(selectedLevel == nil ? .visible : .hidden, for: .navigationBar)
+        #else
+        // Start only after sheet dismissal, avoiding overlapping UIKit presentations.
+        .sheet(item: $selectedLevel, onDismiss: startPendingLevel) { record in
+            PreLevelBoosterView(levelNumber: record.number, onClose: { selectedLevel = nil }) {
+                levelToStart = record.number
+            }
+            .environmentObject(gameModel)
+            .environment(\.gameReducedEffects, settingModel.reducedEffects)
+        }
+        #endif
         .navigationTitle(theme.zodiac.localizedTitle)
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(theme.sky, for: .navigationBar)

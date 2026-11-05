@@ -53,6 +53,7 @@ struct PauseMenuView: View {
                                 }
                             }
                     }
+                    .environmentObject(settingModel)
                 }
             }
             .tint(AppTheme.festivalGold)

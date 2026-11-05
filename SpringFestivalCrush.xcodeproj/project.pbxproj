@@ -176,7 +176,7 @@
 		C20260910000000000000005 /* ZodiacChapterDock.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260910000000000000105 /* ZodiacChapterDock.swift */; };
 		C20260910000000000000006 /* LivesHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260910000000000000106 /* LivesHeaderView.swift */; };
 		C20260910000000000000007 /* LevelBriefingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20260910000000000000107 /* LevelBriefingView.swift */; };		994625932C71CC9000FC2C6A /* Localize_Swift in Frameworks */ = {isa = PBXBuildFile; productRef = 994625922C71CC9000FC2C6A /* Localize_Swift */; };
-		994625962C71CC9A00FC2C6A /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 994625952C71CC9A00FC2C6A /* GoogleMobileAds */; };
+		994625962C71CC9A00FC2C6A /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 994625952C71CC9A00FC2C6A /* GoogleMobileAds */; platformFilter = ios; };
 		994625A32C720A2800FC2C6A /* Match3GameApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 994625A22C720A2800FC2C6A /* Match3GameApp.swift */; };
 		994625A52C720A6C00FC2C6A /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 994625A42C720A6C00FC2C6A /* MainView.swift */; };
 		994625A72C720AA600FC2C6A /* SelectLevelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 994625A62C720AA600FC2C6A /* SelectLevelView.swift */; };
@@ -1550,6 +1550,14 @@
 				MARKETING_VERSION = 3.7.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.Banghua-Zhao.Spring-Festival-Crush";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTS_MACCATALYST = YES;
+				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = NO;
+				"ASSETCATALOG_COMPILER_APPICON_NAME[sdk=macosx*]" = AppIconMac;
+				"CURRENT_PROJECT_VERSION[sdk=macosx*]" = 2611060850;
+				"ENABLE_APP_SANDBOX[sdk=macosx*]" = YES;
+				"GENERATE_INFOPLIST_FILE[sdk=macosx*]" = YES;
+				"INFOPLIST_KEY_LSApplicationCategoryType[sdk=macosx*]" = "public.app-category.puzzle-games";
+				"MARKETING_VERSION[sdk=macosx*]" = 1.0;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -1571,6 +1579,14 @@
 				MARKETING_VERSION = 3.7.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.Banghua-Zhao.Spring-Festival-Crush";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTS_MACCATALYST = YES;
+				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = NO;
+				"ASSETCATALOG_COMPILER_APPICON_NAME[sdk=macosx*]" = AppIconMac;
+				"CURRENT_PROJECT_VERSION[sdk=macosx*]" = 2611060850;
+				"ENABLE_APP_SANDBOX[sdk=macosx*]" = YES;
+				"GENERATE_INFOPLIST_FILE[sdk=macosx*]" = YES;
+				"INFOPLIST_KEY_LSApplicationCategoryType[sdk=macosx*]" = "public.app-category.puzzle-games";
+				"MARKETING_VERSION[sdk=macosx*]" = 1.0;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
