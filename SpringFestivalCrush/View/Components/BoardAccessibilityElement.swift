@@ -19,4 +19,9 @@ final class BoardAccessibilityElement: UIAccessibilityElement {
               board.tileElements.contains(where: { $0 === self }) else { return false }
         return board.activate(cell)
     }
+
+    override func accessibilityElementDidBecomeFocused() {
+        super.accessibilityElementDidBecomeFocused()
+        board?.rememberFocus(on: self)
+    }
 }

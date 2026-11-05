@@ -4,6 +4,7 @@ struct BossEncounterView: View {
     let encounter: BossEncounter
     /// The latest guardian reaction; a new id replays the matching animation.
     var event: BossEvent?
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
     @Environment(\.gameReducedEffects) private var reducedEffects
     private var reduceMotion: Bool { systemReduceMotion || reducedEffects }
@@ -27,10 +28,13 @@ struct BossEncounterView: View {
             avatar
 
             VStack(alignment: .leading, spacing: 4) {
-                HStack {
+                let layout = dynamicTypeSize >= .xxLarge
+                    ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
+                    : AnyLayout(HStackLayout())
+                layout {
                     Text(kind.title)
                         .font(.subheadline.bold())
-                    Spacer(minLength: 4)
+                    if dynamicTypeSize < .xxLarge { Spacer(minLength: 4) }
                     Text("\(encounter.health) / \(encounter.configuration.health)")
                         .font(.caption.monospacedDigit().bold())
                         .contentTransition(.numericText())
@@ -45,6 +49,10 @@ struct BossEncounterView: View {
                         .background(AppTheme.creamHighlight, in: Capsule())
                         .transition(.scale(scale: 0.6, anchor: .leading).combined(with: .opacity))
                         .accessibilityHidden(true)
+                } else if dynamicTypeSize >= .xxLarge {
+                    Text(encounter.cue)
+                        .font(.caption.weight(.heavy))
+                        .fixedSize(horizontal: false, vertical: true)
                 } else {
                     cue
                 }

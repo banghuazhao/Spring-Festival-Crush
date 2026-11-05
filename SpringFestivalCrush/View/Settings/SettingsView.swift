@@ -63,6 +63,16 @@ struct SettingsView: View {
                     .accessibilityIdentifier("settings-timed-levels")
                     Text("Choose the usual timer, twice as much time, or no timer. Applies when you start or restart a level. Move limits still apply.")
                         .font(.footnote).foregroundStyle(AppTheme.ink.opacity(0.7))
+                    Divider()
+                    Picker("Board announcements", selection: $settingModel.boardSpeechDetail) {
+                        ForEach(BoardSpeechDetail.allCases) { detail in
+                            Text(detail.title).tag(detail)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .accessibilityIdentifier("settings-board-announcements")
+                    Text("Brief announcements read essential move results. Detailed announcements also describe progress for each goal. You can always read board status or repeat the last move result.")
+                        .font(.footnote).foregroundStyle(AppTheme.ink.opacity(0.7))
                 }
 
                 SettingsCard(title: "A little help", icon: "lightbulb.fill") {

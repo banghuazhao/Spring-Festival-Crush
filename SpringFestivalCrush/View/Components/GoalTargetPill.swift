@@ -7,6 +7,8 @@ struct GoalTargetPill: View {
     var reportsFrame = false
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
     @Environment(\.gameReducedEffects) private var reducedEffects
+    @ScaledMetric(relativeTo: .body) private var textSize = 16
+    @ScaledMetric(relativeTo: .body) private var iconSize = 26
     private var reduceMotion: Bool { systemReduceMotion || reducedEffects }
 
     private var remaining: Int { max(0, target.targetNum) + pendingAmount }
@@ -16,7 +18,7 @@ struct GoalTargetPill: View {
             target.image
                 .resizable()
                 .scaledToFit()
-                .frame(width: 26, height: 26)
+                .frame(width: iconSize, height: iconSize)
                 .background {
                     if reportsFrame {
                         GeometryReader { geometry in
@@ -26,12 +28,12 @@ struct GoalTargetPill: View {
                 }
             if remaining > 0 {
                 Text("\(remaining)")
-                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                    .font(.system(size: textSize, weight: .bold, design: .rounded))
                     .monospacedDigit()
                     .contentTransition(.numericText(countsDown: true))
             } else {
                 Image(systemName: "checkmark.circle.fill")
-                    .font(.system(size: 17, weight: .bold))
+                    .font(.system(size: textSize, weight: .bold))
                     .foregroundStyle(AppTheme.creamHighlight)
             }
         }

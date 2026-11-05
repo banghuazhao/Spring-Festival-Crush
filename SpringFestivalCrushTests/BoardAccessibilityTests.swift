@@ -50,7 +50,8 @@ final class BoardAccessibilityTests: XCTestCase {
                              preserveBoard: Bool = false) async throws -> Fixture {
         let keys = ["coins", "lives", "lastLifeLostTimestamp", "shuffleCharges", "hammerCharges", "swapCharges",
                     "hasSeenTutorial", "isPlayBackgroundMusic", "playSoundEffect", "musicVolume", "soundEffectsVolume",
-                    "hapticsEnabled", "screenShakeEnabled", "reducedEffects", "idleHintsEnabled", "powerUpPreviewsEnabled"]
+                    "hapticsEnabled", "screenShakeEnabled", "reducedEffects", "idleHintsEnabled", "powerUpPreviewsEnabled",
+                    BoardSpeechDetail.preferenceKey]
         let saved = keys.map { ($0, UserDefaults.standard.object(forKey: $0)) }
         addTeardownBlock {
             for (key, value) in saved {
@@ -87,6 +88,7 @@ final class BoardAccessibilityTests: XCTestCase {
         settings.playSoundEffect = false
         settings.hapticsEnabled = false
         settings.idleHintsEnabled = false
+        settings.boardSpeechDetail = .detailed
         let scene = GameScene(size: size, gameModel: game, themeModel: ThemeModel(),
                               settingModel: settings, feedback: GameFeedback(), reduceMotion: true)
         scene.setupLayerPosition()
@@ -738,6 +740,185 @@ final class BoardAccessibilityTests: XCTestCase {
         XCTAssertFalse(element.accessibilityActivate())
         XCTAssertTrue(fixture.game.regularSwaps.isEmpty)
         XCTAssertTrue(fixture.game.hammerTargets.isEmpty)
+    }
+
+    func testVoiceOverResumesAtLastFocusedPositionAndDropsFocusAcrossLevels() async throws {
+        let fixture = try await makeFixture()
+        let element = try XCTUnwrap(fixture.view.tileElements.last)
+        element.accessibilityElementDidBecomeFocused()
+        XCTAssertEqual(fixture.view.focusedCell, element.cell)
+        fixture.view.gameplayPaused = true
+        XCTAssertTrue(fixture.view.accessibilityElementsHidden)
+        fixture.view.gameplayPaused = false
+        XCTAssertTrue(fixture.view.lastFocusRestoration === element)
+        XCTAssertFalse(element.accessibilityTraits.contains(.selected), "Restoring focus must not select or spend a move")
+        XCTAssertNil(fixture.view.pendingAction)
+
+        fixture.game.selectLevel(2)
+        _ = fixture.game.level.shuffle()
+        fixture.game.gameState = .inProgress
+        fixture.view.refreshAccessibility()
+        XCTAssertNil(fixture.view.focusedCell)
+        XCTAssertTrue(fixture.view.lastFocusRestoration === fixture.view.accessibilityElements?.first as? UIAccessibilityElement)
+        element.accessibilityElementDidBecomeFocused()
+        XCTAssertNil(fixture.view.focusedCell, "A stale focus callback must not restore the previous attempt")
+    }
+
+    func testNativeKeyboardCommandsExploreSelectSwapAndCancelWithoutExtraMoves() async throws {
+        let fixture = try await makeFixture()
+        try await waitForRenderedUpdate { fixture.view.isFirstResponder }
+        let source = try XCTUnwrap(fixture.view.tileElements.first { $0.cell == fixture.sourceCell })
+        source.accessibilityElementDidBecomeFocused()
+        let commands = try XCTUnwrap(fixture.view.keyCommands)
+        XCTAssertEqual(commands.count, 7)
+        XCTAssertTrue(commands.allSatisfy { $0.modifierFlags.isEmpty && !$0.wantsPriorityOverSystemBehavior })
+        func press(_ input: String) throws {
+            let command = try XCTUnwrap(fixture.view.keyCommands?.first { $0.input == input })
+            XCTAssertTrue(UIApplication.shared.sendAction(try XCTUnwrap(command.action), to: fixture.view, from: command, for: nil))
+        }
+        try press("\r")
+        XCTAssertEqual(fixture.view.keyboardCell, fixture.sourceCell)
+        XCTAssertTrue(source.accessibilityTraits.contains(.selected))
+        try press(UIKeyCommand.inputEscape)
+        XCTAssertFalse(source.accessibilityTraits.contains(.selected))
+        XCTAssertNil(fixture.view.pendingAction)
+        try press(" ")
+        try press(UIKeyCommand.inputRightArrow)
+        XCTAssertEqual(fixture.view.keyboardCell, fixture.destinationCell)
+        XCTAssertTrue(fixture.game.regularSwaps.isEmpty)
+        XCTAssertEqual(fixture.game.movesLeft, 20)
+        try press("\r")
+        await fixture.view.pendingAction?.value
+        XCTAssertEqual(fixture.game.regularSwaps.count, 1)
+        source.accessibilityElementDidBecomeFocused()
+        XCTAssertEqual(fixture.view.keyboardCell, source.cell,
+                       "Mixing VoiceOver and keyboard input must keep Return on the spoken tile")
+        fixture.view.gameplayPaused = true
+        XCTAssertFalse(fixture.view.isFirstResponder)
+        XCTAssertTrue(fixture.view.keyCommands?.isEmpty == true)
+        XCTAssertFalse(fixture.view.activateKeyboardCell())
+        XCTAssertFalse(fixture.view.moveKeyboardFocus(columnDelta: 0, rowDelta: 1))
+        XCTAssertFalse(fixture.view.cancelKeyboardSelection())
+    }
+
+    func testKeyboardNavigationSkipsHolesStopsAtEdgesAndUsesToolsThroughExistingRoutes() async throws {
+        let fixture = try await makeFixture(zodiacIndex: 0, levelNumber: 10)
+        let first = try XCTUnwrap(fixture.view.tileElements.first)
+        XCTAssertTrue(fixture.view.moveKeyboardFocus(columnDelta: 1, rowDelta: 0))
+        XCTAssertEqual(fixture.view.keyboardCell, first.cell)
+        let row = fixture.view.tileElements.filter { $0.cell.row == first.cell.row }
+        for element in row.dropFirst() {
+            XCTAssertTrue(fixture.view.moveKeyboardFocus(columnDelta: 1, rowDelta: 0))
+            XCTAssertEqual(fixture.view.keyboardCell, element.cell)
+        }
+        XCTAssertFalse(fixture.view.moveKeyboardFocus(columnDelta: 1, rowDelta: 0))
+        XCTAssertFalse(fixture.view.moveKeyboardFocus(columnDelta: Int.max, rowDelta: 0))
+        XCTAssertTrue(fixture.game.regularSwaps.isEmpty)
+        fixture.game.hammerModeActive = true
+        fixture.view.refreshAccessibility()
+        let target = try XCTUnwrap(fixture.view.keyboardCell)
+        XCTAssertTrue(fixture.view.activateKeyboardCell())
+        await fixture.view.pendingAction?.value
+        XCTAssertEqual(fixture.game.hammerTargets, [target])
+        fixture.game.hammerModeActive = false
+        fixture.game.swapModeActive = true
+        fixture.view.refreshAccessibility()
+        XCTAssertTrue(fixture.view.cancelKeyboardSelection())
+        XCTAssertFalse(fixture.game.swapModeActive)
+        XCTAssertEqual(fixture.game.movesLeft, 20)
+    }
+
+    func testKeyboardExplorationScrollsAnOffscreenBoardIntoView() async throws {
+        let fixture = try await makeFixture()
+        let controller = try XCTUnwrap(fixture.view.window?.rootViewController)
+        let scroll = UIScrollView(frame: CGRect(x: 0, y: 0, width: 320, height: 568))
+        scroll.contentInsetAdjustmentBehavior = .never
+        scroll.contentSize = CGSize(width: 320, height: 1800)
+        controller.view = scroll
+        fixture.view.autoresizingMask = []
+        fixture.view.frame = CGRect(x: 0, y: 800, width: 320, height: 568)
+        scroll.addSubview(fixture.view)
+        XCTAssertEqual(scroll.contentOffset.y, 0)
+        XCTAssertTrue(fixture.view.moveKeyboardFocus(columnDelta: 1, rowDelta: 0))
+        let cell = try XCTUnwrap(fixture.view.keyboardCell)
+        let element = try XCTUnwrap(fixture.view.tileElements.first { $0.cell == cell })
+        let visibleFrame = fixture.view.convert(element.accessibilityFrameInContainerSpace, to: scroll)
+        XCTAssertGreaterThan(scroll.contentOffset.y, 0)
+        XCTAssertTrue(scroll.bounds.contains(visibleFrame), "A hardware keyboard cursor must remain visible below a large HUD")
+        XCTAssertNil(fixture.view.pendingAction)
+        XCTAssertEqual(fixture.game.movesLeft, 20)
+    }
+
+    func testSwitchControlRowsPreserveTileGeometryAndHideCoveredOrExpiredGroups() async throws {
+        let fixture = try await makeFixture(zodiacIndex: 3, levelNumber: 20)
+        let frames = Dictionary(uniqueKeysWithValues: fixture.view.tileElements.map { ($0.cell, $0.accessibilityFrame) })
+        fixture.view.groupsRowsForSwitchControl = true
+        let groups = try XCTUnwrap(fixture.view.accessibilityElements?.dropFirst().compactMap { $0 as? BoardAccessibilityRowElement })
+        XCTAssertFalse(groups.isEmpty)
+        XCTAssertEqual(groups.map(\.row), Set(fixture.view.tileElements.map { $0.cell.row }).sorted(by: >))
+        XCTAssertEqual(groups.flatMap(\.elements).map(\.cell), fixture.view.tileElements.map(\.cell))
+        for group in groups {
+            XCTAssertFalse(group.isAccessibilityElement)
+            XCTAssertTrue(group.shouldGroupAccessibilityChildren)
+            XCTAssertEqual(group.accessibilityContainerType, .semanticGroup)
+            XCTAssertEqual(group.accessibilityElementCount(), group.elements.count)
+            for (index, element) in group.elements.enumerated() {
+                XCTAssertTrue(group.accessibilityElement(at: index) as? BoardAccessibilityElement === element)
+                XCTAssertEqual(group.index(ofAccessibilityElement: element), index)
+                XCTAssertEqual(element.accessibilityFrame, frames[element.cell])
+            }
+        }
+        fixture.view.gameplayPaused = true
+        XCTAssertTrue(groups.allSatisfy { $0.accessibilityElementCount() == 0 })
+        fixture.view.gameplayPaused = false
+        XCTAssertTrue(groups.allSatisfy { $0.accessibilityElementCount() > 0 })
+        fixture.view.groupsRowsForSwitchControl = false
+        XCTAssertTrue(groups.allSatisfy { $0.accessibilityElementCount() == 0 })
+        XCTAssertEqual(fixture.view.accessibilityElementCount(), fixture.view.tileElements.count + 1)
+        for element in fixture.view.tileElements { XCTAssertEqual(element.accessibilityFrame, frames[element.cell]) }
+        fixture.view.groupsRowsForSwitchControl = true
+        for element in fixture.view.tileElements { XCTAssertEqual(element.accessibilityFrame, frames[element.cell]) }
+    }
+
+    func testBriefReceiptsAndReplayKeepSettledResultsAfterStatusSelectionAndPreferenceChanges() async throws {
+        let fixture = try await makeFixture()
+        XCTAssertFalse(fixture.view.repeatLastMoveResult())
+        fixture.scene.settingModel.boardSpeechDetail = .brief
+        fixture.source.type = .lightning
+        fixture.game.level.levelGoal.levelTarget = LevelTarget(dumpling: 5)
+        fixture.game.level.detectPossibleSwaps()
+        fixture.view.refreshAccessibility()
+        fixture.game.onRegularSwap = { [weak game = fixture.game] _ in
+            game?.level.levelGoal.levelTarget.dumpling = 2
+            game?.movesLeft = 19
+            game?.score = 120
+        }
+        XCTAssertTrue(fixture.view.swap(fixture.sourceCell, columnDelta: 1, rowDelta: 0))
+        await fixture.view.pendingAction?.value
+        let brief = try XCTUnwrap(fixture.view.lastAnnouncement)
+        XCTAssertTrue(brief.contains(String(localized: "\(19) moves left. \(2) goal pieces remaining.")))
+        XCTAssertFalse(brief.contains(String(localized: "dumplings")))
+        fixture.game.movesLeft = 12
+        fixture.view.refreshAccessibility()
+        let header = try XCTUnwrap(fixture.view.accessibilityElements?.first as? UIAccessibilityElement)
+        let status = try XCTUnwrap(header.accessibilityCustomActions?.first { $0.name == String(localized: "Read board status") })
+        XCTAssertTrue(try XCTUnwrap(status.actionHandler)(status))
+        XCTAssertNotEqual(fixture.view.lastAnnouncement, brief)
+        XCTAssertTrue(fixture.view.activate(fixture.sourceCell))
+        let replay = try XCTUnwrap(header.accessibilityCustomActions?.first { $0.name == String(localized: "Repeat last move result") })
+        XCTAssertTrue(try XCTUnwrap(replay.actionHandler)(replay))
+        XCTAssertEqual(fixture.view.lastAnnouncement, brief)
+        fixture.scene.settingModel.boardSpeechDetail = .detailed
+        XCTAssertTrue(fixture.view.repeatLastMoveResult())
+        XCTAssertTrue(try XCTUnwrap(fixture.view.lastAnnouncement).contains(String(localized: "dumplings")))
+        XCTAssertTrue(try XCTUnwrap(fixture.view.lastAnnouncement).contains("19"), "Replay uses the saved turn, not the current status")
+        fixture.view.gameplayPaused = true
+        XCTAssertFalse(fixture.view.repeatLastMoveResult())
+        fixture.view.gameplayPaused = false
+        fixture.game.selectLevel(2)
+        XCTAssertFalse(fixture.view.repeatLastMoveResult())
+        fixture.view.refreshAccessibility()
+        XCTAssertFalse(fixture.view.repeatLastMoveResult())
     }
 
     private func findBoard(in view: UIView) -> BoardAccessibilityView? {

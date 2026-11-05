@@ -588,3 +588,18 @@
 "No direct blast is available for that swap." = "此交换没有可预览的直接爆破效果。";
 "Preview expired. Choose a Preview action again." = "预览已失效，请重新选择预览操作。";
 "Use Preview up, down, left, or right before a power-up swap. Read preview details lists the direct-hit positions. Preview never spends a move or uses a tool." = "交换强化方块前，可使用向上、向下、向左或向右预览。“朗读预览详情”会列出直接命中位置。预览不会消耗步数或道具。";
+
+// Gameplay accessibility preferences and navigation
+"Brief" = "简短";
+"Detailed" = "详细";
+"Board announcements" = "棋盘播报";
+"Brief announcements read essential move results. Detailed announcements also describe progress for each goal. You can always read board status or repeat the last move result." = "简短播报会读出关键的移动结果。详细播报还会说明每项目标的进度。你可以随时读取棋盘状态或重听上一步的结果。";
+"Repeat last move result" = "重听上一步的结果";
+"%lld moves left. %lld goal pieces remaining." = "剩余 %lld 步。还需收集 %lld 个目标。";
+"Row %lld" = "第 %lld 行";
+"Move to tile above" = "移到上方方块";
+"Move to tile below" = "移到下方方块";
+"Move to tile on left" = "移到左侧方块";
+"Move to tile on right" = "移到右侧方块";
+"Select or swap tile" = "选择或交换方块";
+"With a keyboard, use arrow keys to explore, Return or Space to select and swap, and Escape to cancel." = "使用键盘时，按方向键浏览，按回车键或空格键选择并交换，按 Escape 键取消。";

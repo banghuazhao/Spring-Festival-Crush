@@ -1935,6 +1935,209 @@ final class ReleaseRegressionTests: XCTestCase {
         }
     }
 
+    func testGameplayHUDAndToolsReflowAcrossTextSizes() async throws {
+        let cases: [(Int, String, CGSize, DynamicTypeSize)] = [
+            (2, "en", CGSize(width: 375, height: 667), .large),
+            (0, "zh-Hans", CGSize(width: 320, height: 568), .xxxLarge),
+            (3, "en", CGSize(width: 320, height: 568), .accessibility5),
+            (3, "zh-Hant", CGSize(width: 768, height: 1024), .accessibility3)
+        ]
+        for (chapter, language, size, textSize) in cases {
+            let game = makeGame()
+            game.zodiac = Zodiac.all[chapter]
+            game.selectLevel(15)
+            let settings = SettingModel()
+            settings.isPlayBackgroundMusic = false
+            settings.playSoundEffect = false
+            settings.reducedEffects = true
+            try await snapshot(name: "HUD-\(language)-\(Int(size.width))-\(textSize)", size: size) { ready in
+                GameView(screenSize: size)
+                    .environmentObject(game)
+                    .environmentObject(ThemeModel())
+                    .environmentObject(settings)
+                    .environment(\.scenePhase, .active)
+                    .environment(\.locale, Locale(identifier: language))
+                    .environment(\.dynamicTypeSize, textSize)
+                    .environment(\.gameReducedEffects, true)
+                    .task {
+                        // The test window has no app scene lifecycle. Drive an active
+                        // environment and wait for real SpriteKit setup to finish.
+                        while !Task.isCancelled {
+                            if game.gameState == .inProgress,
+                               (0..<game.numColumns).contains(where: { column in
+                                   (0..<game.numRows).contains { row in
+                                       game.level.symbol(atColumn: column, row: row)?.sprite != nil
+                                   }
+                               }) {
+                                ready()
+                                return
+                            }
+                            do { try await Task.sleep(for: .milliseconds(10)) }
+                            catch { return }
+                        }
+                    }
+            }
+            XCTAssertEqual(game.gameState, .inProgress)
+        }
+    }
+
+    func testLiveDynamicTypeChangesRehostTheSamePlayableScene() async throws {
+        let game = makeGame()
+        let settings = SettingModel()
+        settings.isPlayBackgroundMusic = false
+        settings.playSoundEffect = false
+        settings.reducedEffects = true
+        let size = CGSize(width: 320, height: 568)
+        func root(_ textSize: DynamicTypeSize) -> some View {
+            GameView(screenSize: size)
+                .environmentObject(game)
+                .environmentObject(ThemeModel())
+                .environmentObject(settings)
+                .environment(\.scenePhase, .active)
+                .environment(\.dynamicTypeSize, textSize)
+                .environment(\.gameReducedEffects, true)
+        }
+        let windowScene = try XCTUnwrap(UIApplication.shared.connectedScenes.first as? UIWindowScene)
+        let previousWindow = windowScene.keyWindow
+        let window = UIWindow(windowScene: windowScene)
+        window.frame = CGRect(origin: .zero, size: size)
+        let host = UIHostingController(rootView: root(.large))
+        window.rootViewController = host
+        window.makeKeyAndVisible()
+        defer {
+            window.isHidden = true
+            window.rootViewController = nil
+            previousWindow?.makeKeyAndVisible()
+        }
+        try await waitForGameplayRender {
+            game.gameState == .inProgress && self.findGameplayBoard(in: host.view)?.tileElements.isEmpty == false
+        }
+        let firstBoard = try XCTUnwrap(findGameplayBoard(in: host.view))
+        let scene = try XCTUnwrap(firstBoard.scene as? GameScene)
+        let level = game.level
+        let moves = game.movesLeft
+        let score = game.score
+        for textSize in [DynamicTypeSize.accessibility5, .large] {
+            host.rootView = root(textSize)
+            let expectedSize = textSize >= .xxLarge
+                ? CGSize(width: 296, height: 296 * CGFloat(game.numRows) / CGFloat(game.numColumns) + 32) : size
+            try await waitForGameplayRender {
+                guard let board = self.findGameplayBoard(in: host.view) else { return false }
+                return board.scene === scene && scene.view === board && board.window === window
+                    && scene.size == expectedSize && !scene.feedbackPaused
+                    && !board.gameplayPaused && !board.isPaused
+                    && !board.accessibilityElementsHidden && !board.tileElements.isEmpty
+            }
+            let board = try XCTUnwrap(findGameplayBoard(in: host.view))
+            XCTAssertTrue(board.scene === scene, "Changing text size must preserve the running scene")
+            XCTAssertTrue(scene.view === board, "The visible native board must own the scene")
+            XCTAssertTrue(board.window === window)
+            XCTAssertFalse(board.isPaused)
+            XCTAssertFalse(board.gameplayPaused)
+            XCTAssertFalse(board.accessibilityElementsHidden)
+            XCTAssertFalse(board.tileElements.isEmpty)
+            XCTAssertFalse(scene.feedbackPaused)
+            XCTAssertTrue(game.level === level)
+            XCTAssertEqual(game.movesLeft, moves)
+            XCTAssertEqual(game.score, score)
+            XCTAssertEqual(game.gameState, .inProgress)
+            XCTAssertTrue(scene.canHandleBoardTouch)
+            XCTAssertEqual(scene.boardViewportLayer.xScale == 1, textSize == .large)
+        }
+    }
+
+    private func findGameplayBoard(in view: UIView) -> BoardAccessibilityView? {
+        if let board = view as? BoardAccessibilityView, board.scene?.view === board { return board }
+        return view.subviews.lazy.compactMap { self.findGameplayBoard(in: $0) }.first
+    }
+
+    private func waitForGameplayRender(_ condition: @MainActor () -> Bool) async throws {
+        for _ in 0..<500 {
+            if condition() { return }
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        XCTAssertTrue(condition(), "The hosted gameplay scene must finish setup and remain playable")
+    }
+
+    func testBoardSceneHandoffSurvivesOldViewDismantling() async throws {
+        let game = makeGame()
+        await game.setupNewGame()
+        let settings = SettingModel()
+        settings.idleHintsEnabled = true
+        let scene = GameScene(size: CGSize(width: 320, height: 568), gameModel: game,
+                              themeModel: ThemeModel(), settingModel: settings,
+                              feedback: GameFeedback(), reduceMotion: true)
+        let previous = BoardAccessibilityView(frame: CGRect(x: 0, y: 0, width: 320, height: 568))
+        let replacement = BoardAccessibilityView(frame: CGRect(x: 0, y: 0, width: 296, height: 328))
+        let oldCoordinator = GameBoardView.Coordinator()
+        let newCoordinator = GameBoardView.Coordinator()
+        oldCoordinator.install(on: previous)
+        newCoordinator.install(on: replacement)
+        oldCoordinator.present(scene, in: previous)
+        XCTAssertTrue(scene.view === previous)
+        newCoordinator.present(scene, in: replacement)
+        XCTAssertNil(previous.scene, "Handoff must detach the old SKView before the replacement presents")
+        XCTAssertTrue(replacement.scene === scene)
+        XCTAssertTrue(scene.view === replacement)
+        GameBoardView.dismantleUIView(previous, coordinator: oldCoordinator)
+        XCTAssertTrue(replacement.scene === scene)
+        XCTAssertTrue(scene.view === replacement, "Delayed old-view teardown must retain the active scene owner")
+        XCTAssertFalse(scene.feedbackPaused)
+        XCTAssertNotNil(scene.action(forKey: "idleHintDelay"), "An active handoff must restart idle hint scheduling")
+        GameBoardView.dismantleUIView(replacement, coordinator: newCoordinator)
+    }
+
+    func testBoardDragGesturePreservesTouchesAndDefersOnlyAncestorScrolling() {
+        let coordinator = GameBoardView.Coordinator()
+        let board = BoardAccessibilityView(frame: CGRect(x: 0, y: 0, width: 296, height: 328))
+        let scroll = UIScrollView()
+        scroll.addSubview(board)
+        coordinator.install(on: board)
+        let pan = coordinator.boardPan
+        XCTAssertFalse(pan.cancelsTouchesInView)
+        XCTAssertFalse(pan.delaysTouchesBegan)
+        XCTAssertFalse(pan.delaysTouchesEnded)
+        XCTAssertEqual(pan.maximumNumberOfTouches, 1,
+                       "Multi-finger assistive technology gestures keep their own routing")
+        XCTAssertTrue(coordinator.gestureRecognizer(pan, shouldBeRequiredToFailBy: scroll.panGestureRecognizer))
+        XCTAssertFalse(coordinator.gestureRecognizer(pan, shouldBeRequiredToFailBy: UIScrollView().panGestureRecognizer))
+        XCTAssertFalse(coordinator.gestureRecognizer(pan, shouldBeRequiredToFailBy: UITapGestureRecognizer()))
+        XCTAssertFalse(coordinator.gestureRecognizerShouldBegin(pan), "No gameplay scene must leave scrolling available")
+        coordinator.remove(from: board)
+        XCTAssertNil(pan.view)
+    }
+
+    func testDedicatedBoardViewportFitsAndRestoresStandardGeometry() async throws {
+        let game = makeGame()
+        game.zodiac = Zodiac.all[3]
+        game.selectLevel(15)
+        await game.setupNewGame()
+        let size = CGSize(width: 320, height: 568)
+        let scene = GameScene(size: size, gameModel: game, themeModel: ThemeModel(),
+                              settingModel: SettingModel(), feedback: GameFeedback(), reduceMotion: true)
+        scene.setupLayerPosition()
+        let originalPosition = scene.symbolsLayer.position
+        let viewport = CGSize(width: 296, height: 328)
+        scene.setBoardViewport(viewport)
+        let lower = scene.convert(CGPoint.zero, from: scene.symbolsLayer)
+        let upper = scene.convert(CGPoint(x: game.tileSize.width * CGFloat(game.numColumns),
+                                          y: game.tileSize.height * CGFloat(game.numRows)),
+                                  from: scene.symbolsLayer)
+        XCTAssertGreaterThanOrEqual(lower.x, -viewport.width / 2 + 10)
+        XCTAssertGreaterThanOrEqual(lower.y, -viewport.height / 2 + 20)
+        XCTAssertLessThanOrEqual(upper.x, viewport.width / 2 - 10)
+        XCTAssertLessThanOrEqual(upper.y, viewport.height / 2 - 10)
+        let fittedScale = scene.boardViewportLayer.xScale
+        scene.applyMotionPreferences()
+        XCTAssertEqual(scene.boardViewportLayer.xScale, fittedScale,
+                       "Reducing motion must retain the board's fitted viewport")
+        scene.setBoardViewport(nil)
+        XCTAssertEqual(scene.size, size)
+        XCTAssertEqual(scene.boardViewportLayer.position, .zero)
+        XCTAssertEqual(scene.boardViewportLayer.xScale, 1)
+        XCTAssertEqual(scene.symbolsLayer.position, originalPosition)
+    }
+
     private func presentTestScene(_ scene: GameScene) throws -> SKView {
         let windowScene = try XCTUnwrap(UIApplication.shared.connectedScenes.first as? UIWindowScene)
         let previousWindow = windowScene.keyWindow
@@ -1983,6 +2186,17 @@ final class ReleaseRegressionTests: XCTestCase {
         await fulfillment(of: [ready], timeout: 5)
         host.view.layoutIfNeeded()
         window.layoutIfNeeded()
+        if name.hasPrefix("HUD-") {
+            let board = try XCTUnwrap(findGameplayBoard(in: host.view))
+            let scene = try XCTUnwrap(board.scene as? GameScene)
+            XCTAssertEqual(scene.gameModel.gameState, .inProgress)
+            XCTAssertFalse(scene.feedbackPaused)
+            XCTAssertFalse(board.isPaused)
+            XCTAssertFalse(board.tileElements.isEmpty, "HUD snapshots must contain the actual populated board")
+            XCTAssertTrue(board.tileElements.allSatisfy { element in
+                scene.gameModel.level.symbol(atColumn: element.cell.column, row: element.cell.row)?.sprite != nil
+            })
+        }
         let image = UIGraphicsImageRenderer(bounds: window.bounds).image { _ in
             window.drawHierarchy(in: window.bounds, afterScreenUpdates: true)
         }
@@ -1991,7 +2205,7 @@ final class ReleaseRegressionTests: XCTestCase {
         attachment.name = name
         attachment.lifetime = .keepAlways
         add(attachment)
-        if name.hasPrefix("Settings-") || name.hasPrefix("Mission-") {
+        if name.hasPrefix("Settings-") || name.hasPrefix("Mission-") || (name.hasPrefix("HUD-") && !name.hasSuffix("-large")) {
             func findSettingsScroll(in view: UIView) -> UIScrollView? {
                 if let scroll = view as? UIScrollView { return scroll }
                 return view.subviews.lazy.compactMap { findSettingsScroll(in: $0) }.first
@@ -2021,7 +2235,8 @@ final class ReleaseRegressionTests: XCTestCase {
         }
         if name.hasPrefix("Defeat-") || name.hasPrefix("New-Victory-")
             || name.hasPrefix("Star-guidance-") || name.hasPrefix("Combo-recipes-")
-            || name.hasPrefix("Recap-") || name.hasPrefix("Expansion-") || name.hasPrefix("Mission-") {
+            || name.hasPrefix("Recap-") || name.hasPrefix("Expansion-") || name.hasPrefix("Mission-")
+            || (name.hasPrefix("HUD-") && !name.hasSuffix("-large")) {
             func scrollViews(in view: UIView) -> [UIScrollView] {
                 (view as? UIScrollView).map { [$0] } ?? view.subviews.flatMap { scrollViews(in: $0) }
             }

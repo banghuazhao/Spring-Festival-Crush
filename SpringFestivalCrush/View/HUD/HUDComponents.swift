@@ -24,6 +24,7 @@ struct HUDBanner: Identifiable, Equatable {
 /// reduced against a non-contributing sibling, dropping the banner on top of the HUD.
 struct HUDBannerView: View {
     let banner: HUDBanner
+    @ScaledMetric(relativeTo: .subheadline) private var textSize = 15
 
     var body: some View {
         HStack(spacing: 6) {
@@ -33,7 +34,7 @@ struct HUDBannerView: View {
             Text(LocalizedStringKey(banner.text))
                 .multilineTextAlignment(.center)
         }
-        .font(.system(size: 15, weight: .bold, design: .rounded))
+        .font(.system(size: textSize, weight: .bold, design: .rounded))
         .foregroundColor(.white)
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
@@ -64,34 +65,47 @@ struct BoosterItem: Identifiable {
 
 struct BoosterTrayView: View {
     let boosters: [BoosterItem]
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    private var usesExpandedLayout: Bool { dynamicTypeSize >= .xxLarge }
 
     var body: some View {
-        // Three tools must fit a 320pt-wide iPhone SE, so each pill stays compact.
-        HStack(spacing: 8) {
+        // Large text gets a full-width row per tool, including the tool's visible name.
+        let layout = usesExpandedLayout
+            ? AnyLayout(VStackLayout(spacing: 8)) : AnyLayout(HStackLayout(spacing: 8))
+        layout {
             ForEach(boosters) { booster in
-                HStack(spacing: 0) {
+                let cardLayout = usesExpandedLayout
+                    ? AnyLayout(VStackLayout(spacing: 0)) : AnyLayout(HStackLayout(spacing: 0))
+                cardLayout {
                     Button {
                         HapticManager.buttonTap()
                         booster.action()
                     } label: {
-                        HStack(spacing: 6) {
-                            if let imageName = booster.imageName {
-                                Image(imageName)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 32, height: 32)
+                        Group {
+                            if usesExpandedLayout {
+                                VStack(spacing: 8) {
+                                    Text(booster.title)
+                                        .font(.headline.weight(.heavy))
+                                        .multilineTextAlignment(.center)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                        .frame(maxWidth: .infinity)
+                                    HStack(spacing: 8) {
+                                        artwork(for: booster)
+                                        chargeCount(for: booster)
+                                    }
+                                }
+                                .padding(12)
+                                .frame(maxWidth: .infinity)
                             } else {
-                                Image(systemName: booster.icon)
+                                HStack(spacing: 6) {
+                                    artwork(for: booster)
+                                    chargeCount(for: booster)
+                                }
+                                .padding(.leading, 8)
+                                .padding(.trailing, 2)
+                                .frame(minWidth: 52, minHeight: 52)
                             }
-                            Text("\(booster.count)")
-                                .font(.headline.weight(.heavy))
-                                .monospacedDigit()
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.7)
                         }
-                        .padding(.leading, 8)
-                        .padding(.trailing, 2)
-                        .frame(minWidth: 52, minHeight: 52)
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.gameIcon)
@@ -106,7 +120,10 @@ struct BoosterTrayView: View {
                     } label: {
                         Image(systemName: "plus.circle.fill")
                             .font(.body.weight(.bold))
-                            .frame(width: 32, height: 52)
+                            .frame(width: usesExpandedLayout ? nil : 32)
+                            .frame(maxWidth: usesExpandedLayout ? .infinity : nil)
+                            .padding(.vertical, usesExpandedLayout ? 8 : 0)
+                            .frame(minHeight: 52)
                             .contentShape(Rectangle())
                     }
                     .buttonStyle(.gameIcon)
@@ -122,4 +139,22 @@ struct BoosterTrayView: View {
         }
         .transition(.move(edge: .bottom).combined(with: .opacity))
     }
+    @ViewBuilder
+    private func artwork(for booster: BoosterItem) -> some View {
+        if let imageName = booster.imageName {
+            Image(imageName)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 32, height: 32)
+        } else {
+            Image(systemName: booster.icon)
+        }
+    }
+
+    private func chargeCount(for booster: BoosterItem) -> some View {
+        Text("\(booster.count)")
+            .font(.headline.weight(.heavy))
+            .monospacedDigit()
+    }
+
 }

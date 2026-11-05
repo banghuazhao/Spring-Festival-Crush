@@ -16,6 +16,9 @@ class GameScene: SKScene {
     var hitStopToken = 0
 
     // MARK: - Layers
+    // An outer transform fits the board into the large-text scroll layout without
+    // changing model tile coordinates or interfering with gameLayer's animations.
+    let boardViewportLayer = SKNode()
     let gameLayer = SKNode()
     let tilesLayer = SKNode()
     let maskLayer = SKNode()
@@ -39,6 +42,8 @@ class GameScene: SKScene {
     var selectionSprite = SKNode()
     private var tutorialHintNodes: [SKNode] = []
     var removingSprites = Set<ObjectIdentifier>()
+    private let fullScreenSize: CGSize
+    private var boardViewportSize: CGSize?
 
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder) is not used in this app")
@@ -52,6 +57,7 @@ class GameScene: SKScene {
         feedback: GameFeedback,
         reduceMotion: Bool = false
     ) {
+        self.fullScreenSize = size
         self.gameModel = gameModel
         self.themeModel = themeModel
         self.settingModel = settingModel
@@ -75,7 +81,9 @@ class GameScene: SKScene {
         background.aspectFillToSize(fillSize: size)
         addChild(background)
 
-        addChild(gameLayer)
+        addChild(boardViewportLayer)
+        boardViewportLayer.zPosition = 1
+        boardViewportLayer.addChild(gameLayer)
         gameLayer.zPosition = 1
         gameLayer.isHidden = true
         cropLayer.maskNode = maskLayer
@@ -194,11 +202,22 @@ class GameScene: SKScene {
         }
     }
 
+    /// `nil` restores the normal full-screen presentation. The dedicated viewport is
+    /// measured in the native SKView's own bounds, so accessibility frames and touch
+    /// conversion share the same SpriteKit transform even when the page is scrolled.
+    func setBoardViewport(_ viewport: CGSize?) {
+        guard boardViewportSize != viewport else { return }
+        boardViewportSize = viewport
+        size = viewport ?? fullScreenSize
+        setupLayerPosition()
+    }
+
     func setupLayerPosition() {
         cancelBlastPreview()
         let boardHeight = gameModel.tileSize.height * CGFloat(gameModel.numRows)
         // Boss instructions need a predictable clear area above the board, including on SE.
-        let bossOffset = gameModel.level.boss == nil ? 0 : min(0, size.height / 2 - boardHeight / 2 - 280)
+        let bossOffset = gameModel.level.boss == nil || boardViewportSize != nil
+            ? 0 : min(0, size.height / 2 - boardHeight / 2 - 280)
         let layerPosition = CGPoint(
             x: -gameModel.tileSize.width * CGFloat(gameModel.numColumns) / 2,
             y: -boardHeight / 2 + bossOffset)
@@ -209,6 +228,16 @@ class GameScene: SKScene {
         overlayLayer.position = layerPosition
         blastPreviewLayer.position = layerPosition
         deliveryExitLayer.position = layerPosition
+        if let viewport = boardViewportSize {
+            let boardWidth = gameModel.tileSize.width * CGFloat(gameModel.numColumns)
+            let scale = min(max(1, viewport.width - 24) / max(1, boardWidth),
+                            max(1, viewport.height - 40) / max(1, boardHeight))
+            boardViewportLayer.setScale(scale)
+            boardViewportLayer.position = CGPoint(x: 0, y: 8)
+        } else {
+            boardViewportLayer.setScale(1)
+            boardViewportLayer.position = .zero
+        }
         refreshDeliveryExits()
     }
 

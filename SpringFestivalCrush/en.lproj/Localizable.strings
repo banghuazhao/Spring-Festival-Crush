@@ -220,3 +220,18 @@
 "locks" = "locks";
 "moon blossoms" = "moon blossoms";
 "Guardian defeated!" = "Guardian defeated!";
+
+// Gameplay accessibility preferences and navigation
+"Brief" = "Brief";
+"Detailed" = "Detailed";
+"Board announcements" = "Board announcements";
+"Brief announcements read essential move results. Detailed announcements also describe progress for each goal. You can always read board status or repeat the last move result." = "Brief announcements read essential move results. Detailed announcements also describe progress for each goal. You can always read board status or repeat the last move result.";
+"Repeat last move result" = "Repeat last move result";
+"%lld moves left. %lld goal pieces remaining." = "%lld moves left. %lld goal pieces remaining.";
+"Row %lld" = "Row %lld";
+"Move to tile above" = "Move to tile above";
+"Move to tile below" = "Move to tile below";
+"Move to tile on left" = "Move to tile on left";
+"Move to tile on right" = "Move to tile on right";
+"Select or swap tile" = "Select or swap tile";
+"With a keyboard, use arrow keys to explore, Return or Space to select and swap, and Escape to cancel." = "With a keyboard, use arrow keys to explore, Return or Space to select and swap, and Escape to cancel.";

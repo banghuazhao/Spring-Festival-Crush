@@ -52,4 +52,7 @@ final class SettingModel: ObservableObject {
     @Published var timedLevelTimerMode: TimedLevelTimerMode = .saved {
         didSet { UserDefaults.standard.set(timedLevelTimerMode.rawValue, forKey: TimedLevelTimerMode.preferenceKey) }
     }
+    @Published var boardSpeechDetail: BoardSpeechDetail = .saved {
+        didSet { UserDefaults.standard.set(boardSpeechDetail.rawValue, forKey: BoardSpeechDetail.preferenceKey) }
+    }
 }

@@ -36,6 +36,7 @@ struct PauseMenuView: View {
         }
         .accessibilityAddTraits(.isModal)
         .onAppear { resumeFocused = true }
+        .onDisappear { resumeFocused = false }
         .sheet(item: $presentedSheet, onDismiss: { resumeFocused = true }) { sheet in
             Group {
                 switch sheet {
@@ -94,7 +95,7 @@ struct PauseMenuView: View {
 
                 Button {
                     HapticManager.buttonTap()
-                    presentedSheet = .rules
+                    open(.rules)
                 } label: {
                     Label("Rule handbook", systemImage: "book.closed.fill")
                         .frame(maxWidth: .infinity)
@@ -104,7 +105,7 @@ struct PauseMenuView: View {
 
                 Button {
                     HapticManager.buttonTap()
-                    presentedSheet = .settings
+                    open(.settings)
                 } label: {
                     Label("Settings", systemImage: "gearshape.fill")
                         .frame(maxWidth: .infinity)
@@ -124,6 +125,12 @@ struct PauseMenuView: View {
                 .accessibilityIdentifier("pause-exit")
             }
         }
+    }
+
+    private func open(_ sheet: PauseSheet) {
+        // Make dismissal a fresh focus request even when the hidden panel retains its state.
+        resumeFocused = false
+        presentedSheet = sheet
     }
 }
 

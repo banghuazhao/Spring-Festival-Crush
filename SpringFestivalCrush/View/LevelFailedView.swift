@@ -8,6 +8,7 @@ struct LevelFailedView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var settled = false
     @State private var revealID = UUID()
+    @AccessibilityFocusState private var headingFocused: Bool
     private var reduceMotion: Bool { systemReduceMotion || reducedEffects }
 
     private var unfinishedTargets: [LevelTargetData] {
@@ -28,7 +29,7 @@ struct LevelFailedView: View {
     var body: some View {
         GeometryReader { geometry in
             ScrollView {
-                GamePopupPanel(title: gameModel.loseReason.title, tone: .red) {
+                GamePopupPanel(title: gameModel.loseReason.title, tone: .red, titleFocus: $headingFocused) {
                     VStack(spacing: 16) {
                         Image(systemName: gameModel.loseReason.icon)
                             .font(.largeTitle.bold())
@@ -110,8 +111,15 @@ struct LevelFailedView: View {
             }
             .scrollIndicators(.hidden)
         }
-        .onAppear(perform: reveal)
-        .onDisappear { revealID = UUID() }
+        .accessibilityAddTraits(.isModal)
+        .onAppear {
+            headingFocused = true
+            reveal()
+        }
+        .onDisappear {
+            headingFocused = false
+            revealID = UUID()
+        }
     }
 
     private var resultStats: some View {

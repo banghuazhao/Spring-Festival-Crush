@@ -204,22 +204,26 @@ enum GameRibbonTone {
 struct GamePopupPanel<Content: View>: View {
     let title: String
     var tone: GameRibbonTone = .gold
+    var titleFocus: AccessibilityFocusState<Bool>.Binding?
     @ViewBuilder let content: Content
 
-    init(title: String, tone: GameRibbonTone = .gold, @ViewBuilder content: () -> Content) {
+    init(title: String, tone: GameRibbonTone = .gold,
+         titleFocus: AccessibilityFocusState<Bool>.Binding? = nil,
+         @ViewBuilder content: () -> Content) {
         self.title = title
         self.tone = tone
+        self.titleFocus = titleFocus
         self.content = content()
     }
 
     var body: some View {
         VStack(spacing: 0) {
-            Text(LocalizedStringKey(title))
-                .font(.system(size: 20, weight: .black, design: .rounded))
+            focusableTitle
+                .font(.title3.weight(.black))
+                .fontDesign(.rounded)
                 .foregroundStyle(tone.foreground)
                 .multilineTextAlignment(.center)
-                .lineLimit(2)
-                .minimumScaleFactor(0.75)
+                .fixedSize(horizontal: false, vertical: true)
                 .padding(.horizontal, 26)
                 .padding(.vertical, 10)
                 .frame(minWidth: 180)
@@ -254,6 +258,20 @@ struct GamePopupPanel<Content: View>: View {
                 .offset(y: -20)
         }
         .frame(maxWidth: 380)
+    }
+
+    @ViewBuilder
+    private var focusableTitle: some View {
+        if let titleFocus {
+            titleText.accessibilityFocused(titleFocus)
+        } else {
+            titleText
+        }
+    }
+
+    private var titleText: some View {
+        Text(LocalizedStringKey(title))
+            .accessibilityAddTraits(.isHeader)
     }
 }
 

@@ -4,49 +4,47 @@ struct GameStatusView: View {
     @ObservedObject var gameModel: GameModel
     @ObservedObject var feedback: GameFeedback
     let onPause: () -> Void
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @ScaledMetric(relativeTo: .caption) private var scoreLabelSize = 10
+    @ScaledMetric(relativeTo: .headline) private var scoreSize = 17
+    @ScaledMetric(relativeTo: .caption2) private var goalLabelSize = 9
+
+    private var usesExpandedLayout: Bool { dynamicTypeSize >= .xxLarge }
 
     var body: some View {
         VStack(spacing: 9) {
-            HStack(spacing: 8) {
-                HUDLevelMedallion(level: gameModel.currentLevel)
-
-                VStack(alignment: .leading, spacing: 3) {
-                    HStack(alignment: .firstTextBaseline, spacing: 5) {
-                        Text("SCORE")
-                            .font(.system(size: 10, weight: .black, design: .rounded))
-                            .foregroundStyle(.white.opacity(0.72))
-                        Text("\(gameModel.score)")
-                            .font(.system(size: 17, weight: .black, design: .rounded))
-                            .foregroundStyle(.white)
-                            .contentTransition(.numericText())
+            if usesExpandedLayout {
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack(alignment: .top, spacing: 12) {
+                        Group {
+                            if gameModel.currentLevel >= 1 {
+                                Text("Level") + Text(verbatim: " \(gameModel.currentLevel)")
+                            } else {
+                                Text("DEMO")
+                            }
+                        }
+                        .font(.headline.weight(.black))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        pauseButton
                     }
-
-                    StarProgressView(currentScore: gameModel.score, levelGoal: gameModel.level.levelGoal)
+                    scoreProgress
+                    HUDStatTile(
+                        icon: "arrow.triangle.2.circlepath", title: "MOVES",
+                        value: "\(gameModel.movesLeft)", isCritical: gameModel.movesLeft <= 5
+                    )
                 }
-                .frame(maxWidth: .infinity)
-
-                HUDStatTile(
-                    icon: "arrow.triangle.2.circlepath",
-                    title: "MOVES",
-                    value: "\(gameModel.movesLeft)",
-                    isCritical: gameModel.movesLeft <= 5
-                )
-
-                Button {
-                    HapticManager.buttonTap()
-                    onPause()
-                } label: {
-                    Image(systemName: "pause.fill")
-                        .font(.system(size: 17, weight: .black))
-                        .foregroundStyle(AppTheme.ink)
-                        .frame(width: 44, height: 44)
-                        .background(Circle().fill(AppTheme.creamHighlight))
-                        .overlay(Circle().stroke(AppTheme.festivalGold, lineWidth: 3))
-                        .shadow(color: .black.opacity(0.28), radius: 5, y: 3)
+            } else {
+                HStack(spacing: 8) {
+                    HUDLevelMedallion(level: gameModel.currentLevel)
+                    scoreProgress
+                        .frame(maxWidth: .infinity)
+                    HUDStatTile(
+                        icon: "arrow.triangle.2.circlepath", title: "MOVES",
+                        value: "\(gameModel.movesLeft)", isCritical: gameModel.movesLeft <= 5
+                    )
+                    pauseButton
                 }
-                .buttonStyle(.gameIcon)
-                .accessibilityLabel("Pause")
-                .accessibilityIdentifier("game-pause")
             }
 
             if let encounter = gameModel.bossStatus {
@@ -57,32 +55,18 @@ struct GameStatusView: View {
                     .foregroundStyle(.white)
             }
 
-            HStack(spacing: 8) {
-                if let secondsLeft = gameModel.secondsLeft {
-                    HUDTimerPill(secondsLeft: secondsLeft)
-                } else if gameModel.level.timeLimit != nil, gameModel.attemptTimerMode == .untimed {
-                    Label("Untimed", systemImage: "timer")
-                        .font(.caption.weight(.bold))
-                        .foregroundStyle(AppTheme.ink)
-                        .padding(.horizontal, 10)
-                        .frame(height: 34)
-                        .background(AppTheme.creamHighlight, in: Capsule())
+            if usesExpandedLayout {
+                VStack(alignment: .leading, spacing: 8) {
+                    timer
+                    goals
                 }
-
-                Text("GOALS")
-                    .font(.system(size: 9, weight: .black, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.72))
-
-                LevelTargetView(
-                    levelTargetDatas: gameModel.createLevelTargetDatas(),
-                    pendingAmounts: Dictionary(uniqueKeysWithValues: gameModel.createLevelTargetDatas().map {
-                        ($0.id, feedback.pendingAmount(for: $0.id))
-                    }),
-                    impacts: feedback.impacts,
-                    reportsFrames: true
-                )
-                    .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                HStack(spacing: 8) {
+                    timer
+                    goals
+                }
             }
+
         }
         .padding(.vertical, 10)
         .padding(.horizontal, 11)
@@ -105,23 +89,105 @@ struct GameStatusView: View {
         )
     }
 
+    private var scoreProgress: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            let layout = usesExpandedLayout
+                ? AnyLayout(VStackLayout(alignment: .leading, spacing: 3))
+                : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 5))
+            layout {
+                Text("SCORE")
+                    .font(.system(size: scoreLabelSize, weight: .black, design: .rounded))
+                    .foregroundStyle(.white.opacity(0.72))
+                Text("\(gameModel.score)")
+                    .font(.system(size: scoreSize, weight: .black, design: .rounded))
+                    .foregroundStyle(.white)
+                    .contentTransition(.numericText())
+            }
+            .accessibilityElement(children: .combine)
+            StarProgressView(currentScore: gameModel.score, levelGoal: gameModel.level.levelGoal)
+                .accessibilityHidden(true)
+        }
+    }
+
+    private var pauseButton: some View {
+        Button {
+            HapticManager.buttonTap()
+            onPause()
+        } label: {
+            Image(systemName: "pause.fill")
+                .font(.headline.weight(.black))
+                .foregroundStyle(AppTheme.ink)
+                .frame(minWidth: 44, minHeight: 44)
+                .padding(usesExpandedLayout ? 8 : 0)
+                .background(Circle().fill(AppTheme.creamHighlight))
+                .overlay(Circle().stroke(AppTheme.festivalGold, lineWidth: 3))
+                .shadow(color: .black.opacity(0.28), radius: 5, y: 3)
+        }
+        .buttonStyle(.gameIcon)
+        .accessibilityLabel("Pause")
+        .accessibilityIdentifier("game-pause")
+    }
+
+    @ViewBuilder
+    private var timer: some View {
+        if let secondsLeft = gameModel.secondsLeft {
+            HUDTimerPill(secondsLeft: secondsLeft)
+        } else if gameModel.level.timeLimit != nil, gameModel.attemptTimerMode == .untimed {
+            Label("Untimed", systemImage: "timer")
+                .font(.caption.weight(.bold))
+                .foregroundStyle(AppTheme.ink)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 8)
+                .frame(minHeight: 34)
+                .background(AppTheme.creamHighlight, in: Capsule())
+        }
+    }
+
+    private var goals: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            if usesExpandedLayout {
+                Text("GOALS")
+                    .font(.caption.weight(.black))
+                    .foregroundStyle(.white.opacity(0.72))
+            }
+            HStack(spacing: 8) {
+                if !usesExpandedLayout {
+                    Text("GOALS")
+                        .font(.system(size: goalLabelSize, weight: .black, design: .rounded))
+                        .foregroundStyle(.white.opacity(0.72))
+                }
+                LevelTargetView(
+                    levelTargetDatas: gameModel.createLevelTargetDatas(),
+                    pendingAmounts: Dictionary(uniqueKeysWithValues: gameModel.createLevelTargetDatas().map {
+                        ($0.id, feedback.pendingAmount(for: $0.id))
+                    }), impacts: feedback.impacts, reportsFrames: true
+                )
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+    }
+
 }
 
 private struct HUDLevelMedallion: View {
     let level: Int
+    @ScaledMetric(relativeTo: .caption2) private var labelSize = 8
+    @ScaledMetric(relativeTo: .title2) private var valueSize = 22
+    @ScaledMetric(relativeTo: .caption) private var demoSize = 13
+    @ScaledMetric(relativeTo: .caption) private var diameter = 54
 
     var body: some View {
         VStack(spacing: -2) {
             // Levels below 1 aren't file-backed levels (the DEBUG demos use -1), so the
             // medallion names them instead of rendering a nonsense "LEVEL -1".
             Text(level >= 1 ? "LEVEL" : "SPRING" as LocalizedStringKey)
-                .font(.system(size: 8, weight: .black, design: .rounded))
+                .font(.system(size: labelSize, weight: .black, design: .rounded))
             Text(level >= 1 ? "\(level)" : "DEMO" as LocalizedStringKey)
-                .font(.system(size: level >= 1 ? 22 : 13, weight: .black, design: .rounded))
+                .font(.system(size: level >= 1 ? valueSize : demoSize, weight: .black, design: .rounded))
                 .contentTransition(.numericText())
         }
         .foregroundStyle(AppTheme.ink)
-        .frame(width: 54, height: 54)
+        .frame(width: diameter, height: diameter)
         .background(Circle().fill(AppTheme.creamHighlight))
         .overlay(Circle().stroke(AppTheme.festivalGold, lineWidth: 3))
         .shadow(color: .black.opacity(0.28), radius: 5, y: 3)
@@ -133,6 +199,8 @@ private struct HUDStatTile: View {
     let title: String
     let value: String
     let isCritical: Bool
+    @ScaledMetric(relativeTo: .caption2) private var labelSize = 8
+    @ScaledMetric(relativeTo: .title2) private var valueSize = 20
 
     var body: some View {
         VStack(spacing: 0) {
@@ -140,14 +208,16 @@ private struct HUDStatTile: View {
                 Image(systemName: icon)
                 Text(LocalizedStringKey(title))
             }
-            .font(.system(size: 8, weight: .black, design: .rounded))
+            .font(.system(size: labelSize, weight: .black, design: .rounded))
             .opacity(0.78)
 
             Text(value)
-                .font(.system(size: 20, weight: .black, design: .rounded))
+                .font(.system(size: valueSize, weight: .black, design: .rounded))
                 .contentTransition(.numericText())
         }
         .foregroundStyle(isCritical ? Color.white : AppTheme.ink)
+        .padding(.horizontal, 6)
+        .padding(.vertical, 4)
         .frame(minWidth: 55, minHeight: 48)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
@@ -164,6 +234,7 @@ private struct HUDStatTile: View {
 
 private struct HUDTimerPill: View {
     let secondsLeft: Int
+    @ScaledMetric(relativeTo: .subheadline) private var textSize = 14
 
     var body: some View {
         HStack(spacing: 4) {
@@ -172,10 +243,11 @@ private struct HUDTimerPill: View {
                 .monospacedDigit()
                 .contentTransition(.numericText())
         }
-        .font(.system(size: 14, weight: .black, design: .rounded))
+        .font(.system(size: textSize, weight: .black, design: .rounded))
         .foregroundStyle(secondsLeft <= 10 ? Color.white : AppTheme.ink)
         .padding(.horizontal, 10)
-        .frame(height: 34)
+        .padding(.vertical, 8)
+        .frame(minHeight: 34)
         .background(Capsule().fill(secondsLeft <= 10 ? Color.red : AppTheme.creamHighlight))
         .overlay(Capsule().stroke(.white.opacity(0.6), lineWidth: 1.5))
     }

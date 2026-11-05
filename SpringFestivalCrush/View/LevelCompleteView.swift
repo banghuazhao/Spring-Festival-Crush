@@ -12,6 +12,7 @@ struct LevelCompleteView: View {
     @State private var revealedStars = 0
     @State private var rewardVisible = false
     @State private var revealID = UUID()
+    @AccessibilityFocusState private var headingFocused: Bool
 
     private var hasNextLevel: Bool {
         gameModel.currentLevel >= 1 && gameModel.currentLevel < gameModel.zodiac.numLevels && gameModel.lives > 0
@@ -39,7 +40,7 @@ struct LevelCompleteView: View {
     var body: some View {
         GeometryReader { geometry in
             ScrollView {
-                GamePopupPanel(title: "LEVEL COMPLETE!", tone: .gold) {
+                GamePopupPanel(title: "LEVEL COMPLETE!", tone: .gold, titleFocus: $headingFocused) {
                     VStack(spacing: 16) {
                         Image(systemName: "crown.fill")
                             .font(.system(size: 38, weight: .black))
@@ -166,7 +167,9 @@ struct LevelCompleteView: View {
             }
             .scrollIndicators(.hidden)
         }
+        .accessibilityAddTraits(.isModal)
         .onAppear {
+            headingFocused = true
             let token = UUID()
             revealID = token
             if reduceMotion {
@@ -178,7 +181,10 @@ struct LevelCompleteView: View {
                 revealNextStar(token: token)
             }
         }
-        .onDisappear { revealID = UUID() }
+        .onDisappear {
+            headingFocused = false
+            revealID = UUID()
+        }
     }
 
     @ViewBuilder

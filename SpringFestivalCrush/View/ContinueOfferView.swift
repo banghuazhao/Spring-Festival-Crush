@@ -11,6 +11,7 @@ struct ContinueOfferView: View {
     private var reduceMotion: Bool { systemReduceMotion || reducedEffects }
     @State private var appeared = false
     @State private var showInsufficientCoins = false
+    @AccessibilityFocusState private var headingFocused: Bool
 
     private var canAfford: Bool { gameModel.coins >= offer.coinCost }
 
@@ -51,7 +52,7 @@ struct ContinueOfferView: View {
     var body: some View {
         GeometryReader { geometry in
             ScrollView {
-                GamePopupPanel(title: title, tone: .red) {
+                GamePopupPanel(title: title, tone: .red, titleFocus: $headingFocused) {
                     VStack(spacing: 14) {
                         progressRing
 
@@ -106,6 +107,7 @@ struct ContinueOfferView: View {
             }
             .scrollIndicators(.hidden)
         }
+        .accessibilityAddTraits(.isModal)
         .onAppear {
             withAnimation(reduceMotion ? .easeOut(duration: 0.15) : .spring(response: 0.38, dampingFraction: 0.7),
                           completionCriteria: .logicallyComplete) {
@@ -113,7 +115,9 @@ struct ContinueOfferView: View {
             } completion: {
                 onRevealComplete()
             }
+            headingFocused = true
         }
+        .onDisappear { headingFocused = false }
         .gameNotice(isPresented: $showInsufficientCoins, message: String(localized: "Not enough coins. Try the free ad continue!"),
                     icon: "circle.fill", tint: AppTheme.festivalRed)
     }

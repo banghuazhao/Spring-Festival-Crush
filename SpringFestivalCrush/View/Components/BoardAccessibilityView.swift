@@ -29,6 +29,7 @@ final class BoardAccessibilityView: SKView {
     var gameplayPaused = false {
         didSet {
             guard oldValue != gameplayPaused else { return }
+            if gameplayPaused { cancelKeyboardResponderRequest() }
             (scene as? GameScene)?.setFeedbackPaused(gameplayPaused)
             clearSelection()
             refreshAccessibility()
@@ -38,6 +39,22 @@ final class BoardAccessibilityView: SKView {
     private(set) var pendingAction: Task<Void, Never>?
     private(set) var lastAnnouncement: String?
     private(set) var lastAnnouncementIsQueued = false
+    private(set) var focusedCell: BoardAccessibilityCell?
+    private(set) weak var lastFocusRestoration: UIAccessibilityElement?
+    private(set) var keyboardCell: BoardAccessibilityCell?
+    private let keyboardFocusRing = CAShapeLayer()
+    private var keyboardResponderRequested = false
+    private var keyboardResponderTask: Task<Void, Never>?
+    private struct MoveReceipt {
+        let brief: String
+        let detailed: String
+    }
+    private var lastMoveReceipt: MoveReceipt?
+    private var rowElements: [Int: BoardAccessibilityRowElement] = [:]
+    /// A testable override; production follows the current assistive technology.
+    var groupsRowsForSwitchControl = UIAccessibility.isSwitchControlRunning {
+        didSet { refreshAccessibility() }
+    }
     private struct SpokenPreview {
         let level: Level
         let generation: UInt
@@ -68,9 +85,72 @@ final class BoardAccessibilityView: SKView {
         }
     }
 
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        observeSwitchControl()
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        observeSwitchControl()
+    }
+
+    private func observeSwitchControl() {
+        NotificationCenter.default.addObserver(self, selector: #selector(switchControlChanged),
+                                              name: UIAccessibility.switchControlStatusDidChangeNotification, object: nil)
+    }
+
+    @objc private func switchControlChanged() {
+        groupsRowsForSwitchControl = UIAccessibility.isSwitchControlRunning
+    }
+
     override func layoutSubviews() {
         super.layoutSubviews()
         refreshAccessibility()
+    }
+
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+        if window == nil {
+            cancelKeyboardResponderRequest()
+            keyboardResponderRequested = false
+        }
+        refreshAccessibility()
+    }
+
+    override var canBecomeFirstResponder: Bool { true }
+
+    override var keyCommands: [UIKeyCommand]? {
+        guard canAct else { return [] }
+        let definitions: [(String, String)] = [
+            (UIKeyCommand.inputUpArrow, String(localized: "Move to tile above")),
+            (UIKeyCommand.inputDownArrow, String(localized: "Move to tile below")),
+            (UIKeyCommand.inputLeftArrow, String(localized: "Move to tile on left")),
+            (UIKeyCommand.inputRightArrow, String(localized: "Move to tile on right")),
+            ("\r", String(localized: "Select or swap tile")),
+            (" ", String(localized: "Select or swap tile")),
+            (UIKeyCommand.inputEscape, String(localized: "Cancel selection"))
+        ]
+        return definitions.map { input, title in
+            let command = UIKeyCommand(title: title, action: #selector(handleBoardKey(_:)),
+                                       input: input, modifierFlags: [])
+            // Keep VoiceOver, Full Keyboard Access, and system shortcuts first.
+            command.wantsPriorityOverSystemBehavior = false
+            return command
+        }
+    }
+
+    @objc private func handleBoardKey(_ command: UIKeyCommand) {
+        guard command.modifierFlags.isEmpty else { return }
+        switch command.input {
+        case UIKeyCommand.inputUpArrow: moveKeyboardFocus(columnDelta: 0, rowDelta: 1)
+        case UIKeyCommand.inputDownArrow: moveKeyboardFocus(columnDelta: 0, rowDelta: -1)
+        case UIKeyCommand.inputLeftArrow: moveKeyboardFocus(columnDelta: -1, rowDelta: 0)
+        case UIKeyCommand.inputRightArrow: moveKeyboardFocus(columnDelta: 1, rowDelta: 0)
+        case "\r", " ": activateKeyboardCell()
+        case UIKeyCommand.inputEscape: cancelKeyboardSelection()
+        default: break
+        }
     }
 
     func refreshAccessibility() {
@@ -91,7 +171,13 @@ final class BoardAccessibilityView: SKView {
                   selectedLevel !== level || level.symbol(atColumn: cell.column, row: cell.row) !== selectedSymbol {
             clearSelection()
         }
-        if changedLevel { elementsByCell.removeAll() }
+        if changedLevel {
+            elementsByCell.removeAll()
+            rowElements.removeAll()
+            focusedCell = nil
+            keyboardCell = nil
+            lastMoveReceipt = nil
+        }
         if changedLevel || changedMode || currentPreview() == nil { spokenPreview = nil }
         displayedLevel = level
         lastHammerMode = game.hammerModeActive
@@ -101,6 +187,10 @@ final class BoardAccessibilityView: SKView {
         guard !accessibilityElementsHidden else {
             accessibilityElements = []
             tileElements = []
+            keyboardFocusRing.isHidden = true
+            cancelKeyboardResponderRequest()
+            if isFirstResponder { resignFirstResponder() }
+            keyboardResponderRequested = false
             return
         }
 
@@ -109,12 +199,14 @@ final class BoardAccessibilityView: SKView {
         // pieces. Otherwise a focused cell disappears in the middle of a cascade.
         if !changedLevel, !tileElements.isEmpty, game.isResolvingBoard || actionInFlight {
             for element in tileElements {
+                element.accessibilityContainer = self
                 element.accessibilityTraits.remove(.selected)
                 element.accessibilityTraits.insert(.notEnabled)
                 element.accessibilityCustomActions = []
                 element.accessibilityFrameInContainerSpace = frame(for: element.cell, in: scene)
             }
-            accessibilityElements = [instructionsElement] + tileElements
+            updateAccessibilityTree()
+            updateKeyboardFocusRing()
             return
         }
         var elements: [BoardAccessibilityElement] = []
@@ -125,6 +217,7 @@ final class BoardAccessibilityView: SKView {
                 let cell = BoardAccessibilityCell(column: column, row: row)
                 let element = elementsByCell[cell] ?? BoardAccessibilityElement(cell: cell, board: self)
                 elementsByCell[cell] = element
+                element.accessibilityContainer = self
                 element.level = level
                 element.accessibilityLabel = cell.label(in: level, zodiac: game.zodiac)
                 element.accessibilityFrameInContainerSpace = frame(for: cell, in: scene)
@@ -142,7 +235,8 @@ final class BoardAccessibilityView: SKView {
         instructionsElement.accessibilityLabel = BoardAccessibilityCell.instructions
         instructionsElement.accessibilityHint = [
             String(localized: "Choose Rows, Power-ups, or Goal tiles in the rotor to explore the board faster. Swipe up or down to move between matches."),
-            String(localized: "Use Preview up, down, left, or right before a power-up swap. Read preview details lists the direct-hit positions. Preview never spends a move or uses a tool.")
+            String(localized: "Use Preview up, down, left, or right before a power-up swap. Read preview details lists the direct-hit positions. Preview never spends a move or uses a tool."),
+            String(localized: "With a keyboard, use arrow keys to explore, Return or Space to select and swap, and Escape to cancel.")
         ].joined(separator: " ")
         instructionsElement.accessibilityTraits = [.header, .staticText]
         if let boardFrame = elements.map(\.accessibilityFrameInContainerSpace).reduce(nil as CGRect?, { result, frame in
@@ -153,10 +247,29 @@ final class BoardAccessibilityView: SKView {
                 width: boardFrame.width, height: 22)
         }
         instructionsElement.accessibilityCustomActions = [statusAction(), hintAction()]
+        if lastMoveReceipt != nil { instructionsElement.accessibilityCustomActions?.append(repeatMoveAction()) }
         if spokenPreview != nil { instructionsElement.accessibilityCustomActions?.append(previewDetailsAction()) }
-        accessibilityElements = [instructionsElement] + elements
-        if (changedLevel || wasHidden), UIAccessibility.isVoiceOverRunning {
-            UIAccessibility.post(notification: .layoutChanged, argument: instructionsElement)
+        updateAccessibilityTree()
+        updateKeyboardFocusRing()
+        if enabled, !keyboardResponderRequested, keyboardResponderTask == nil, window != nil {
+            // UIKit focus can update SwiftUI's hosting hierarchy. Request it after
+            // the current representable update, then recheck the live modal state.
+            keyboardResponderTask = Task { @MainActor [weak self] in
+                await Task.yield()
+                guard !Task.isCancelled, let self else { return }
+                self.keyboardResponderTask = nil
+                guard self.canAct, self.window != nil else { return }
+                self.keyboardResponderRequested = self.isFirstResponder || self.becomeFirstResponder()
+            }
+        }
+        if changedLevel || wasHidden {
+            let target = focusedCell.flatMap { elementsByCell[$0] }.flatMap { focused in
+                elements.contains(where: { $0 === focused }) ? focused : nil
+            } ?? instructionsElement
+            lastFocusRestoration = target
+            if UIAccessibility.isVoiceOverRunning {
+                UIAccessibility.post(notification: .layoutChanged, argument: target)
+            }
         }
         if changedMode, enabled {
             if game.hammerModeActive {
@@ -169,9 +282,134 @@ final class BoardAccessibilityView: SKView {
         }
     }
 
+    private func cancelKeyboardResponderRequest() {
+        keyboardResponderTask?.cancel()
+        keyboardResponderTask = nil
+    }
+
+    private func updateAccessibilityTree() {
+        guard groupsRowsForSwitchControl, let level = (scene as? GameScene)?.gameModel.level else {
+            for element in tileElements { element.accessibilityContainer = self }
+            accessibilityElements = [instructionsElement] + tileElements
+            return
+        }
+        let rows = Set(tileElements.map { $0.cell.row }).sorted(by: >)
+        let groups = rows.map { row in
+            let group = rowElements[row] ?? BoardAccessibilityRowElement(row: row, board: self)
+            rowElements[row] = group
+            group.update(elements: tileElements.filter { $0.cell.row == row }, spokenRow: level.numRows - row)
+            return group
+        }
+        accessibilityElements = [instructionsElement] + groups
+    }
+
+    func rememberFocus(on element: BoardAccessibilityElement) {
+        guard !accessibilityElementsHidden, let scene = scene as? GameScene,
+              element.level === scene.gameModel.level,
+              tileElements.contains(where: { $0 === element }) else { return }
+        focusedCell = element.cell
+        if keyboardCell != nil {
+            keyboardCell = element.cell
+            updateKeyboardFocusRing()
+        }
+    }
+
+    /// Keyboard movement only explores live cells. Holes are skipped in the chosen
+    /// direction, edges stop, and Enter uses the same validated action as VoiceOver.
+    @discardableResult
+    func moveKeyboardFocus(columnDelta: Int, rowDelta: Int) -> Bool {
+        let horizontal = rowDelta == 0 && (columnDelta == -1 || columnDelta == 1)
+        let vertical = columnDelta == 0 && (rowDelta == -1 || rowDelta == 1)
+        guard canAct, horizontal || vertical,
+              let level = (scene as? GameScene)?.gameModel.level else { return false }
+        guard let current = keyboardCell ?? focusedCell,
+              tileElements.contains(where: { $0.cell == current }) else {
+            return focusKeyboardCell(tileElements.first?.cell)
+        }
+        var column = current.column + columnDelta
+        var row = current.row + rowDelta
+        while column >= 0, column < level.numColumns, row >= 0, row < level.numRows {
+            let cell = BoardAccessibilityCell(column: column, row: row)
+            if tileElements.contains(where: { $0.cell == cell }) { return focusKeyboardCell(cell) }
+            column += columnDelta
+            row += rowDelta
+        }
+        return false
+    }
+
+    @discardableResult
+    private func focusKeyboardCell(_ cell: BoardAccessibilityCell?) -> Bool {
+        guard let cell, let element = tileElements.first(where: { $0.cell == cell }) else { return false }
+        keyboardCell = cell
+        updateKeyboardFocusRing()
+        if let scene = scene as? GameScene {
+            var ancestor = superview
+            while let view = ancestor {
+                if let scroll = view as? UIScrollView {
+                    scroll.scrollRectToVisible(convert(frame(for: cell, in: scene).insetBy(dx: -8, dy: -8), to: scroll),
+                                               animated: !scene.reduceMotion && !UIAccessibility.isReduceMotionEnabled)
+                    break
+                }
+                ancestor = view.superview
+            }
+        }
+        if UIAccessibility.isVoiceOverRunning {
+            UIAccessibility.post(notification: .layoutChanged, argument: element)
+        }
+        return true
+    }
+
+    @discardableResult
+    func activateKeyboardCell() -> Bool {
+        guard canAct else { return false }
+        if keyboardCell == nil { _ = focusKeyboardCell(focusedCell ?? tileElements.first?.cell) }
+        guard let keyboardCell else { return false }
+        return activate(keyboardCell)
+    }
+
+    @discardableResult
+    func cancelKeyboardSelection() -> Bool {
+        guard canAct, let scene = scene as? GameScene else { return false }
+        clearSelection()
+        spokenPreview = nil
+        scene.cancelBlastPreview()
+        scene.gameModel.hammerModeActive = false
+        scene.gameModel.swapModeActive = false
+        lastHammerMode = false
+        lastSwapMode = false
+        refreshAccessibility()
+        announce(String(localized: "Selection cancelled."))
+        return true
+    }
+
+    private func updateKeyboardFocusRing() {
+        guard !accessibilityElementsHidden, let cell = keyboardCell,
+              tileElements.contains(where: { $0.cell == cell }), let scene = scene as? GameScene else {
+            keyboardFocusRing.isHidden = true
+            return
+        }
+        if keyboardFocusRing.superlayer == nil {
+            keyboardFocusRing.fillColor = UIColor.clear.cgColor
+            keyboardFocusRing.strokeColor = UIColor.white.cgColor
+            keyboardFocusRing.lineWidth = 3
+            keyboardFocusRing.shadowColor = UIColor.black.cgColor
+            keyboardFocusRing.shadowOpacity = 1
+            keyboardFocusRing.shadowRadius = 2
+            keyboardFocusRing.shadowOffset = .zero
+            layer.addSublayer(keyboardFocusRing)
+        }
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        keyboardFocusRing.path = UIBezierPath(roundedRect: frame(for: cell, in: scene).insetBy(dx: 2, dy: 2),
+                                             cornerRadius: 7).cgPath
+        keyboardFocusRing.isHidden = false
+        CATransaction.commit()
+    }
+
     private var canAct: Bool {
         guard !gameplayPaused, !isPaused, !accessibilityElementsHidden, !actionInFlight,
-              let scene = scene as? GameScene else { return false }
+              let scene = scene as? GameScene, let level = scene.gameModel.level,
+              displayedLevel === level else { return false }
         return scene.canHandleBoardTouch && !scene.boardSwapDispatchPending
     }
 
@@ -375,16 +613,37 @@ final class BoardAccessibilityView: SKView {
             let changes = goalsAfter.changes(since: goalsBefore)
             let state = scene.gameModel.gameState
             if state == .inProgress, self.canAct, invalidSwap {
-                self.announce(String(localized: "No match. Move not used."))
+                let message = String(localized: "No match. Move not used.")
+                self.recordMoveReceipt(brief: message, detailed: message)
             } else if state == .inProgress, self.canAct {
-                self.announce([changes, self.statusDescription(includeGoals: false, includeGuardianHealth: false)]
-                    .filter { !$0.isEmpty }.joined(separator: " "))
+                let detailed = [changes, self.statusDescription(includeGoals: false, includeGuardianHealth: false)]
+                    .filter { !$0.isEmpty }.joined(separator: " ")
+                self.recordMoveReceipt(brief: self.briefStatusDescription(), detailed: detailed)
             } else if (state == .win || state == .lose || state == .offeringContinue), !changes.isEmpty {
                 // The board is hidden now, but its final move still made progress.
                 // Queue the receipt behind result speech without moving accessibility focus.
-                self.announce(changes, queued: true)
+                self.recordMoveReceipt(brief: self.briefStatusDescription(), detailed: changes, queued: true)
             }
         }
+    }
+
+    private func recordMoveReceipt(brief: String, detailed: String, queued: Bool = false) {
+        lastMoveReceipt = MoveReceipt(brief: brief, detailed: detailed)
+        announce(currentMoveReceipt() ?? detailed, queued: queued)
+        refreshAccessibility()
+    }
+
+    private func currentMoveReceipt() -> String? {
+        guard let receipt = lastMoveReceipt else { return nil }
+        return (scene as? GameScene)?.settingModel.boardSpeechDetail == .brief ? receipt.brief : receipt.detailed
+    }
+
+    @discardableResult
+    func repeatLastMoveResult() -> Bool {
+        guard canAct, displayedLevel === (scene as? GameScene)?.gameModel.level,
+              let receipt = currentMoveReceipt() else { return false }
+        announce(receipt)
+        return true
     }
 
     private func clearSelection() {
@@ -441,6 +700,7 @@ final class BoardAccessibilityView: SKView {
         }
         actions.append(statusAction())
         actions.append(hintAction())
+        if lastMoveReceipt != nil { actions.append(repeatMoveAction()) }
         if spokenPreview != nil { actions.append(previewDetailsAction()) }
         return actions
     }
@@ -448,6 +708,12 @@ final class BoardAccessibilityView: SKView {
     private func previewDetailsAction() -> UIAccessibilityCustomAction {
         UIAccessibilityCustomAction(name: String(localized: "Read preview details")) { [weak self] _ in
             self?.readPreviewDetails() ?? false
+        }
+    }
+
+    private func repeatMoveAction() -> UIAccessibilityCustomAction {
+        UIAccessibilityCustomAction(name: String(localized: "Repeat last move result")) { [weak self] _ in
+            self?.repeatLastMoveResult() ?? false
         }
     }
 
@@ -488,6 +754,14 @@ final class BoardAccessibilityView: SKView {
             parts.append(boss.cue)
         }
         if let notice = game.toolNotice { parts.append(notice) }
+        return parts.joined(separator: " ")
+    }
+
+    private func briefStatusDescription() -> String {
+        guard let game = (scene as? GameScene)?.gameModel else { return "" }
+        var parts = [String(localized: "\(game.movesLeft) moves left. \(game.remainingGoalPieces) goal pieces remaining.")]
+        if let seconds = game.secondsLeft { parts.append(String(localized: "\(seconds) seconds left.")) }
+        if let boss = game.bossStatus { parts.append(String(localized: "Guardian health \(boss.health).")) }
         return parts.joined(separator: " ")
     }
 

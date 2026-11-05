@@ -11,6 +11,7 @@ struct GameView: View {
     @EnvironmentObject var themeModel: ThemeModel
     @EnvironmentObject var settingModel: SettingModel
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
     @Environment(\.gameReducedEffects) private var reducedEffects
     private var reduceMotion: Bool { systemReduceMotion || reducedEffects }
@@ -37,6 +38,13 @@ struct GameView: View {
 
     private var isGameplayPaused: Bool {
         showingPause || isExiting || refillTool != nil || scenePhase != .active || needsResumeAfterInterruption || isWatchingRewardAd
+    }
+
+    private var usesExpandedLayout: Bool { dynamicTypeSize >= .xxLarge }
+
+    private var boardViewportSize: CGSize {
+        let width = min(600, max(1, screenSize.width - 24))
+        return CGSize(width: width, height: width * CGFloat(gameModel.numRows) / CGFloat(max(1, gameModel.numColumns)) + 32)
     }
 
     private let timerTicker = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
@@ -116,26 +124,44 @@ struct GameView: View {
 
     var body: some View {
         ZStack {
-            if let gameScene {
-                GameBoardView(gameModel: gameModel, scene: gameScene, isPaused: isGameplayPaused)
-                    .allowsHitTesting(!isGameplayPaused)
-                    .accessibilityHidden(isShowingResult || isGameplayPaused)
+            if usesExpandedLayout {
+                Color.clear
+                    .overlay {
+                        Image(gameModel.gameBackground)
+                            .resizable()
+                            .scaledToFill()
+                    }
+                    .clipped()
+                    .ignoresSafeArea()
+                    .accessibilityHidden(true)
+            } else if let gameScene {
+                boardSurface(gameScene)
                     .ignoresSafeArea(.all)
-                    .blur(radius: isShowingResult ? 2 : 0)
-                    .scaleEffect(isShowingResult && !reduceMotion ? 0.99 : 1)
-                    .animation(.easeOut(duration: 0.3), value: isShowingResult)
             }
 
-            VStack(spacing: 0) {
-                GameStatusView(gameModel: gameModel, feedback: feedback) { showingPause = true }
-                    .padding()
-
-                if let banner = activeBanner {
-                    HUDBannerView(banner: banner)
+            Group {
+                if usesExpandedLayout {
+                    ScrollView {
+                        VStack(spacing: 12) {
+                            statusAndBanner
+                            if let gameScene {
+                                boardSurface(gameScene)
+                                    .frame(width: boardViewportSize.width, height: boardViewportSize.height)
+                                    .clipped()
+                            }
+                            bottomDock
+                        }
+                        .padding(.vertical, 8)
+                        .frame(maxWidth: .infinity)
+                    }
+                    .scrollBounceBehavior(.basedOnSize)
+                } else {
+                    VStack(spacing: 0) {
+                        statusAndBanner
+                        Spacer(minLength: 0)
+                        bottomDock
+                    }
                 }
-
-                Spacer(minLength: 0)
-                bottomDock
             }
             .allowsHitTesting(!isShowingResult && !isGameplayPaused)
             .accessibilityHidden(isShowingResult || showingPause || refillTool != nil)
@@ -204,6 +230,12 @@ struct GameView: View {
         .onPreferenceChange(GoalViewportPreference.self) { frame in
             feedback.viewport = frame
         }
+        .onChange(of: usesExpandedLayout) { _, _ in
+            gameScene?.setBoardViewport(usesExpandedLayout ? boardViewportSize : nil)
+        }
+        .onChange(of: boardViewportSize) { _, viewport in
+            if usesExpandedLayout { gameScene?.setBoardViewport(viewport) }
+        }
         .onChange(of: isGameplayPaused) { _, paused in
             if paused { feedback.clear() }
             gameScene?.setFeedbackPaused(paused)
@@ -253,7 +285,7 @@ struct GameView: View {
             // so rebuilding it on a second onAppear (e.g. after Settings closes) would
             // silently restart the level with the score and moves reset.
             guard gameScene == nil else { return }
-            gameScene = GameScene(
+            let scene = GameScene(
                 size: screenSize,
                 gameModel: gameModel,
                 themeModel: themeModel,
@@ -261,6 +293,8 @@ struct GameView: View {
                 feedback: feedback,
                 reduceMotion: reduceMotion
             )
+            scene.setBoardViewport(usesExpandedLayout ? boardViewportSize : nil)
+            gameScene = scene
         }
         .onReceive(timerTicker) { _ in
             // Pause stays visible beneath its sheets, so the entire menu flow suspends time.
@@ -281,14 +315,33 @@ struct GameView: View {
         }
     }
 
+    private var statusAndBanner: some View {
+        VStack(spacing: 0) {
+            GameStatusView(gameModel: gameModel, feedback: feedback) { showingPause = true }
+                .padding()
+            if let banner = activeBanner {
+                HUDBannerView(banner: banner)
+            }
+        }
+    }
+
+    private func boardSurface(_ scene: GameScene) -> some View {
+        GameBoardView(gameModel: gameModel, scene: scene, isPaused: isGameplayPaused)
+            .allowsHitTesting(!isGameplayPaused)
+            .accessibilityHidden(isShowingResult || isGameplayPaused)
+            .blur(radius: isShowingResult ? 2 : 0)
+            .scaleEffect(isShowingResult && !reduceMotion ? 0.99 : 1)
+            .animation(.easeOut(duration: 0.3), value: isShowingResult)
+    }
+
     private var bottomDock: some View {
         BoosterTrayView(boosters: boosters)
         .disabled(gameModel.gameState != .inProgress || gameModel.isResolvingBoard || isGameplayPaused)
         .padding(10)
         .background(
-            Capsule()
+            RoundedRectangle(cornerRadius: usesExpandedLayout ? 24 : 50)
                 .fill(.ultraThinMaterial)
-                .overlay(Capsule().stroke(.white.opacity(0.22), lineWidth: 1))
+                .overlay(RoundedRectangle(cornerRadius: usesExpandedLayout ? 24 : 50).stroke(.white.opacity(0.22), lineWidth: 1))
         )
         .padding(.horizontal, 12)
         .padding(.bottom, 4)
@@ -365,22 +418,29 @@ struct LevelTargetView: View {
     var pendingAmounts: [String: Int] = [:]
     var impacts: [String: Int] = [:]
     var reportsFrames = false
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @ScaledMetric(relativeTo: .body) private var rowHeight = 34
 
     var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack {
-                ForEach(levelTargetDatas) { levelTargetData in
-                    GoalTargetPill(
-                        target: levelTargetData,
-                        pendingAmount: pendingAmounts[levelTargetData.id, default: 0],
-                        impact: impacts[levelTargetData.id, default: 0],
-                        reportsFrame: reportsFrames
-                    )
+        Group {
+            if dynamicTypeSize >= .xxLarge {
+                LazyVGrid(columns: dynamicTypeSize.isAccessibilitySize
+                          ? [GridItem(.flexible(), alignment: .leading)]
+                          : [GridItem(.adaptive(minimum: 100), alignment: .leading)],
+                          alignment: .leading, spacing: 8) {
+                    pills
                 }
+                .padding(8)
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack {
+                        pills
+                    }
+                    .padding(.horizontal, 4)
+                }
+                .frame(height: rowHeight)
             }
-            .padding(.horizontal, 4)
         }
-        .frame(height: 34)
         .background {
             if reportsFrames {
                 GeometryReader { geometry in
@@ -397,4 +457,15 @@ struct LevelTargetView: View {
                 )
         )
     }
+    private var pills: some View {
+        ForEach(levelTargetDatas) { levelTargetData in
+            GoalTargetPill(
+                target: levelTargetData,
+                pendingAmount: pendingAmounts[levelTargetData.id, default: 0],
+                impact: impacts[levelTargetData.id, default: 0],
+                reportsFrame: reportsFrames
+            )
+        }
+    }
+
 }
