@@ -13,12 +13,17 @@ struct BoardScoutingGridView: View {
     var body: some View {
         GeometryReader { geometry in
             let cellSize = max(0, geometry.size.width / widthUnits)
+            let accessibility = BoardScoutingAccessibility(layout: layout)
             VStack(spacing: cellSize * spacingFraction) {
                 ForEach((0..<layout.rows).reversed(), id: \.self) { row in
                     HStack(spacing: cellSize * spacingFraction) {
                         ForEach(0..<layout.columns, id: \.self) { column in
                             if let cell = layout.cell(column: column, row: row) {
-                                BoardScoutingCellView(cell: cell, size: cellSize)
+                                BoardScoutingCellView(
+                                    cell: cell, size: cellSize,
+                                    spokenLabel: accessibility.label(column: column, row: row) ?? "",
+                                    readingPriority: accessibility.sortPriority(column: column, row: row)
+                                )
                             }
                         }
                     }
@@ -31,6 +36,7 @@ struct BoardScoutingGridView: View {
                                 .foregroundStyle(AppTheme.festivalGoldDark)
                                 .opacity(layout.exitColumns.contains(column) ? 1 : 0)
                                 .frame(width: cellSize, height: cellSize * 0.45)
+                                .accessibilityHidden(true)
                         }
                     }
                 }
@@ -38,6 +44,5 @@ struct BoardScoutingGridView: View {
         }
         .aspectRatio(widthUnits / heightUnits, contentMode: .fit)
         .frame(maxWidth: min(280, widthUnits * 34))
-        .allowsHitTesting(false)
     }
 }

@@ -186,3 +186,37 @@
 "Power-ups" = "Power-ups";
 "Goal tiles" = "Goal tiles";
 "Choose Rows, Power-ups, or Goal tiles in the rotor to explore the board faster. Swipe up or down to move between matches." = "Choose Rows, Power-ups, or Goal tiles in the rotor to explore the board faster. Swipe up or down to move between matches.";
+
+/* Spoken goal progress, blast previews, and board scouting */
+"%@. From %@. To %@." = "%@. From %@. To %@.";
+"Combined power: %@." = "Combined power: %@.";
+"Direct-hit area: %lld tiles." = "Direct-hit area: %lld tiles.";
+"Protected tiles in this area: %lld." = "Protected tiles in this area: %lld.";
+"Protection can absorb hits. Chain reactions and falling tiles can extend the effect. Preview only; no move or tool used." = "Protection can absorb hits. Chain reactions and falling tiles can extend the effect. Preview only; no move or tool used.";
+"Row %lld, Columns %lld through %lld" = "Row %lld, Columns %lld through %lld";
+"Direct-hit positions: %@." = "Direct-hit positions: %@.";
+"%@: %lld remaining." = "%@: %lld remaining.";
+"%@: complete." = "%@: complete.";
+"%@: %lld remaining, %lld completed this move." = "%@: %lld remaining, %lld completed this move.";
+"%@: complete, %lld completed this move." = "%@: complete, %lld completed this move.";
+"Guardian: %lld damage, %lld health remaining." = "Guardian: %lld damage, %lld health remaining.";
+"Other goal" = "Other goal";
+"Hole, no tile" = "Hole, no tile";
+"Random tile" = "Random tile";
+"Blast Tile, random tile type" = "Blast Tile, random tile type";
+"Preview up" = "Preview up";
+"Preview down" = "Preview down";
+"Preview left" = "Preview left";
+"Preview right" = "Preview right";
+"Read preview details" = "Read preview details";
+"No direct blast is available for that swap." = "No direct blast is available for that swap.";
+"Preview expired. Choose a Preview action again." = "Preview expired. Choose a Preview action again.";
+"Use Preview up, down, left, or right before a power-up swap. Read preview details lists the direct-hit positions. Preview never spends a move or uses a tool." = "Use Preview up, down, left, or right before a power-up swap. Read preview details lists the direct-hit positions. Preview never spends a move or uses a tool.";
+"firecrackers" = "firecrackers";
+"red envelopes" = "red envelopes";
+"dumplings" = "dumplings";
+"bowls" = "bowls";
+"lanterns" = "lanterns";
+"locks" = "locks";
+"moon blossoms" = "moon blossoms";
+"Guardian defeated!" = "Guardian defeated!";

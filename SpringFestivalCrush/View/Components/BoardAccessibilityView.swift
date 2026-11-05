@@ -3,6 +3,29 @@ import SpriteKit
 /// SpriteKit draws the board; this container exposes its actual cells to VoiceOver.
 /// Frames are projected through SKView, including the scene's scale and board offset.
 final class BoardAccessibilityView: SKView {
+    // SpriteKit supplies its own accessibility container. Own the complete container
+    // contract so it cannot substitute the scene for the board's spatial tile elements.
+    private var boardAccessibilityElements: [Any] = []
+    override var accessibilityElements: [Any]? {
+        get { accessibilityElementsHidden ? [] : boardAccessibilityElements }
+        set { boardAccessibilityElements = newValue ?? [] }
+    }
+
+    override func accessibilityElementCount() -> Int {
+        accessibilityElementsHidden ? 0 : boardAccessibilityElements.count
+    }
+
+    override func accessibilityElement(at index: Int) -> Any? {
+        guard !accessibilityElementsHidden, boardAccessibilityElements.indices.contains(index) else { return nil }
+        return boardAccessibilityElements[index]
+    }
+
+    override func index(ofAccessibilityElement element: Any) -> Int {
+        guard !accessibilityElementsHidden else { return NSNotFound }
+        let object = element as AnyObject
+        return boardAccessibilityElements.firstIndex { ($0 as AnyObject) === object } ?? NSNotFound
+    }
+
     var gameplayPaused = false {
         didSet {
             guard oldValue != gameplayPaused else { return }
@@ -13,6 +36,18 @@ final class BoardAccessibilityView: SKView {
     }
     private(set) var tileElements: [BoardAccessibilityElement] = []
     private(set) var pendingAction: Task<Void, Never>?
+    private(set) var lastAnnouncement: String?
+    private(set) var lastAnnouncementIsQueued = false
+    private struct SpokenPreview {
+        let level: Level
+        let generation: UInt
+        let usingRuyi: Bool
+        let source: Symbol
+        let destination: Symbol
+        let summary: BoardAccessibilityBlastSummary
+    }
+    private var spokenPreview: SpokenPreview?
+    var lastSpokenPreview: BoardAccessibilityBlastSummary? { currentPreview()?.summary }
     private var actionInFlight = false
     private var elementsByCell: [BoardAccessibilityCell: BoardAccessibilityElement] = [:]
     private lazy var instructionsElement = UIAccessibilityElement(accessibilityContainer: self)
@@ -43,6 +78,7 @@ final class BoardAccessibilityView: SKView {
         accessibilityContainerType = .semanticGroup
         accessibilityCustomRotors = boardRotors
         guard let scene = scene as? GameScene, let level = scene.gameModel.level else {
+            spokenPreview = nil
             accessibilityElements = []
             return
         }
@@ -56,6 +92,7 @@ final class BoardAccessibilityView: SKView {
             clearSelection()
         }
         if changedLevel { elementsByCell.removeAll() }
+        if changedLevel || changedMode || currentPreview() == nil { spokenPreview = nil }
         displayedLevel = level
         lastHammerMode = game.hammerModeActive
         lastSwapMode = game.swapModeActive
@@ -103,7 +140,10 @@ final class BoardAccessibilityView: SKView {
         }
         tileElements = elements
         instructionsElement.accessibilityLabel = BoardAccessibilityCell.instructions
-        instructionsElement.accessibilityHint = String(localized: "Choose Rows, Power-ups, or Goal tiles in the rotor to explore the board faster. Swipe up or down to move between matches.")
+        instructionsElement.accessibilityHint = [
+            String(localized: "Choose Rows, Power-ups, or Goal tiles in the rotor to explore the board faster. Swipe up or down to move between matches."),
+            String(localized: "Use Preview up, down, left, or right before a power-up swap. Read preview details lists the direct-hit positions. Preview never spends a move or uses a tool.")
+        ].joined(separator: " ")
         instructionsElement.accessibilityTraits = [.header, .staticText]
         if let boardFrame = elements.map(\.accessibilityFrameInContainerSpace).reduce(nil as CGRect?, { result, frame in
             result.map { $0.union(frame) } ?? frame
@@ -113,6 +153,7 @@ final class BoardAccessibilityView: SKView {
                 width: boardFrame.width, height: 22)
         }
         instructionsElement.accessibilityCustomActions = [statusAction(), hintAction()]
+        if spokenPreview != nil { instructionsElement.accessibilityCustomActions?.append(previewDetailsAction()) }
         accessibilityElements = [instructionsElement] + elements
         if (changedLevel || wasHidden), UIAccessibility.isVoiceOverRunning {
             UIAccessibility.post(notification: .layoutChanged, argument: instructionsElement)
@@ -129,7 +170,8 @@ final class BoardAccessibilityView: SKView {
     }
 
     private var canAct: Bool {
-        guard !gameplayPaused, !actionInFlight, let scene = scene as? GameScene else { return false }
+        guard !gameplayPaused, !isPaused, !accessibilityElementsHidden, !actionInFlight,
+              let scene = scene as? GameScene else { return false }
         return scene.canHandleBoardTouch && !scene.boardSwapDispatchPending
     }
 
@@ -228,6 +270,71 @@ final class BoardAccessibilityView: SKView {
                                                                 row: cell.row + rowDelta), in: scene, level: level)
     }
 
+    /// An explicit inspection action, independent of the optional drag preview.
+    /// Reading a preview preserves selection and never enters the move dispatch path.
+    @discardableResult
+    func preview(_ cell: BoardAccessibilityCell, columnDelta: Int, rowDelta: Int) -> Bool {
+        let horizontalNeighbor = rowDelta == 0 && (columnDelta == -1 || columnDelta == 1)
+        let verticalNeighbor = columnDelta == 0 && (rowDelta == -1 || rowDelta == 1)
+        guard canAct, let scene = scene as? GameScene, let level = scene.gameModel.level,
+              displayedLevel === level, !scene.gameModel.hammerModeActive,
+              cell.column >= 0, cell.column < level.numColumns, cell.row >= 0, cell.row < level.numRows,
+              horizontalNeighbor || verticalNeighbor else { return false }
+        let destination = BoardAccessibilityCell(column: cell.column + columnDelta, row: cell.row + rowDelta)
+        guard let swap = liveSwap(from: cell, to: destination, in: scene),
+              let summary = BoardAccessibilityBlastSummary(level: level, swap: swap, zodiac: scene.gameModel.zodiac) else {
+            spokenPreview = nil
+            refreshAccessibility()
+            announce(String(localized: "No direct blast is available for that swap."))
+            return false
+        }
+        spokenPreview = SpokenPreview(level: level, generation: scene.boardInputGeneration,
+                                      usingRuyi: scene.gameModel.swapModeActive,
+                                      source: swap.symbolA, destination: swap.symbolB, summary: summary)
+        refreshAccessibility()
+        announce(summary.summaryDescription)
+        return true
+    }
+
+    @discardableResult
+    func readPreviewDetails() -> Bool {
+        guard canAct else { return false }
+        guard let preview = currentPreview() else {
+            spokenPreview = nil
+            refreshAccessibility()
+            announce(String(localized: "Preview expired. Choose a Preview action again."))
+            return false
+        }
+        announce(preview.summary.affectedCellsDescription)
+        return true
+    }
+
+    private func liveSwap(from source: BoardAccessibilityCell, to destination: BoardAccessibilityCell,
+                          in scene: GameScene) -> Swap? {
+        guard let level = scene.gameModel.level,
+              source.column >= 0, source.column < level.numColumns, source.row >= 0, source.row < level.numRows,
+              destination.column >= 0, destination.column < level.numColumns,
+              destination.row >= 0, destination.row < level.numRows,
+              let first = level.symbol(atColumn: source.column, row: source.row),
+              let second = level.symbol(atColumn: destination.column, row: destination.row) else { return nil }
+        let swap = Swap(symbolA: first, symbolB: second)
+        guard scene.isLiveSwap(swap, in: level, fromColumn: source.column, fromRow: source.row,
+                               toColumn: destination.column, toRow: destination.row) else { return nil }
+        return swap
+    }
+
+    private func currentPreview() -> SpokenPreview? {
+        guard let preview = spokenPreview, canAct, let scene = scene as? GameScene,
+              scene.gameModel.level === preview.level, displayedLevel === preview.level,
+              !scene.gameModel.hammerModeActive, scene.gameModel.swapModeActive == preview.usingRuyi,
+              scene.boardInputGeneration == preview.generation,
+              let swap = liveSwap(from: preview.summary.source, to: preview.summary.destination, in: scene),
+              swap.symbolA === preview.source, swap.symbolB === preview.destination,
+              BoardAccessibilityBlastSummary(level: preview.level, swap: swap,
+                                             zodiac: scene.gameModel.zodiac) == preview.summary else { return nil }
+        return preview
+    }
+
     private func commitSwap(from source: BoardAccessibilityCell, to destination: BoardAccessibilityCell,
                             in scene: GameScene, level: Level) -> Bool {
         clearSelection()
@@ -247,19 +354,35 @@ final class BoardAccessibilityView: SKView {
     }
 
     private func observe(_ task: Task<Void, Never>, in scene: GameScene, level: Level, invalidSwap: Bool) {
+        let goalsBefore = BoardAccessibilityGoalSummary(targets: scene.gameModel.createLevelTargetDatas(),
+                                                       guardianHealth: level.boss?.health)
         actionInFlight = true
         refreshAccessibility()
         pendingAction = Task { @MainActor [weak self, weak scene] in
             await task.value
             guard let self else { return }
+            // Consuming a targeted tool ends its mode automatically. Observe that
+            // transition while input is disabled so it does not say "Tool cancelled"
+            // immediately before the action's goal receipt.
+            self.refreshAccessibility()
             self.actionInFlight = false
             self.refreshAccessibility()
             guard !Task.isCancelled, let scene, self.scene === scene,
-                  scene.gameModel.level === level, self.canAct else { return }
-            if invalidSwap {
+                  scene.gameModel.level === level, !self.gameplayPaused, !self.isPaused,
+                  !scene.isPaused, !scene.feedbackPaused else { return }
+            let goalsAfter = BoardAccessibilityGoalSummary(targets: scene.gameModel.createLevelTargetDatas(),
+                                                          guardianHealth: level.boss?.health)
+            let changes = goalsAfter.changes(since: goalsBefore)
+            let state = scene.gameModel.gameState
+            if state == .inProgress, self.canAct, invalidSwap {
                 self.announce(String(localized: "No match. Move not used."))
-            } else {
-                self.announce(self.statusDescription())
+            } else if state == .inProgress, self.canAct {
+                self.announce([changes, self.statusDescription(includeGoals: false, includeGuardianHealth: false)]
+                    .filter { !$0.isEmpty }.joined(separator: " "))
+            } else if (state == .win || state == .lose || state == .offeringContinue), !changes.isEmpty {
+                // The board is hidden now, but its final move still made progress.
+                // Queue the receipt behind result speech without moving accessibility focus.
+                self.announce(changes, queued: true)
             }
         }
     }
@@ -289,6 +412,24 @@ final class BoardAccessibilityView: SKView {
                     return self.swap(element.cell, columnDelta: dc, rowDelta: dr)
                 }
             }
+            let previews: [(String, Int, Int)] = [
+                (String(localized: "Preview up"), 0, 1), (String(localized: "Preview down"), 0, -1),
+                (String(localized: "Preview left"), -1, 0), (String(localized: "Preview right"), 1, 0)
+            ]
+            for (name, dc, dr) in previews {
+                guard let scene = scene as? GameScene,
+                      let swap = liveSwap(from: element.cell,
+                                          to: BoardAccessibilityCell(column: element.cell.column + dc,
+                                                                     row: element.cell.row + dr), in: scene),
+                      swap.symbolA.isSpecialPowerUp || swap.symbolA.type.isEnhanced
+                        || swap.symbolB.isSpecialPowerUp || swap.symbolB.type.isEnhanced else { continue }
+                actions.append(UIAccessibilityCustomAction(name: name) { [weak self, weak element] _ in
+                    guard let self, let element, let scene = self.scene as? GameScene,
+                          scene.gameModel.level === element.level,
+                          self.tileElements.contains(where: { $0 === element }) else { return false }
+                    return self.preview(element.cell, columnDelta: dc, rowDelta: dr)
+                })
+            }
         }
         if selectedCell != nil {
             actions.append(UIAccessibilityCustomAction(name: String(localized: "Cancel selection")) { [weak self] _ in
@@ -300,12 +441,19 @@ final class BoardAccessibilityView: SKView {
         }
         actions.append(statusAction())
         actions.append(hintAction())
+        if spokenPreview != nil { actions.append(previewDetailsAction()) }
         return actions
+    }
+
+    private func previewDetailsAction() -> UIAccessibilityCustomAction {
+        UIAccessibilityCustomAction(name: String(localized: "Read preview details")) { [weak self] _ in
+            self?.readPreviewDetails() ?? false
+        }
     }
 
     private func statusAction() -> UIAccessibilityCustomAction {
         UIAccessibilityCustomAction(name: String(localized: "Read board status")) { [weak self] _ in
-            guard let self, !self.accessibilityElementsHidden else { return false }
+            guard let self, self.canAct, !self.accessibilityElementsHidden else { return false }
             self.announce(self.statusDescription())
             return true
         }
@@ -323,16 +471,20 @@ final class BoardAccessibilityView: SKView {
         }
     }
 
-    private func statusDescription() -> String {
+    private func statusDescription(includeGoals: Bool = true, includeGuardianHealth: Bool = true) -> String {
         guard let game = (scene as? GameScene)?.gameModel else { return "" }
         var parts = [String(localized: "Score \(game.score). \(game.movesLeft) moves left. \(game.remainingGoalPieces) goal pieces remaining.")]
+        if includeGoals {
+            let goals = BoardAccessibilityGoalSummary(targets: game.createLevelTargetDatas()).remainingDescription
+            if !goals.isEmpty { parts.append(goals) }
+        }
         if let seconds = game.secondsLeft {
             parts.append(String(localized: "\(seconds) seconds left."))
         } else if game.level.timeLimit != nil, game.attemptTimerMode == .untimed {
             parts.append(String(localized: "Untimed"))
         }
         if let boss = game.bossStatus {
-            parts.append(String(localized: "Guardian health \(boss.health)."))
+            if includeGuardianHealth { parts.append(String(localized: "Guardian health \(boss.health).")) }
             parts.append(boss.cue)
         }
         if let notice = game.toolNotice { parts.append(notice) }
@@ -351,8 +503,15 @@ final class BoardAccessibilityView: SKView {
                       width: abs(first.x - second.x), height: abs(first.y - second.y))
     }
 
-    private func announce(_ message: String) {
+    private func announce(_ message: String, queued: Bool = false) {
+        lastAnnouncement = message
+        lastAnnouncementIsQueued = queued
         guard UIAccessibility.isVoiceOverRunning, !gameplayPaused else { return }
-        UIAccessibility.post(notification: .announcement, argument: message)
+        if queued {
+            let speech = NSAttributedString(string: message, attributes: [.accessibilitySpeechQueueAnnouncement: NSNumber(value: true)])
+            UIAccessibility.post(notification: .announcement, argument: speech)
+        } else {
+            UIAccessibility.post(notification: .announcement, argument: message)
+        }
     }
 }

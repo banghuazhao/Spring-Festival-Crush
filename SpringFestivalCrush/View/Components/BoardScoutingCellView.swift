@@ -3,9 +3,14 @@ import SwiftUI
 struct BoardScoutingCellView: View {
     let cell: BoardScoutingLayout.Cell
     let size: CGFloat
+    let spokenLabel: String
+    let readingPriority: Double
 
     var body: some View {
         ZStack {
+            // A transparent backing gives holes a spatial accessibility target while
+            // leaving the authored board artwork unchanged.
+            Color.clear
             if cell.kind != .empty {
                 RoundedRectangle(cornerRadius: size * 0.2)
                     .fill(Color(UIColor(hex: 0x2E4A50)))
@@ -40,7 +45,12 @@ struct BoardScoutingCellView: View {
             }
         }
         .frame(width: size, height: size)
-        .accessibilityHidden(true)
+        .contentShape(Rectangle())
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(verbatim: spokenLabel))
+        .accessibilityAddTraits(.isStaticText)
+        .accessibilitySortPriority(readingPriority)
+        .accessibilityIdentifier("board-scout-row-\(cell.row)-column-\(cell.column)")
     }
 
     @ViewBuilder

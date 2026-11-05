@@ -7,12 +7,14 @@ import SwiftUI
 @MainActor
 private final class AccessibilityRoutingModel: GameModel {
     var runsGameplay = false
+    var onRegularSwap: ((Swap) -> Void)?
     var regularSwaps: [Swap] = []
     var ruyiSwaps: [Swap] = []
     var hammerTargets: [BoardAccessibilityCell] = []
 
     override func handleSwipe(_ swap: Swap) async {
         regularSwaps.append(swap)
+        onRegularSwap?(swap)
         if runsGameplay { await super.handleSwipe(swap) }
     }
     override func useRuyiSwap(_ swap: Swap) async {
@@ -125,6 +127,25 @@ final class BoardAccessibilityTests: XCTestCase {
             }
         }
         XCTAssertEqual(cells, expected)
+        XCTAssertFalse(fixture.view.isAccessibilityElement)
+        XCTAssertEqual(fixture.view.accessibilityElements?.count, expected.count + 1)
+        XCTAssertEqual(fixture.view.accessibilityElementCount(), expected.count + 1)
+        XCTAssertNotNil(fixture.view.accessibilityElement(at: 0) as? UIAccessibilityElement)
+        for (index, element) in fixture.view.tileElements.enumerated() {
+            XCTAssertTrue(fixture.view.accessibilityElement(at: index + 1) as? BoardAccessibilityElement === element)
+            XCTAssertEqual(fixture.view.index(ofAccessibilityElement: element), index + 1)
+        }
+        XCTAssertNil(fixture.view.accessibilityElement(at: -1))
+        XCTAssertNil(fixture.view.accessibilityElement(at: expected.count + 1))
+        XCTAssertEqual(fixture.view.index(ofAccessibilityElement: NSObject()), NSNotFound)
+        let firstElement = try XCTUnwrap(fixture.view.tileElements.first)
+        fixture.view.accessibilityElementsHidden = true
+        XCTAssertEqual(fixture.view.accessibilityElements?.count, 0)
+        XCTAssertEqual(fixture.view.accessibilityElementCount(), 0)
+        XCTAssertNil(fixture.view.accessibilityElement(at: 0))
+        XCTAssertEqual(fixture.view.index(ofAccessibilityElement: firstElement), NSNotFound)
+        XCTAssertFalse(firstElement.accessibilityActivate())
+        fixture.view.accessibilityElementsHidden = false
         let original = try XCTUnwrap(fixture.view.tileElements.first { $0.cell == fixture.sourceCell })
         let originalLabel = original.accessibilityLabel
         fixture.source.type = .vaultLock
@@ -432,6 +453,183 @@ final class BoardAccessibilityTests: XCTestCase {
         return result
     }
 
+    func testSettledNativeMoveAnnouncesEachGoalChangeAndCompletionOnce() async throws {
+        let fixture = try await makeFixture()
+        let game = fixture.game
+        game.level.levelGoal.levelTarget = LevelTarget(firecracker: 5, lock: 1, lightningCombos: 2)
+        fixture.source.type = .lightning
+        game.level.detectPossibleSwaps()
+        fixture.view.refreshAccessibility()
+        let before = BoardAccessibilityGoalSummary(targets: game.createLevelTargetDatas())
+        game.onRegularSwap = { [weak game] _ in
+            guard let game else { return }
+            game.level.levelGoal.levelTarget.firecracker = 2
+            game.level.levelGoal.levelTarget.lock = 0
+            game.level.levelGoal.levelTarget.lightningCombos = 1
+            game.score = 120
+            game.movesLeft -= 1
+        }
+        XCTAssertTrue(fixture.view.swap(fixture.sourceCell, columnDelta: 1, rowDelta: 0))
+        await fixture.view.pendingAction?.value
+        let changes = BoardAccessibilityGoalSummary(targets: game.createLevelTargetDatas()).changes(since: before)
+        let spoken = try XCTUnwrap(fixture.view.lastAnnouncement)
+        XCTAssertFalse(changes.isEmpty)
+        XCTAssertTrue(spoken.contains(changes))
+        XCTAssertEqual(spoken.components(separatedBy: changes).count - 1, 1,
+                       "One settled action must produce one combined per-goal receipt")
+        XCTAssertEqual(game.regularSwaps.count, 1)
+        XCTAssertEqual(game.movesLeft, 19)
+    }
+
+    func testFinalMoveReceiptsAreQueuedWithoutReopeningCoveredBoard() async throws {
+        for state in [GameModel.GameState.win, .offeringContinue, .lose] {
+            let fixture = try await makeFixture()
+            let game = fixture.game
+            game.level.levelGoal.levelTarget = LevelTarget(dumpling: 2)
+            fixture.source.type = .lightning
+            game.level.detectPossibleSwaps()
+            fixture.view.refreshAccessibility()
+            let before = BoardAccessibilityGoalSummary(targets: game.createLevelTargetDatas())
+            game.onRegularSwap = { [weak game] _ in
+                game?.level.levelGoal.levelTarget.dumpling = 0
+                game?.gameState = state
+            }
+            XCTAssertTrue(fixture.view.swap(fixture.sourceCell, columnDelta: 1, rowDelta: 0))
+            await fixture.view.pendingAction?.value
+            let expected = BoardAccessibilityGoalSummary(targets: game.createLevelTargetDatas()).changes(since: before)
+            XCTAssertFalse(expected.isEmpty)
+            XCTAssertEqual(fixture.view.lastAnnouncement, expected)
+            XCTAssertTrue(fixture.view.lastAnnouncementIsQueued)
+            XCTAssertTrue(fixture.view.accessibilityElementsHidden)
+            XCTAssertTrue(fixture.view.tileElements.isEmpty)
+        }
+    }
+
+    func testReadBoardStatusActionIncludesIndividualRemainingAndCompletedGoals() async throws {
+        let fixture = try await makeFixture()
+        fixture.game.level.levelGoal.levelTarget = LevelTarget(redPocket: 4, lock: 0, fiveCombos: 2)
+        fixture.view.refreshAccessibility()
+        let element = try XCTUnwrap(fixture.view.tileElements.first)
+        let action = try XCTUnwrap(element.accessibilityCustomActions?.first { $0.name == String(localized: "Read board status") })
+        XCTAssertTrue(try XCTUnwrap(action.actionHandler)(action))
+        let expected = BoardAccessibilityGoalSummary(targets: fixture.game.createLevelTargetDatas()).remainingDescription
+        XCTAssertTrue(try XCTUnwrap(fixture.view.lastAnnouncement).contains(expected))
+        XCTAssertTrue(fixture.game.regularSwaps.isEmpty)
+        XCTAssertNil(fixture.view.pendingAction)
+    }
+
+    func testUnchangedAndInvalidNativeMovesDoNotInventGoalProgress() async throws {
+        let fixture = try await makeFixture()
+        let level = try XCTUnwrap(fixture.game.level)
+        level.levelGoal.levelTarget = LevelTarget(lightningCombos: 3)
+        fixture.source.type = .lightning
+        level.detectPossibleSwaps()
+        fixture.view.refreshAccessibility()
+        XCTAssertTrue(fixture.view.swap(fixture.sourceCell, columnDelta: 1, rowDelta: 0))
+        await fixture.view.pendingAction?.value
+        let unchangedGoalStatus = BoardAccessibilityGoalSummary(targets: fixture.game.createLevelTargetDatas()).remainingDescription
+        XCTAssertFalse(try XCTUnwrap(fixture.view.lastAnnouncement).contains(unchangedGoalStatus))
+
+        // This repeating six-color pattern has no adjacent duplicates. Exchanging the
+        // fixture's ordinary neighbors cannot form a three-tile match.
+        let types: [SymbolType] = [.firecracker, .redPocket, .dumpling, .bowl, .lantern, .zodiac]
+        for element in fixture.view.tileElements {
+            level.symbol(atColumn: element.cell.column, row: element.cell.row)?.type = types[(element.cell.column + element.cell.row * 2) % types.count]
+        }
+        level.detectPossibleSwaps()
+        let swap = Swap(symbolA: fixture.source, symbolB: fixture.destination)
+        XCTAssertFalse(level.isPossibleSwap(swap))
+        fixture.view.refreshAccessibility()
+        XCTAssertTrue(fixture.view.swap(fixture.sourceCell, columnDelta: 1, rowDelta: 0))
+        await fixture.view.pendingAction?.value
+        XCTAssertEqual(fixture.view.lastAnnouncement, String(localized: "No match. Move not used."))
+        XCTAssertEqual(level.levelGoal.levelTarget.lightningCombos, 3)
+    }
+
+    func testNativeSpokenPreviewActionsPreserveBoardCostsAndSelection() async throws {
+        let fixture = try await makeFixture()
+        let level = try XCTUnwrap(fixture.game.level)
+        fixture.source.type = .lightning
+        // An explicitly requested spoken preview stays available with drag previews off.
+        fixture.scene.settingModel.powerUpPreviewsEnabled = false
+        level.detectPossibleSwaps()
+        fixture.view.refreshAccessibility()
+        let origin = fixture.sourceCell
+        XCTAssertTrue(fixture.view.activate(origin))
+        let element = try XCTUnwrap(fixture.view.tileElements.first { $0.cell == origin })
+        let pieces = fixture.view.tileElements.compactMap { level.symbol(atColumn: $0.cell.column, row: $0.cell.row) }
+        let types = pieces.map(\.type)
+        let positions = pieces.map { BoardAccessibilityCell(column: $0.column, row: $0.row) }
+        let ice = pieces.map(\.iceLayer)
+        let armor = pieces.map(\.armorLayers)
+        let inventory = [fixture.game.movesLeft, fixture.game.score, fixture.game.hammerCharges,
+                         fixture.game.swapCharges, fixture.game.shuffleCharges]
+        let targets = BoardAccessibilityGoalSummary(targets: fixture.game.createLevelTargetDatas())
+        let expected = try XCTUnwrap(BoardAccessibilityBlastSummary(level: level,
+            swap: Swap(symbolA: fixture.source, symbolB: fixture.destination), zodiac: fixture.game.zodiac))
+        let action = try XCTUnwrap(element.accessibilityCustomActions?.first { $0.name == String(localized: "Preview right") })
+        XCTAssertTrue(try XCTUnwrap(action.actionHandler)(action))
+        XCTAssertEqual(fixture.view.lastSpokenPreview, expected)
+        XCTAssertEqual(fixture.view.lastAnnouncement, expected.summaryDescription)
+
+        let detailAction = try XCTUnwrap(element.accessibilityCustomActions?.first { $0.name == String(localized: "Read preview details") })
+        XCTAssertTrue(try XCTUnwrap(detailAction.actionHandler)(detailAction))
+        XCTAssertEqual(fixture.view.lastAnnouncement, expected.affectedCellsDescription)
+        let header = try XCTUnwrap(fixture.view.accessibilityElements?.first as? UIAccessibilityElement)
+        XCTAssertNotNil(header.accessibilityCustomActions?.first { $0.name == String(localized: "Read preview details") })
+        XCTAssertTrue(element.accessibilityTraits.contains(.selected))
+        XCTAssertNotNil(fixture.scene.selectionSprite.parent, "Previewing must retain the visible swap selection")
+        XCTAssertEqual(pieces.map(\.type), types)
+        XCTAssertEqual(pieces.map { BoardAccessibilityCell(column: $0.column, row: $0.row) }, positions)
+        XCTAssertEqual(pieces.map(\.iceLayer), ice)
+        XCTAssertEqual(pieces.map(\.armorLayers), armor)
+        XCTAssertEqual([fixture.game.movesLeft, fixture.game.score, fixture.game.hammerCharges,
+                        fixture.game.swapCharges, fixture.game.shuffleCharges], inventory)
+        XCTAssertEqual(BoardAccessibilityGoalSummary(targets: fixture.game.createLevelTargetDatas()), targets)
+        XCTAssertTrue(fixture.game.regularSwaps.isEmpty)
+        XCTAssertTrue(fixture.game.ruyiSwaps.isEmpty)
+        XCTAssertTrue(fixture.game.hammerTargets.isEmpty)
+        XCTAssertNil(fixture.view.pendingAction)
+    }
+
+    func testSpokenPreviewRejectsBoardPauseModeGenerationAndLevelChanges() async throws {
+        let fixture = try await makeFixture()
+        fixture.source.type = .lightning
+        fixture.scene.settingModel.powerUpPreviewsEnabled = true
+        let origin = fixture.sourceCell
+        func preview() {
+            fixture.view.refreshAccessibility()
+            XCTAssertTrue(fixture.view.preview(origin, columnDelta: 1, rowDelta: 0))
+            XCTAssertNotNil(fixture.view.lastSpokenPreview)
+        }
+        func assertInvalid() {
+            XCTAssertFalse(fixture.view.readPreviewDetails())
+            XCTAssertNil(fixture.view.lastSpokenPreview)
+        }
+        preview()
+        fixture.destination.type = .bowl
+        assertInvalid()
+        fixture.destination.type = .dumpling
+        preview()
+        fixture.view.gameplayPaused = true
+        assertInvalid()
+        fixture.view.gameplayPaused = false
+        preview()
+        fixture.game.hammerModeActive = true
+        assertInvalid()
+        fixture.game.hammerModeActive = false
+        preview()
+        fixture.scene.cancelBlastPreview()
+        assertInvalid()
+        preview()
+        fixture.game.level.performSwap(Swap(symbolA: fixture.source, symbolB: fixture.destination))
+        assertInvalid()
+        fixture.game.selectLevel(2)
+        assertInvalid()
+        XCTAssertTrue(fixture.game.regularSwaps.isEmpty)
+        XCTAssertTrue(fixture.game.hammerTargets.isEmpty)
+    }
+
     func testHammerCanTargetAGiftWithoutUsingAMove() async throws {
         let fixture = try await makeFixture()
         fixture.game.runsGameplay = true
@@ -453,6 +651,9 @@ final class BoardAccessibilityTests: XCTestCase {
         XCTAssertEqual(fixture.game.hammerCharges, hammerCharges - 1)
         XCTAssertEqual(fixture.game.movesLeft, moves)
         XCTAssertEqual(fixture.game.level.levelGoal.levelTarget.ingredient, 0)
+        let gifts = String(localized: "gifts to deliver")
+        let receipt = String(localized: "\(gifts): complete, \(1) completed this move.")
+        XCTAssertTrue(try XCTUnwrap(fixture.view.lastAnnouncement).contains(receipt))
         XCTAssertFalse(fixture.game.isResolvingBoard)
         XCTAssertFalse(fixture.game.hammerModeActive)
     }

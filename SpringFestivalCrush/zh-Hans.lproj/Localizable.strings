@@ -562,3 +562,29 @@
 "Power-ups" = "强化方块";
 "Goal tiles" = "目标方块";
 "Choose Rows, Power-ups, or Goal tiles in the rotor to explore the board faster. Swipe up or down to move between matches." = "在转子中选择“行”、“强化方块”或“目标方块”，更快地探索棋盘。向上或向下轻扫即可在相应位置间移动。";
+
+/* Spoken goal progress, blast previews, and board scouting */
+"%@. From %@. To %@." = "%@。从%@到%@。";
+"Combined power: %@." = "组合强化效果：%@。";
+"Direct-hit area: %lld tiles." = "直接命中范围：%lld 个方块。";
+"Protected tiles in this area: %lld." = "范围内受保护的方块：%lld 个。";
+"Protection can absorb hits. Chain reactions and falling tiles can extend the effect. Preview only; no move or tool used." = "保护层可能吸收命中。连锁反应和掉落方块可能扩大效果范围。此为预览，未消耗步数或道具。";
+"Row %lld, Columns %lld through %lld" = "第 %lld 行，第 %lld 至 %lld 列";
+"Direct-hit positions: %@." = "直接命中位置：%@。";
+"%@: %lld remaining." = "%@：剩余 %lld。";
+"%@: complete." = "%@：已完成。";
+"%@: %lld remaining, %lld completed this move." = "%@：剩余 %lld，本次移动完成 %lld。";
+"%@: complete, %lld completed this move." = "%@：已完成，本次移动完成 %lld。";
+"Guardian: %lld damage, %lld health remaining." = "守护兽：造成 %lld 点伤害，剩余生命值 %lld。";
+"Other goal" = "其他目标";
+"Hole, no tile" = "空洞，无方块";
+"Random tile" = "随机方块";
+"Blast Tile, random tile type" = "爆破方块，随机类型";
+"Preview up" = "预览向上交换";
+"Preview down" = "预览向下交换";
+"Preview left" = "预览向左交换";
+"Preview right" = "预览向右交换";
+"Read preview details" = "朗读预览详情";
+"No direct blast is available for that swap." = "此交换没有可预览的直接爆破效果。";
+"Preview expired. Choose a Preview action again." = "预览已失效，请重新选择预览操作。";
+"Use Preview up, down, left, or right before a power-up swap. Read preview details lists the direct-hit positions. Preview never spends a move or uses a tool." = "交换强化方块前，可使用向上、向下、向左或向右预览。“朗读预览详情”会列出直接命中位置。预览不会消耗步数或道具。";
