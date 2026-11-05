@@ -1,4 +1,5 @@
-• Jouez à 20 nouveaux niveaux : revanches contre les gardiens, maîtrise des bonus, livraisons de cadeaux et défis à objectifs combinés.
-• Anticipez vos coups avec l’aperçu du plateau et de la zone d’effet des bonus, ainsi que des indices adaptés aux objectifs.
-• Profitez de conseils ciblés pour réessayer et de guides illustrés des combinaisons de bonus.
-• Les objectifs d’étoiles, les résumés de pause et les informations pour continuer gagnent en clarté, avec des mises en page mieux adaptées aux grands caractères.
+• Jouez sur le plateau avec VoiceOver, qui lit les détails des tuiles, les objectifs et les aperçus des bonus.
+• Parcourez le plateau au clavier ou avec les groupes de lignes du contrôle de sélection.
+• Choisissez des annonces brèves ou détaillées et réécoutez le résultat du dernier coup.
+• Pour les niveaux chronométrés, choisissez du temps supplémentaire ou un mode sans limite de temps.
+• Les textes suivent la taille définie dans vos réglages, et le focus est plus prévisible après une pause et sur les écrans de résultats.

@@ -1,4 +1,5 @@
-• Juega 20 niveles nuevos, con revanchas contra guardianes, retos para dominar los potenciadores, entregas de regalos y desafíos de objetivos combinados.
-• Planea tus jugadas con vistas previas del tablero y del alcance de los potenciadores, y pistas según tus objetivos.
-• Recibe consejos específicos para tu siguiente intento y guías ilustradas de combinaciones de potenciadores.
-• Disfruta de metas de estrellas, resúmenes al pausar y detalles para continuar más claros, con un diseño mejorado para texto grande.
+• Juega en los tableros con VoiceOver y escucha detalles de las fichas, objetivos y vistas previas de los potenciadores.
+• Explora con el teclado y con filas agrupadas en Control por botón.
+• Elige mensajes de voz breves o detallados y vuelve a escuchar el resultado de tu última jugada.
+• En los niveles contrarreloj, elige tiempo extra o un modo sin límite de tiempo.
+• Disfruta de texto que se adapta al tamaño configurado y de un foco más predecible al volver de una pausa y en las pantallas de resultados.
