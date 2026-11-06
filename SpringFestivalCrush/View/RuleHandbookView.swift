@@ -3,12 +3,17 @@ import SwiftUI
 /// Every board rule in one book. A rule lights up once the player reaches the level that
 /// teaches it; until then it waits in grey, showing which level unlocks it.
 struct RuleHandbookView: View {
+    private let onClose: (() -> Void)?
     @EnvironmentObject private var gameModel: GameModel
     @EnvironmentObject private var settingModel: SettingModel
     @Environment(\.dismiss) private var dismiss
     /// Unlocked but never opened here before; captured on open so the NEW tags last this visit.
     @State private var newRules: Set<GameRule> = []
     private let curriculum = RuleCurriculum.shared
+
+    init(onClose: (() -> Void)? = nil) {
+        self.onClose = onClose
+    }
 
     private func isUnlocked(_ rule: GameRule) -> Bool {
         curriculum.isUnlocked(rule) { settingModel.unlockAllLevels || gameModel.hasReached($0) }
@@ -49,7 +54,7 @@ struct RuleHandbookView: View {
             .scrollIndicators(.hidden)
         }
         .overlay(alignment: .topTrailing) {
-            Button("Close", systemImage: "xmark") { dismiss() }
+            Button("Close", systemImage: "xmark", action: close)
                 .labelStyle(.iconOnly)
                 .font(.system(size: 18, weight: .bold))
                 .foregroundStyle(AppTheme.festivalRed)
@@ -59,12 +64,20 @@ struct RuleHandbookView: View {
                 .padding(.trailing, 16)
                 .padding(.top, 8)
                 .accessibilityIdentifier("rule-handbook-close")
+                #if targetEnvironment(macCatalyst)
+                .keyboardShortcut(.cancelAction)
+                #endif
         }
         .presentationDragIndicator(.visible)
         .onAppear {
             newRules = Set(unlocked).subtracting(RuleHandbookStore.seen())
             RuleHandbookStore.markSeen(unlocked)
         }
+    }
+
+    private func close() {
+        if let onClose { onClose() }
+        else { dismiss() }
     }
 
     private func progress(_ unlocked: Int, of total: Int) -> some View {

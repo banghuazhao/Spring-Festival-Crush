@@ -169,10 +169,30 @@ struct SelectLevelView: View {
             }
         }
         #if targetEnvironment(macCatalyst)
-        .disabled(selectedLevel != nil)
-        .accessibilityHidden(selectedLevel != nil)
-        .allowsHitTesting(selectedLevel == nil)
-        #endif
+        .disabled(selectedLevel != nil || gameModel.shouldPresentGame)
+        .accessibilityHidden(selectedLevel != nil || gameModel.shouldPresentGame)
+        .allowsHitTesting(selectedLevel == nil && !gameModel.shouldPresentGame)
+        // Keep gameplay in the active Mac window, just like its briefing. A
+        // separate full-screen presentation can leave its SpriteKit surface
+        // inactive while UIKit is still dispatching accessibility/mouse input.
+        .overlay {
+            if gameModel.shouldPresentGame {
+                GeometryReader { geometry in
+                    GameView(screenSize: geometry.size)
+                }
+                .background(Color.black)
+                .ignoresSafeArea()
+                .environmentObject(gameModel)
+                .environmentObject(settingModel)
+                .environmentObject(themeModel)
+                .environment(\.gameReducedEffects, settingModel.reducedEffects)
+                .accessibilityAddTraits(.isModal)
+            }
+        }
+        .onChange(of: gameModel.shouldPresentGame) { _, isPresented in
+            if !isPresented { gameDismissalCount += 1 }
+        }
+        #else
         .fullScreenCover(isPresented: $gameModel.shouldPresentGame, onDismiss: {
             gameDismissalCount += 1
         }) {
@@ -182,6 +202,7 @@ struct SelectLevelView: View {
                 .environmentObject(themeModel)
                 .environment(\.gameReducedEffects, settingModel.reducedEffects)
         }
+        #endif
         #if targetEnvironment(macCatalyst)
         // Keep the briefing in the navigation hierarchy on Mac Catalyst so its
         // model and presentation state remain attached to the level map.
@@ -199,7 +220,7 @@ struct SelectLevelView: View {
                 .accessibilityAddTraits(.isModal)
             }
         }
-        .toolbar(selectedLevel == nil ? .visible : .hidden, for: .navigationBar)
+        .toolbar(selectedLevel == nil && !gameModel.shouldPresentGame ? .visible : .hidden, for: .navigationBar)
         #else
         // Start only after sheet dismissal, avoiding overlapping UIKit presentations.
         .sheet(item: $selectedLevel, onDismiss: startPendingLevel) { record in

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D51106000000000000010001 /* NativePauseActivationButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = D51106000000000000000001 /* NativePauseActivationButton.swift */; };
 		D51105000000000000010012 /* SpeechAccessibilityPreferenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D51105000000000000000012 /* SpeechAccessibilityPreferenceTests.swift */; };
 		D51105000000000000010011 /* BoardAccessibilityRowElement.swift in Sources */ = {isa = PBXBuildFile; fileRef = D51105000000000000000011 /* BoardAccessibilityRowElement.swift */; };
 		D51105000000000000010010 /* BoardSpeechDetail.swift in Sources */ = {isa = PBXBuildFile; fileRef = D51105000000000000000010 /* BoardSpeechDetail.swift */; };
@@ -281,6 +282,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		D51106000000000000000001 /* NativePauseActivationButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Components/NativePauseActivationButton.swift"; sourceTree = "<group>"; };
 		D51105000000000000000012 /* SpeechAccessibilityPreferenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SpringFestivalCrushTests/SpeechAccessibilityPreferenceTests.swift"; sourceTree = SOURCE_ROOT; };
 		D51105000000000000000011 /* BoardAccessibilityRowElement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Components/BoardAccessibilityRowElement.swift"; sourceTree = "<group>"; };
 		D51105000000000000000010 /* BoardSpeechDetail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BoardSpeechDetail.swift"; sourceTree = "<group>"; };
@@ -974,6 +976,7 @@
 				B2C3D4E501234567AABBCC23 /* HUDComponents.swift */,
 				D51105000000000000000005 /* GameBoardView.swift */,
 				D51105000000000000000011 /* BoardAccessibilityRowElement.swift */,
+				D51106000000000000000001 /* NativePauseActivationButton.swift */,
 				D51105000000000000000004 /* BoardAccessibilityView.swift */,
 				D51105000000000000000003 /* BoardAccessibilityElement.swift */,
 			);
@@ -1241,6 +1244,7 @@
 				D51105000000000000010005 /* GameBoardView.swift in Sources */,
 				D51105000000000000010010 /* BoardSpeechDetail.swift in Sources */,
 				D51105000000000000010011 /* BoardAccessibilityRowElement.swift in Sources */,
+				D51106000000000000010001 /* NativePauseActivationButton.swift in Sources */,
 				D51105000000000000010004 /* BoardAccessibilityView.swift in Sources */,
 				D51105000000000000010003 /* BoardAccessibilityElement.swift in Sources */,
 				D51105000000000000010002 /* GameScene+Accessibility.swift in Sources */,
@@ -1553,7 +1557,7 @@
 				SUPPORTS_MACCATALYST = YES;
 				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = NO;
 				"ASSETCATALOG_COMPILER_APPICON_NAME[sdk=macosx*]" = AppIconMac;
-				"CURRENT_PROJECT_VERSION[sdk=macosx*]" = 2611060850;
+				"CURRENT_PROJECT_VERSION[sdk=macosx*]" = 2611061130;
 				"ENABLE_APP_SANDBOX[sdk=macosx*]" = YES;
 				"GENERATE_INFOPLIST_FILE[sdk=macosx*]" = YES;
 				"INFOPLIST_KEY_LSApplicationCategoryType[sdk=macosx*]" = "public.app-category.puzzle-games";
@@ -1582,7 +1586,7 @@
 				SUPPORTS_MACCATALYST = YES;
 				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = NO;
 				"ASSETCATALOG_COMPILER_APPICON_NAME[sdk=macosx*]" = AppIconMac;
-				"CURRENT_PROJECT_VERSION[sdk=macosx*]" = 2611060850;
+				"CURRENT_PROJECT_VERSION[sdk=macosx*]" = 2611061130;
 				"ENABLE_APP_SANDBOX[sdk=macosx*]" = YES;
 				"GENERATE_INFOPLIST_FILE[sdk=macosx*]" = YES;
 				"INFOPLIST_KEY_LSApplicationCategoryType[sdk=macosx*]" = "public.app-category.puzzle-games";

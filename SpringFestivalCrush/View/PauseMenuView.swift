@@ -27,6 +27,10 @@ struct PauseMenuView: View {
                     panel
                         .disabled(presentedSheet != nil)
                         .accessibilityHidden(presentedSheet != nil)
+                        #if targetEnvironment(macCatalyst)
+                        .opacity(presentedSheet == nil ? 1 : 0)
+                        .allowsHitTesting(presentedSheet == nil)
+                        #endif
                         .padding(24)
                         .frame(maxWidth: .infinity)
                         .frame(minHeight: geometry.size.height)
@@ -37,6 +41,47 @@ struct PauseMenuView: View {
         .accessibilityAddTraits(.isModal)
         .onAppear { resumeFocused = true }
         .onDisappear { resumeFocused = false }
+        #if targetEnvironment(macCatalyst)
+        .overlay {
+            if let sheet = presentedSheet {
+                Group {
+                    switch sheet {
+                    case .rules:
+                        RuleHandbookView(onClose: closePresentedContent)
+                            .environmentObject(gameModel)
+                            .environmentObject(settingModel)
+                    case .settings:
+                        SettingsView()
+                            .safeAreaInset(edge: .top, spacing: 0) {
+                                HStack {
+                                    Text("Settings")
+                                        .font(.headline)
+                                        .accessibilityAddTraits(.isHeader)
+                                    Spacer()
+                                    Button("Done", action: closePresentedContent)
+                                        .font(.headline)
+                                        .foregroundStyle(AppTheme.ink)
+                                        .padding(.horizontal, 16)
+                                        .frame(minWidth: 44, minHeight: 44)
+                                        .background(Capsule().fill(AppTheme.creamHighlight))
+                                        .buttonStyle(.gameIcon)
+                                        .keyboardShortcut(.cancelAction)
+                                        .accessibilityIdentifier("pause-settings-done")
+                                }
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 8)
+                                .background(AppTheme.festivalRedDark)
+                            }
+                            .environmentObject(settingModel)
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .tint(AppTheme.festivalGold)
+                .accessibilityAddTraits(.isModal)
+            }
+        }
+        #else
         .sheet(item: $presentedSheet, onDismiss: { resumeFocused = true }) { sheet in
             Group {
                 switch sheet {
@@ -58,6 +103,7 @@ struct PauseMenuView: View {
             }
             .tint(AppTheme.festivalGold)
         }
+        #endif
     }
 
     private var panel: some View {
@@ -79,7 +125,11 @@ struct PauseMenuView: View {
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.gamePrimary(gradient: AppTheme.accentGradient))
+                #if targetEnvironment(macCatalyst)
+                .keyboardShortcut(presentedSheet == nil ? KeyboardShortcut.cancelAction : nil)
+                #else
                 .keyboardShortcut(.cancelAction)
+                #endif
                 .accessibilityFocused($resumeFocused)
                 .accessibilityIdentifier("pause-resume")
 
@@ -133,6 +183,13 @@ struct PauseMenuView: View {
         resumeFocused = false
         presentedSheet = sheet
     }
+
+    #if targetEnvironment(macCatalyst)
+    private func closePresentedContent() {
+        presentedSheet = nil
+        resumeFocused = true
+    }
+    #endif
 }
 
 #Preview {

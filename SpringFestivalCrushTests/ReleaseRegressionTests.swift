@@ -5,6 +5,50 @@ import SwiftUI
 
 @MainActor
 final class ReleaseRegressionTests: XCTestCase {
+    func testNativePauseActivationDefersToMainQueueAndUsesCurrentAction() async {
+        let button = NativePauseActivationButton.Control(frame: CGRect(x: 0, y: 0, width: 44, height: 44))
+        var oldActionCount = 0
+        var currentActionCount = 0
+        let activated = expectation(description: "Native Pause activation")
+        button.action = { oldActionCount += 1 }
+        XCTAssertTrue(button.accessibilityActivate())
+        XCTAssertEqual(oldActionCount, 0, "AX activation must return before changing the SwiftUI view")
+        button.action = {
+            currentActionCount += 1
+            activated.fulfill()
+        }
+        await fulfillment(of: [activated], timeout: 2)
+        XCTAssertEqual(oldActionCount, 0)
+        XCTAssertEqual(currentActionCount, 1)
+        XCTAssertTrue(button.isAccessibilityElement)
+        XCTAssertTrue(button.accessibilityTraits.contains(.button))
+        XCTAssertEqual(button.accessibilityLabel, String(localized: "Pause"))
+        XCTAssertEqual(button.accessibilityIdentifier, "game-pause")
+    }
+
+    func testNativePauseActivationCancelsWhenDisabledOrDismantled() async {
+        let button = NativePauseActivationButton.Control(frame: .zero)
+        var activations = 0
+        button.action = { activations += 1 }
+        button.sendActions(for: .primaryActionTriggered)
+        button.configure(action: { activations += 1 }, isEnabled: false, accessibilityLabel: "Pause")
+        XCTAssertTrue(button.accessibilityTraits.contains(.notEnabled))
+        await drainNativePauseActions()
+        XCTAssertEqual(activations, 0)
+
+        button.configure(action: { activations += 1 }, isEnabled: true, accessibilityLabel: "Pause")
+        button.sendActions(for: .primaryActionTriggered)
+        NativePauseActivationButton.dismantleUIView(button, coordinator: ())
+        await drainNativePauseActions()
+        XCTAssertEqual(activations, 0, "An exited game's queued AX activation must not run")
+    }
+
+    private func drainNativePauseActions() async {
+        await withCheckedContinuation { continuation in
+            DispatchQueue.main.async { continuation.resume() }
+        }
+    }
+
     private func makeGame() -> GameModel {
         let keys = ["coins", "lives", "lastLifeLostTimestamp", "shuffleCharges", "hammerCharges", "hasSeenTutorial",
                     "isPlayBackgroundMusic", "playSoundEffect", "musicVolume", "soundEffectsVolume", "hapticsEnabled",

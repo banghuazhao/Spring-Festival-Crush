@@ -110,22 +110,38 @@ struct GameStatusView: View {
     }
 
     private var pauseButton: some View {
+        #if targetEnvironment(macCatalyst)
+        pauseArtwork
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
+            .overlay {
+                NativePauseActivationButton {
+                    HapticManager.buttonTap()
+                    onPause()
+                }
+            }
+        #else
         Button {
             HapticManager.buttonTap()
             onPause()
         } label: {
-            Image(systemName: "pause.fill")
-                .font(.headline.weight(.black))
-                .foregroundStyle(AppTheme.ink)
-                .frame(minWidth: 44, minHeight: 44)
-                .padding(usesExpandedLayout ? 8 : 0)
-                .background(Circle().fill(AppTheme.creamHighlight))
-                .overlay(Circle().stroke(AppTheme.festivalGold, lineWidth: 3))
-                .shadow(color: .black.opacity(0.28), radius: 5, y: 3)
+            pauseArtwork
         }
         .buttonStyle(.gameIcon)
         .accessibilityLabel("Pause")
         .accessibilityIdentifier("game-pause")
+        #endif
+    }
+
+    private var pauseArtwork: some View {
+        Image(systemName: "pause.fill")
+            .font(.headline.weight(.black))
+            .foregroundStyle(AppTheme.ink)
+            .frame(minWidth: 44, minHeight: 44)
+            .padding(usesExpandedLayout ? 8 : 0)
+            .background(Circle().fill(AppTheme.creamHighlight))
+            .overlay(Circle().stroke(AppTheme.festivalGold, lineWidth: 3))
+            .shadow(color: .black.opacity(0.28), radius: 5, y: 3)
     }
 
     @ViewBuilder
