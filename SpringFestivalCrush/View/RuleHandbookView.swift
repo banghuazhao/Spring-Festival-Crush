@@ -26,9 +26,9 @@ struct RuleHandbookView: View {
             AppTheme.festivalBackground.ignoresSafeArea()
             ScrollView {
                 GamePopupPanel(title: String(localized: "RULE HANDBOOK"), tone: .gold) {
-                    VStack(spacing: 14) {
+                    VStack(spacing: 10) {
                         progress(unlocked.count, of: rules.count)
-                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 140), spacing: 10)], spacing: 10) {
+                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 136), spacing: AppTheme.Space.sm)], spacing: AppTheme.Space.sm) {
                             ForEach(rules.filter { $0.guardian == nil }) { page($0) }
                         }
                         if isUnlocked(.combos) {
@@ -45,9 +45,9 @@ struct RuleHandbookView: View {
                     }
                     .foregroundStyle(AppTheme.ink)
                 }
-                .padding(.horizontal, 16)
-                .padding(.top, 28)
-                .padding(.bottom, 20)
+                .padding(.horizontal, AppTheme.Space.md)
+                .padding(.top, AppTheme.Space.xl)
+                .padding(.bottom, AppTheme.Space.lg)
                 .frame(maxWidth: 560)
                 .frame(maxWidth: .infinity)
             }
@@ -56,13 +56,16 @@ struct RuleHandbookView: View {
         .overlay(alignment: .topTrailing) {
             Button("Close", systemImage: "xmark", action: close)
                 .labelStyle(.iconOnly)
-                .font(.system(size: 18, weight: .bold))
+                .font(.system(size: 14, weight: .black))
                 .foregroundStyle(AppTheme.festivalRed)
+                .frame(width: 34, height: 34)
+                .background(AppTheme.paper, in: Circle())
+                .overlay(Circle().strokeBorder(AppTheme.hairline, lineWidth: 1))
                 .frame(width: 44, height: 44)
-                .background(AppTheme.creamHighlight, in: Circle())
+                .contentShape(Rectangle())
                 .buttonStyle(.gameIcon)
-                .padding(.trailing, 16)
-                .padding(.top, 8)
+                .padding(.trailing, AppTheme.Space.sm)
+                .padding(.top, AppTheme.Space.sm)
                 .accessibilityIdentifier("rule-handbook-close")
                 #if targetEnvironment(macCatalyst)
                 .keyboardShortcut(.cancelAction)
@@ -87,14 +90,14 @@ struct RuleHandbookView: View {
                 .foregroundStyle(AppTheme.festivalRed)
             GeometryReader { geometry in
                 ZStack(alignment: .leading) {
-                    Capsule().fill(Color.black.opacity(0.12))
+                    Capsule().fill(Color.black.opacity(0.1))
                     Capsule().fill(AppTheme.accentGradient)
-                        .frame(width: max(10, geometry.size.width * CGFloat(unlocked) / CGFloat(max(1, total))))
+                        .frame(width: max(6, geometry.size.width * CGFloat(unlocked) / CGFloat(max(1, total))))
                 }
             }
-            .frame(height: 10)
+            .frame(height: 6)
             Text(verbatim: "\(unlocked)/\(total)")
-                .font(.system(.headline, design: .rounded, weight: .black))
+                .font(.system(.subheadline, design: .rounded, weight: .black))
                 .monospacedDigit()
         }
         .accessibilityElement(children: .ignore)
@@ -118,9 +121,9 @@ private struct RuleHandbookPage: View {
     @State private var nudge = false
 
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: AppTheme.Space.xs) {
             RuleArt(rule: rule)
-                .frame(maxWidth: .infinity, minHeight: 72)
+                .frame(maxWidth: .infinity, minHeight: 60)
                 .grayscale(isUnlocked ? 0 : 1)
                 .opacity(isUnlocked ? 1 : 0.28)
                 .overlay {
@@ -140,7 +143,7 @@ private struct RuleHandbookPage: View {
                     .multilineTextAlignment(.leading)
                 Spacer(minLength: 2)
                 if isUnlocked {
-                    HelpTipButton(Text(rule.detail), size: 22)
+                    HelpTipButton(Text(rule.detail), size: 18)
                 } else {
                     HStack(spacing: 3) {
                         Text(verbatim: unlocksAt.zodiac.emoji)
@@ -155,11 +158,12 @@ private struct RuleHandbookPage: View {
             }
             .foregroundStyle(isUnlocked ? AppTheme.ink : AppTheme.ink.opacity(0.45))
         }
-        .padding(10)
-        .background(isUnlocked ? AppTheme.creamHighlight : Color.black.opacity(0.05), in: .rect(cornerRadius: 16))
+        .padding(AppTheme.Space.sm)
+        .background(isUnlocked ? AppTheme.paper : Color.black.opacity(0.05),
+                    in: .rect(cornerRadius: AppTheme.Radius.md, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(isUnlocked ? AppTheme.festivalGold : AppTheme.ink.opacity(0.15), lineWidth: isUnlocked ? 2 : 1)
+            RoundedRectangle(cornerRadius: AppTheme.Radius.md, style: .continuous)
+                .strokeBorder(isUnlocked ? AppTheme.hairline : AppTheme.ink.opacity(0.12), lineWidth: 1)
         )
         .overlay(alignment: .topLeading) {
             if isNew { NewRuleTag().offset(x: -4, y: -6) }

@@ -5,14 +5,14 @@ struct GameStatusView: View {
     @ObservedObject var feedback: GameFeedback
     let onPause: () -> Void
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @ScaledMetric(relativeTo: .caption) private var scoreLabelSize = 10
-    @ScaledMetric(relativeTo: .headline) private var scoreSize = 17
+    @ScaledMetric(relativeTo: .caption) private var scoreLabelSize = 9
+    @ScaledMetric(relativeTo: .headline) private var scoreSize = 15
     @ScaledMetric(relativeTo: .caption2) private var goalLabelSize = 9
 
     private var usesExpandedLayout: Bool { dynamicTypeSize >= .xxLarge }
 
     var body: some View {
-        VStack(spacing: 9) {
+        VStack(spacing: 6) {
             if usesExpandedLayout {
                 VStack(alignment: .leading, spacing: 12) {
                     HStack(alignment: .top, spacing: 12) {
@@ -35,7 +35,7 @@ struct GameStatusView: View {
                     )
                 }
             } else {
-                HStack(spacing: 8) {
+                HStack(spacing: 7) {
                     HUDLevelMedallion(level: gameModel.currentLevel)
                     scoreProgress
                         .frame(maxWidth: .infinity)
@@ -61,29 +61,23 @@ struct GameStatusView: View {
                     goals
                 }
             } else {
-                HStack(spacing: 8) {
+                HStack(spacing: 6) {
                     timer
                     goals
                 }
             }
 
         }
-        .padding(.vertical, 10)
-        .padding(.horizontal, 11)
+        .padding(.vertical, AppTheme.Space.sm)
+        .padding(.horizontal, 9)
         .frame(maxWidth: 600)
         .fixedSize(horizontal: false, vertical: true)
         .background(
             RoundedRectangle(cornerRadius: AppTheme.panelCornerRadius, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [AppTheme.festivalRed, AppTheme.festivalRedDark],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
+                .fill(AppTheme.lacquerGradient)
                 .overlay(
                     RoundedRectangle(cornerRadius: AppTheme.panelCornerRadius, style: .continuous)
-                        .stroke(AppTheme.festivalGold, lineWidth: 3)
+                        .strokeBorder(AppTheme.goldGradient, lineWidth: 1.5)
                 )
                 .shadow(color: AppTheme.cardShadowColor, radius: AppTheme.cardShadowRadius, x: 0, y: AppTheme.cardShadowY)
         )
@@ -135,13 +129,16 @@ struct GameStatusView: View {
 
     private var pauseArtwork: some View {
         Image(systemName: "pause.fill")
-            .font(.headline.weight(.black))
+            .font(.subheadline.weight(.black))
             .foregroundStyle(AppTheme.ink)
-            .frame(minWidth: 44, minHeight: 44)
+            .frame(minWidth: 36, minHeight: 36)
             .padding(usesExpandedLayout ? 8 : 0)
-            .background(Circle().fill(AppTheme.creamHighlight))
-            .overlay(Circle().stroke(AppTheme.festivalGold, lineWidth: 3))
-            .shadow(color: .black.opacity(0.28), radius: 5, y: 3)
+            .background(Circle().fill(AppTheme.goldGradient))
+            .overlay(Circle().strokeBorder(.white.opacity(0.55), lineWidth: 1))
+            .shadow(color: .black.opacity(0.24), radius: 3, y: 2)
+            // The visible disc is 36pt; the target stays a full 44pt.
+            .frame(minWidth: 44, minHeight: 44)
+            .contentShape(Rectangle())
     }
 
     @ViewBuilder
@@ -153,8 +150,8 @@ struct GameStatusView: View {
                 .font(.caption.weight(.bold))
                 .foregroundStyle(AppTheme.ink)
                 .padding(.horizontal, 10)
-                .padding(.vertical, 8)
-                .frame(minHeight: 34)
+                .padding(.vertical, 5)
+                .frame(minHeight: 30)
                 .background(AppTheme.creamHighlight, in: Capsule())
         }
     }
@@ -166,11 +163,12 @@ struct GameStatusView: View {
                     .font(.caption.weight(.black))
                     .foregroundStyle(.white.opacity(0.72))
             }
-            HStack(spacing: 8) {
+            HStack(spacing: 6) {
                 if !usesExpandedLayout {
-                    Text("GOALS")
-                        .font(.system(size: goalLabelSize, weight: .black, design: .rounded))
-                        .foregroundStyle(.white.opacity(0.72))
+                    Image(systemName: "target")
+                        .font(.system(size: goalLabelSize + 4, weight: .black))
+                        .foregroundStyle(AppTheme.festivalGold)
+                        .accessibilityLabel(Text("GOALS"))
                 }
                 LevelTargetView(
                     levelTargetDatas: gameModel.createLevelTargetDatas(),
@@ -187,10 +185,10 @@ struct GameStatusView: View {
 
 private struct HUDLevelMedallion: View {
     let level: Int
-    @ScaledMetric(relativeTo: .caption2) private var labelSize = 8
-    @ScaledMetric(relativeTo: .title2) private var valueSize = 22
+    @ScaledMetric(relativeTo: .caption2) private var labelSize = 7
+    @ScaledMetric(relativeTo: .title2) private var valueSize = 18
     @ScaledMetric(relativeTo: .caption) private var demoSize = 13
-    @ScaledMetric(relativeTo: .caption) private var diameter = 54
+    @ScaledMetric(relativeTo: .caption) private var diameter = 44
 
     var body: some View {
         VStack(spacing: -2) {
@@ -204,9 +202,9 @@ private struct HUDLevelMedallion: View {
         }
         .foregroundStyle(AppTheme.ink)
         .frame(width: diameter, height: diameter)
-        .background(Circle().fill(AppTheme.creamHighlight))
-        .overlay(Circle().stroke(AppTheme.festivalGold, lineWidth: 3))
-        .shadow(color: .black.opacity(0.28), radius: 5, y: 3)
+        .background(Circle().fill(AppTheme.creamHighlight.gradient))
+        .overlay(Circle().strokeBorder(AppTheme.goldGradient, lineWidth: 2))
+        .shadow(color: .black.opacity(0.22), radius: 3, y: 2)
     }
 }
 
@@ -215,8 +213,8 @@ private struct HUDStatTile: View {
     let title: String
     let value: String
     let isCritical: Bool
-    @ScaledMetric(relativeTo: .caption2) private var labelSize = 8
-    @ScaledMetric(relativeTo: .title2) private var valueSize = 20
+    @ScaledMetric(relativeTo: .caption2) private var labelSize = 7
+    @ScaledMetric(relativeTo: .title2) private var valueSize = 17
 
     var body: some View {
         VStack(spacing: 0) {
@@ -232,25 +230,25 @@ private struct HUDStatTile: View {
                 .contentTransition(.numericText())
         }
         .foregroundStyle(isCritical ? Color.white : AppTheme.ink)
-        .padding(.horizontal, 6)
-        .padding(.vertical, 4)
-        .frame(minWidth: 55, minHeight: 48)
+        .padding(.horizontal, 5)
+        .padding(.vertical, 3)
+        .frame(minWidth: 50, minHeight: 42)
         .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(isCritical ? Color.red : AppTheme.creamHighlight)
+            RoundedRectangle(cornerRadius: AppTheme.Radius.sm + 1, style: .continuous)
+                .fill(isCritical ? AnyShapeStyle(AppTheme.dangerGradient) : AnyShapeStyle(AppTheme.creamHighlight.gradient))
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(isCritical ? Color.white.opacity(0.75) : AppTheme.festivalGold, lineWidth: 2)
+            RoundedRectangle(cornerRadius: AppTheme.Radius.sm + 1, style: .continuous)
+                .strokeBorder(isCritical ? AnyShapeStyle(Color.white.opacity(0.75)) : AnyShapeStyle(AppTheme.goldGradient), lineWidth: 1.5)
         )
-        .shadow(color: .black.opacity(0.25), radius: 4, y: 3)
+        .shadow(color: .black.opacity(0.2), radius: 3, y: 2)
         .animation(.spring(response: 0.3, dampingFraction: 0.62), value: value)
     }
 }
 
 private struct HUDTimerPill: View {
     let secondsLeft: Int
-    @ScaledMetric(relativeTo: .subheadline) private var textSize = 14
+    @ScaledMetric(relativeTo: .subheadline) private var textSize = 13
 
     var body: some View {
         HStack(spacing: 4) {
@@ -262,10 +260,10 @@ private struct HUDTimerPill: View {
         .font(.system(size: textSize, weight: .black, design: .rounded))
         .foregroundStyle(secondsLeft <= 10 ? Color.white : AppTheme.ink)
         .padding(.horizontal, 10)
-        .padding(.vertical, 8)
-        .frame(minHeight: 34)
-        .background(Capsule().fill(secondsLeft <= 10 ? Color.red : AppTheme.creamHighlight))
-        .overlay(Capsule().stroke(.white.opacity(0.6), lineWidth: 1.5))
+        .padding(.vertical, 5)
+        .frame(minHeight: 30)
+        .background(Capsule().fill(secondsLeft <= 10 ? AnyShapeStyle(AppTheme.dangerGradient) : AnyShapeStyle(AppTheme.creamHighlight)))
+        .overlay(Capsule().strokeBorder(.white.opacity(0.55), lineWidth: 1))
     }
 }
 

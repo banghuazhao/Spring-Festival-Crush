@@ -53,13 +53,22 @@ struct ContinueOfferView: View {
         GeometryReader { geometry in
             ScrollView {
                 GamePopupPanel(title: title, tone: .red, titleFocus: $headingFocused) {
-                    VStack(spacing: 14) {
-                        progressRing
+                    VStack(spacing: 10) {
+                        HStack(spacing: AppTheme.Space.md) {
+                            progressRing
 
-                        nearMissText
-                            .font(.headline)
-                            .foregroundStyle(AppTheme.festivalRed)
-                            .multilineTextAlignment(.center)
+                            VStack(alignment: .leading, spacing: 6) {
+                                nearMissText
+                                    .font(.system(.subheadline, design: .rounded, weight: .heavy))
+                                    .foregroundStyle(AppTheme.festivalRed)
+                                    .fixedSize(horizontal: false, vertical: true)
+
+                                CoinAmountChip(amount: "\(gameModel.coins)", size: 13)
+                                    .accessibilityElement(children: .ignore)
+                                    .accessibilityLabel(Text("Balance: \(gameModel.coins)"))
+                            }
+                            Spacer(minLength: 0)
+                        }
 
                         AttemptRecapView()
 
@@ -67,14 +76,10 @@ struct ContinueOfferView: View {
                             ContinuePurchaseLabel(grant: grantText, coinCost: offer.coinCost,
                                                   grantsMoves: offer.grantsMoves)
                         }
-                        .buttonStyle(.gamePrimary(gradient: AppTheme.successGradient))
+                        .buttonStyle(.gameGold)
                         .opacity(canAfford ? 1 : 0.55)
                         .accessibilityIdentifier("continue-coins")
                         .accessibilityLabel(Text("\(grantText) for \(offer.coinCost) coins"))
-
-                        CoinAmountChip(amount: "\(gameModel.coins)", size: 13)
-                            .accessibilityElement(children: .ignore)
-                            .accessibilityLabel(Text("Balance: \(gameModel.coins)"))
 
                         if offer.allowsRewardedAd {
                             RewardedAdButton(title: "Watch Ad · Free Continue", systemImage: "play.rectangle.fill",
@@ -88,8 +93,8 @@ struct ContinueOfferView: View {
                             gameModel.declineContinue()
                         } label: {
                             Text("Give Up")
-                                .font(.subheadline.weight(.bold))
-                                .foregroundStyle(AppTheme.ink.opacity(0.7))
+                                .font(.footnote.weight(.bold))
+                                .foregroundStyle(AppTheme.ink.opacity(0.65))
                                 .frame(minWidth: 120, minHeight: 44)
                         }
                         .buttonStyle(.gameIcon)
@@ -98,7 +103,7 @@ struct ContinueOfferView: View {
                     }
                     .foregroundStyle(AppTheme.ink)
                 }
-                .padding(20)
+                .padding(AppTheme.Space.lg)
                 .frame(maxWidth: 460)
                 .frame(maxWidth: .infinity)
                 .frame(minHeight: geometry.size.height)
@@ -125,23 +130,23 @@ struct ContinueOfferView: View {
     private var progressRing: some View {
         ZStack {
             Circle()
-                .stroke(AppTheme.festivalGold.opacity(0.25), lineWidth: 10)
+                .stroke(AppTheme.festivalGold.opacity(0.25), lineWidth: 7)
             Circle()
                 .trim(from: 0, to: appeared ? CGFloat(offer.progress) : 0)
-                .stroke(AppTheme.accentGradient, style: StrokeStyle(lineWidth: 10, lineCap: .round))
+                .stroke(AppTheme.accentGradient, style: StrokeStyle(lineWidth: 7, lineCap: .round))
                 .rotationEffect(.degrees(-90))
                 .animation(reduceMotion ? nil : .easeOut(duration: 0.8).delay(0.15), value: appeared)
             VStack(spacing: 0) {
                 Text("\(Int((offer.progress * 100).rounded()))%")
-                    .font(.system(size: 24, weight: .black, design: .rounded))
+                    .font(.system(size: 18, weight: .black, design: .rounded))
                     .monospacedDigit()
                 Text("THERE")
-                    .font(.system(size: 9, weight: .black, design: .rounded))
+                    .font(.system(size: 7, weight: .black, design: .rounded))
                     .opacity(0.7)
             }
             .foregroundStyle(AppTheme.festivalRed)
         }
-        .frame(width: 92, height: 92)
+        .frame(width: 68, height: 68)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text("\(Int((offer.progress * 100).rounded())) percent of the goals done"))
     }

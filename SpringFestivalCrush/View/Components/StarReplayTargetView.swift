@@ -5,22 +5,21 @@ struct StarReplayTargetView: View {
     let target: StarReplayTarget
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Label("Next star for this attempt", systemImage: "star")
-                .font(.caption.bold())
-                .foregroundStyle(AppTheme.festivalRed)
+        HStack(spacing: AppTheme.Space.sm) {
+            Image(systemName: "star.leadinghalf.filled")
+                .font(.subheadline.weight(.bold))
+                .foregroundStyle(AppTheme.festivalGoldDark)
+                .accessibilityHidden(true)
             Text("\(target.pointsNeeded) more points for \(target.stars) stars")
-                .font(.subheadline.weight(.semibold).monospacedDigit())
-            Text("Next star score: \(target.score.formatted()) points")
-                .font(.footnote)
-                .foregroundStyle(AppTheme.ink.opacity(0.75))
+                .font(.footnote.weight(.semibold).monospacedDigit())
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 0)
         }
         .foregroundStyle(AppTheme.ink)
-        .fixedSize(horizontal: false, vertical: true)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(12)
-        .background(AppTheme.creamHighlight, in: .rect(cornerRadius: 16))
+        .gameInset(padding: AppTheme.Space.sm, radius: AppTheme.Radius.sm)
         .accessibilityElement(children: .combine)
+        .accessibilityHint(Text("Next star score: \(target.score.formatted()) points"))
         .accessibilityIdentifier("victory-next-star")
     }
 }

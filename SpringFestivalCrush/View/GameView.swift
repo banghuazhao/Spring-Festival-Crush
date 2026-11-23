@@ -82,7 +82,7 @@ struct GameView: View {
             BoosterItem(
                 id: "shuffle", icon: "shuffle", imageName: "ShuffleBoosterIcon",
                 title: String(localized: "Shuffle"), count: gameModel.shuffleCharges, isActive: false,
-                activeGradient: AppTheme.accentGradient, idleGradient: AppTheme.accentGradient,
+                activeGradient: AppTheme.dangerGradient, idleGradient: AppTheme.lacquerGradient,
                 action: {
                     if gameModel.shuffleCharges > 0 { gameModel.onTapShuffle() }
                     else { refillTool = .shuffle }
@@ -97,7 +97,7 @@ struct GameView: View {
                 count: gameModel.hammerCharges,
                 isActive: gameModel.hammerModeActive,
                 activeGradient: AppTheme.dangerGradient,
-                idleGradient: AppTheme.accentGradient,
+                idleGradient: AppTheme.lacquerGradient,
                 action: {
                     if gameModel.hammerCharges > 0 { gameModel.hammerModeActive.toggle() }
                     else { refillTool = .hammer }
@@ -112,7 +112,7 @@ struct GameView: View {
                 count: gameModel.swapCharges,
                 isActive: gameModel.swapModeActive,
                 activeGradient: AppTheme.dangerGradient,
-                idleGradient: AppTheme.accentGradient,
+                idleGradient: AppTheme.lacquerGradient,
                 action: {
                     if gameModel.swapCharges > 0 { gameModel.swapModeActive.toggle() }
                     else { refillTool = .swap }
@@ -318,7 +318,9 @@ struct GameView: View {
     private var statusAndBanner: some View {
         VStack(spacing: 0) {
             GameStatusView(gameModel: gameModel, feedback: feedback) { showingPause = true }
-                .padding()
+                .padding(.horizontal, AppTheme.Space.md)
+                .padding(.top, AppTheme.Space.xs)
+                .padding(.bottom, 6)
             if let banner = activeBanner {
                 HUDBannerView(banner: banner)
             }
@@ -337,13 +339,19 @@ struct GameView: View {
     private var bottomDock: some View {
         BoosterTrayView(boosters: boosters)
         .disabled(gameModel.gameState != .inProgress || gameModel.isResolvingBoard || isGameplayPaused)
-        .padding(10)
+        .padding(6)
         .background(
-            RoundedRectangle(cornerRadius: usesExpandedLayout ? 24 : 50)
+            RoundedRectangle(cornerRadius: AppTheme.Radius.xl, style: .continuous)
                 .fill(.ultraThinMaterial)
-                .overlay(RoundedRectangle(cornerRadius: usesExpandedLayout ? 24 : 50).stroke(.white.opacity(0.22), lineWidth: 1))
+                .environment(\.colorScheme, .dark)
+                .overlay(
+                    RoundedRectangle(cornerRadius: AppTheme.Radius.xl, style: .continuous)
+                        .strokeBorder(AppTheme.hairline, lineWidth: 1)
+                )
         )
-        .padding(.horizontal, 12)
+        .shadow(color: .black.opacity(0.24), radius: 8, y: 4)
+        .frame(maxWidth: 480)
+        .padding(.horizontal, AppTheme.Space.md)
         .padding(.bottom, 4)
     }
 }
@@ -352,7 +360,7 @@ struct StarProgressView: View {
     let currentScore: Int
     let levelGoal: LevelGoal
 
-    private static let starSize: CGFloat = 15
+    private static let starSize: CGFloat = 13
 
     /// Each star sits at its own score threshold, so a star lights up exactly when the fill
     /// reaches it. Hardcoded thirds used to place them wherever, and levels don't use even
@@ -380,14 +388,14 @@ struct StarProgressView: View {
             let width = max(0, geo.size.width - Self.starSize)
             ZStack(alignment: .leading) {
                 // Background Bar
-                RoundedRectangle(cornerRadius: 6)
-                    .fill(Color.black.opacity(0.25))
-                    .frame(height: 12)
+                Capsule()
+                    .fill(Color.black.opacity(0.3))
+                    .frame(height: 7)
 
                 // Foreground Bar (Progress)
-                RoundedRectangle(cornerRadius: 6)
-                    .fill(AppTheme.accentGradient)
-                    .frame(width: inset + fraction(for: currentScore) * width, height: 12)
+                Capsule()
+                    .fill(AppTheme.goldGradient)
+                    .frame(width: inset + fraction(for: currentScore) * width, height: 7)
                     .animation(.spring(response: 0.4, dampingFraction: 0.8), value: currentScore)
 
                 // Star Indicators, each anchored to the score that earns it
@@ -400,7 +408,7 @@ struct StarProgressView: View {
                 }
             }
         }
-        .frame(height: 20)
+        .frame(height: 16)
     }
 
     private func progressStar(earned: Bool) -> some View {
@@ -419,7 +427,7 @@ struct LevelTargetView: View {
     var impacts: [String: Int] = [:]
     var reportsFrames = false
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @ScaledMetric(relativeTo: .body) private var rowHeight = 34
+    @ScaledMetric(relativeTo: .body) private var rowHeight = 30
 
     var body: some View {
         Group {
@@ -449,12 +457,8 @@ struct LevelTargetView: View {
             }
         }
         .background(
-            RoundedRectangle(cornerRadius: 17)
-                .fill(Color.black.opacity(0.2))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 17)
-                        .stroke(Color.white.opacity(0.2), lineWidth: 1)
-                )
+            RoundedRectangle(cornerRadius: 15, style: .continuous)
+                .fill(Color.black.opacity(0.22))
         )
     }
     private var pills: some View {

@@ -23,6 +23,17 @@ struct SelectChineseZodiacView: View {
             .zodiacType ?? .rat
     }
 
+    /// The chapter to continue: the earliest open one with levels left, else the latest.
+    private var journeyRecord: ZodiacRecord? {
+        let playable = gameModel.zodiacRecords
+            .sorted { $0.zodiacType.rawValue < $1.zodiacType.rawValue }
+            .filter { record in
+                (record.isUnlocked || unlockAll)
+                    && (Zodiac.all.first { $0.zodiacType == record.zodiacType }?.isAvailable ?? false)
+            }
+        return playable.first { record in record.levelRecords.contains { !$0.isComplete } } ?? playable.last
+    }
+
     /// The landmarks in journey order, paired into the two-column rows the artwork paints,
     /// top row first — the path climbs bottom-to-top, so the first pair (rat, ox) is drawn
     /// last.
@@ -152,16 +163,32 @@ struct SelectChineseZodiacView: View {
             .overlay(alignment: .top) {
                 // Landmarks pass under the status bar as the map scrolls, and a dark label
                 // sliding behind the clock makes the time unreadable. A short haze over just
-                // the status bar keeps it legible without putting a bar back on the map.
+                // the status bar and toolbar keeps both legible without a bar on the map.
                 LinearGradient(
-                    colors: [Color.white.opacity(0.7), Color.white.opacity(0)],
+                    stops: [
+                        .init(color: AppTheme.lacquerDeep.opacity(0.94), location: 0),
+                        .init(color: AppTheme.lacquerDeep.opacity(0.78), location: 0.72),
+                        .init(color: AppTheme.lacquerDeep.opacity(0), location: 1)
+                    ],
                     startPoint: .top,
                     endPoint: .bottom
                 )
-                .frame(height: insets.top)
+                .frame(height: insets.top + 62)
                 .allowsHitTesting(false)
             }
             .ignoresSafeArea()
+        }
+        .overlay(alignment: .bottom) {
+            if let journeyRecord {
+                JourneyDock(record: journeyRecord) {
+                    HapticManager.buttonTap()
+                    gameModel.selectZodiac(journeyRecord)
+                    shouldPresentLevel = true
+                }
+                .frame(maxWidth: 520)
+                .padding(.horizontal, AppTheme.Space.lg)
+                .padding(.bottom, AppTheme.Space.sm)
+            }
         }
         .navigationDestination(isPresented: $shouldPresentLevel) {
             SelectLevelView()
@@ -203,6 +230,80 @@ struct SelectChineseZodiacView: View {
                 presentZodiacUnavailable = true
             }
         }
+    }
+}
+
+/// One tap from the map back into the current chapter.
+private struct JourneyDock: View {
+    let record: ZodiacRecord
+    let action: () -> Void
+
+    var body: some View {
+        let theme = ZodiacChapterTheme(zodiac: record.zodiacType)
+        let levels = record.levelRecords.sorted { $0.number < $1.number }
+        let cleared = levels.filter(\.isComplete).count
+        let next = levels.first { !$0.isComplete } ?? levels.last
+
+        Button(action: action) {
+            HStack(spacing: AppTheme.Space.md) {
+                ZStack {
+                    Circle().fill(AppTheme.creamHighlight.gradient)
+                    Circle().strokeBorder(AppTheme.goldGradient, lineWidth: 2)
+                    Text(record.zodiacType.emoji).font(.system(size: 26))
+                }
+                .frame(width: 46, height: 46)
+                .accessibilityHidden(true)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("CHAPTER \(String(format: "%02d", record.zodiacType.rawValue + 1)) · \(theme.chineseName)")
+                        .font(.caption2.weight(.black))
+                        .tracking(0.8)
+                        .foregroundStyle(AppTheme.festivalGold)
+                    Text(theme.name)
+                        .font(.system(.headline, design: .rounded, weight: .black))
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                    HStack(spacing: 6) {
+                        GeometryReader { geometry in
+                            ZStack(alignment: .leading) {
+                                Capsule().fill(.white.opacity(0.2))
+                                Capsule().fill(AppTheme.goldGradient)
+                                    .frame(width: geometry.size.width * CGFloat(cleared) / CGFloat(max(1, levels.count)))
+                            }
+                        }
+                        .frame(height: 5)
+                        Text(verbatim: "\(cleared)/\(levels.count)")
+                            .font(.system(.caption2, design: .rounded, weight: .heavy))
+                            .monospacedDigit()
+                            .foregroundStyle(.white.opacity(0.85))
+                    }
+                }
+
+                Image(systemName: "play.fill")
+                    .font(.body.weight(.black))
+                    .foregroundStyle(AppTheme.ink)
+                    .frame(width: 44, height: 44)
+                    .background(AppTheme.goldGradient, in: Circle())
+                    .overlay(Circle().strokeBorder(.white.opacity(0.55), lineWidth: 1))
+                    .shadow(color: .black.opacity(0.28), radius: 3, y: 2)
+            }
+            .padding(10)
+            .background(AppTheme.lacquerGradient, in: .rect(cornerRadius: AppTheme.Radius.xl, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: AppTheme.Radius.xl, style: .continuous)
+                    .strokeBorder(AppTheme.goldGradient, lineWidth: 1.25)
+            )
+            .shadow(color: .black.opacity(0.36), radius: 12, y: 6)
+            .contentShape(.rect(cornerRadius: AppTheme.Radius.xl))
+        }
+        .buttonStyle(.gameCard)
+        .accessibilityElement(children: .ignore)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityLabel(Text(theme.name))
+        .accessibilityValue(Text("\(cleared) of \(levels.count) levels complete"))
+        .accessibilityHint(next.map { Text("Play Level \($0.number)") } ?? Text(verbatim: ""))
+        .accessibilityIdentifier("map-continue-chapter")
     }
 }
 

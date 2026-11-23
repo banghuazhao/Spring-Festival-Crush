@@ -3,27 +3,40 @@ import SwiftUI
 /// A static authored map, with no guessed candy colors or interaction with the live board.
 struct BoardScoutingView: View {
     let layout: BoardScoutingLayout
+    /// Drops the caption for side-by-side briefings; its sentence moves to the card's "?".
+    var isCompact = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Label("Board scout", systemImage: "map")
-                .font(.subheadline.bold())
-                .foregroundStyle(AppTheme.ink)
-                .accessibilityElement(children: .ignore)
-                .accessibilityLabel(Text("Board scout") + Text(verbatim: ". ") + accessibilitySummary)
-                .accessibilityAddTraits(.isHeader)
-                .accessibilityIdentifier("board-scouting-summary")
+        VStack(alignment: .leading, spacing: isCompact ? 6 : 10) {
+            Group {
+                if isCompact {
+                    Label { GameSectionLabel("Board scout") } icon: {
+                        Image(systemName: "map")
+                            .font(.caption2.weight(.heavy))
+                            .foregroundStyle(AppTheme.ink.opacity(0.62))
+                    }
+                } else {
+                    Label("Board scout", systemImage: "map")
+                        .font(.subheadline.bold())
+                        .foregroundStyle(AppTheme.ink)
+                }
+            }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text("Board scout") + Text(verbatim: ". ") + accessibilitySummary)
+            .accessibilityAddTraits(.isHeader)
+            .accessibilityIdentifier("board-scouting-summary")
             BoardScoutingGridView(layout: layout)
                 .frame(maxWidth: .infinity)
                 .accessibilityElement(children: .contain)
                 .accessibilityIdentifier("board-scouting-layout")
-            Text("Layout only. Plain spaces receive random tiles when you play.")
-                .font(.footnote)
-                .foregroundStyle(AppTheme.ink.opacity(0.8))
-                .fixedSize(horizontal: false, vertical: true)
+            if !isCompact {
+                Text("Layout only. Plain spaces receive random tiles when you play.")
+                    .font(.footnote)
+                    .foregroundStyle(AppTheme.ink.opacity(0.8))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
-        .padding(10)
-        .background(AppTheme.creamHighlight, in: .rect(cornerRadius: 12))
+        .gameInset(padding: isCompact ? AppTheme.Space.sm : 10)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("level-briefing-board-scout")
     }

@@ -7,8 +7,8 @@ struct GoalTargetPill: View {
     var reportsFrame = false
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
     @Environment(\.gameReducedEffects) private var reducedEffects
-    @ScaledMetric(relativeTo: .body) private var textSize = 16
-    @ScaledMetric(relativeTo: .body) private var iconSize = 26
+    @ScaledMetric(relativeTo: .body) private var textSize = 14
+    @ScaledMetric(relativeTo: .body) private var iconSize = 22
     private var reduceMotion: Bool { systemReduceMotion || reducedEffects }
 
     private var remaining: Int { max(0, target.targetNum) + pendingAmount }

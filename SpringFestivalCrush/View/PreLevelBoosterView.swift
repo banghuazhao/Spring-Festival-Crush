@@ -49,122 +49,90 @@ struct PreLevelBoosterView: View {
         gameModel.coins - selectedCost
     }
 
+    private var usesListLayout: Bool { dynamicTypeSize >= .xxLarge }
+
     var body: some View {
         ZStack {
             ZodiacChapterScenery(theme: theme).ignoresSafeArea()
 
             ScrollView(showsIndicators: false) {
-                GamePopupPanel(title: String(localized: "LEVEL \(levelNumber)"), tone: .gold) {
-                    VStack(spacing: 14) {
-                        if let previewLevel, let zodiac = gameModel.zodiac {
-                            LevelBriefingView(level: previewLevel, levelNumber: levelNumber, zodiac: zodiac,
-                                              theme: theme, savedBestStars: savedBestStars)
-                        } else {
-                            Text("This level is unavailable. Please return to the trail.")
-                                .font(.subheadline)
-                                .foregroundStyle(AppTheme.ink)
-                        }
+                VStack(spacing: 10) {
+                    if let previewLevel, let zodiac = gameModel.zodiac {
+                        LevelBriefingView(level: previewLevel, levelNumber: levelNumber, zodiac: zodiac,
+                                          theme: theme, savedBestStars: savedBestStars)
+                    } else {
+                        Text("This level is unavailable. Please return to the trail.")
+                            .font(.subheadline)
+                            .foregroundStyle(AppTheme.ink)
+                            .frame(maxWidth: .infinity)
+                            .gameInset(padding: AppTheme.Space.lg)
+                    }
 
-                        HStack(spacing: 6) {
-                            Image(systemName: "circle.fill")
-                                .foregroundStyle(AppTheme.festivalGold)
-                            Text("\(coinsRemaining)")
-                                .font(.system(size: 22, weight: .black, design: .rounded))
-                                .contentTransition(.numericText())
-                                .animation(reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 0.7), value: coinsRemaining)
-                        }
-                        .foregroundStyle(AppTheme.ink)
-                        .accessibilityElement(children: .ignore)
-                        .accessibilityLabel(Text("\(coinsRemaining) coins"))
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .background(Capsule().fill(AppTheme.creamHighlight))
-                        .overlay(Capsule().stroke(AppTheme.festivalGold, lineWidth: 2))
-
-                        RewardedAdButton(title: String(localized: "Watch Ad · +\(GameModel.rewardedCoinsAmount) coins"), systemImage: "play.rectangle.fill") {
+                    if dynamicTypeSize.isAccessibilitySize {
+                        RewardedAdButton(title: String(localized: "Watch Ad · +\(GameModel.rewardedCoinsAmount) coins"),
+                                         systemImage: "play.rectangle.fill") {
                             gameModel.grantRewardedCoins()
                         }
+                    }
 
-                        VStack(spacing: 10) {
-                            boosterRow(
-                                icon: "plus.circle.fill",
-                                title: String(localized: "+\(GameModel.extraMovesBoosterAmount) Moves"),
-                                detail: "More room to make a comeback",
-                                cost: GameModel.extraMovesBoosterCost,
-                                isSelected: $buyExtraMoves
-                            ) {
-                                HStack(spacing: 4) {
-                                    Image(systemName: "arrow.left.arrow.right")
-                                        .font(.system(size: 12, weight: .black))
-                                        .foregroundStyle(theme.accent)
-                                    PictoTag(text: "+\(GameModel.extraMovesBoosterAmount)", tint: Color(UIColor(hex: 0x2FAE4E)), size: 12)
-                                }
+                    LazyVGrid(columns: usesListLayout
+                              ? [GridItem(.flexible())]
+                              : Array(repeating: GridItem(.flexible(), spacing: AppTheme.Space.sm), count: 3),
+                              spacing: AppTheme.Space.sm) {
+                        boosterRow(
+                            icon: "plus.circle.fill",
+                            title: String(localized: "+\(GameModel.extraMovesBoosterAmount) Moves"),
+                            detail: "More room to make a comeback",
+                            cost: GameModel.extraMovesBoosterCost,
+                            isSelected: $buyExtraMoves
+                        ) {
+                            HStack(spacing: 3) {
+                                Image(systemName: "arrow.left.arrow.right")
+                                    .font(.system(size: 10, weight: .black))
+                                    .foregroundStyle(theme.accent)
+                                PictoTag(text: "+\(GameModel.extraMovesBoosterAmount)", tint: Color(UIColor(hex: 0x1A7350)), size: 10)
                             }
-                            boosterRow(
-                                icon: "hammer.fill",
-                                imageName: "HammerBoosterIcon",
-                                title: "Festival Hammer",
-                                detail: "Clear any one tile",
-                                cost: GameModel.hammerBoosterCost,
-                                isSelected: $buyHammer
-                            ) {
-                                HStack(spacing: 4) {
-                                    PictoTile(asset: "dumpling", size: 22)
-                                    PictoArrow(size: 10)
-                                    PictoClear(size: 22)
-                                }
+                        }
+                        boosterRow(
+                            icon: "hammer.fill",
+                            imageName: "HammerBoosterIcon",
+                            title: "Festival Hammer",
+                            detail: "Clear any one tile",
+                            cost: GameModel.hammerBoosterCost,
+                            isSelected: $buyHammer
+                        ) {
+                            HStack(spacing: 3) {
+                                PictoTile(asset: "dumpling", size: 17)
+                                PictoArrow(size: 8)
+                                PictoClear(size: 17)
                             }
-                            boosterRow(
-                                icon: "arrow.left.arrow.right",
-                                imageName: "SwapBoosterIcon",
-                                title: "Ruyi Swap",
-                                detail: "Swap any two tiles, no match needed",
-                                cost: GameModel.swapBoosterCost,
-                                isSelected: $buySwap
-                            ) {
-                                HStack(spacing: 3) {
-                                    PictoTile(asset: "redPocket", size: 22)
-                                    PictoArrow(systemName: "arrow.left.arrow.right", size: 10)
-                                    PictoTile(asset: "lantern", size: 22)
-                                }
+                        }
+                        boosterRow(
+                            icon: "arrow.left.arrow.right",
+                            imageName: "SwapBoosterIcon",
+                            title: "Ruyi Swap",
+                            detail: "Swap any two tiles, no match needed",
+                            cost: GameModel.swapBoosterCost,
+                            isSelected: $buySwap
+                        ) {
+                            HStack(spacing: 2) {
+                                PictoTile(asset: "redPocket", size: 17)
+                                PictoArrow(systemName: "arrow.left.arrow.right", size: 8)
+                                PictoTile(asset: "lantern", size: 17)
                             }
                         }
                     }
                 }
-                .padding(.horizontal, 18)
-                .padding(.top, 18)
+                .padding(.horizontal, AppTheme.Space.lg)
+                .padding(.top, AppTheme.Space.xs)
+                .padding(.bottom, AppTheme.Space.md)
+                .frame(maxWidth: 520)
                 .frame(maxWidth: .infinity)
             }
         }
-        .safeAreaInset(edge: .top, spacing: 0) {
-            HStack(spacing: 12) {
-                Text(theme.zodiac.emoji).font(.system(size: 32)).accessibilityHidden(true)
-                VStack(alignment: .leading, spacing: 2) {
-                    if dynamicTypeSize.isAccessibilitySize {
-                        Text("Level \(levelNumber)").font(.headline)
-                    } else {
-                        Text(theme.name).font(.headline)
-                    }
-                }
-                .foregroundStyle(AppTheme.ink)
-                Spacer(minLength: 0)
-                Button("Close", systemImage: "xmark", action: onClose)
-                    .labelStyle(.iconOnly)
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundStyle(theme.accent)
-                    .frame(width: 44, height: 44)
-                    .background(AppTheme.creamHighlight, in: Circle())
-                    .buttonStyle(.gameIcon)
-                    .keyboardShortcut(.cancelAction)
-                    .accessibilityIdentifier("level-briefing-close")
-            }
-            .padding(.horizontal, 20)
-            .padding(.top, 18)
-            .padding(.bottom, 8)
-            .background(theme.sky)
-        }
+        .safeAreaInset(edge: .top, spacing: 0) { header }
         .safeAreaInset(edge: .bottom, spacing: 0) {
-            VStack(spacing: 6) {
+            HStack(spacing: 10) {
                 if selectedCost > 0 {
                     CoinAmountChip(amount: "−\(selectedCost)", size: 13)
                         .transition(.scale.combined(with: .opacity))
@@ -175,27 +143,96 @@ struct PreLevelBoosterView: View {
                     Label("Let's Play", systemImage: "play.fill")
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.gamePrimary(gradient: theme.gradient))
+                .buttonStyle(.gameGold)
                 .disabled(previewLevel == nil || isStarting)
                 .opacity(previewLevel == nil ? 0.5 : 1)
                 .keyboardShortcut(.defaultAction)
                 .accessibilityIdentifier("level-briefing-start")
             }
             .animation(reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 0.7), value: selectedCost > 0)
-            .padding(.horizontal, 24)
-            .padding(.top, 12)
-            .frame(maxWidth: 420)
+            .padding(.horizontal, AppTheme.Space.lg)
+            .padding(.top, 10)
+            .padding(.bottom, AppTheme.Space.xs)
+            .frame(maxWidth: 520)
             .frame(maxWidth: .infinity)
-            .background(AppTheme.creamHighlight.ignoresSafeArea(edges: .bottom))
+            .background {
+                Rectangle()
+                    .fill(.regularMaterial)
+                    .overlay(AppTheme.creamHighlight.opacity(0.72))
+                    .ignoresSafeArea(edges: .bottom)
+                    .overlay(alignment: .top) { Rectangle().fill(AppTheme.hairline).frame(height: 0.75) }
+            }
         }
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)
-        .presentationCornerRadius(30)
+        .presentationCornerRadius(28)
         .task(id: levelNumber) {
             guard let zodiac = gameModel.zodiac else { return }
             previewLevel = Level(filename: "\(zodiac.zodiacType.name)_Level_\(levelNumber)")
         }
         .gameNotice(isPresented: $showInsufficientCoins, message: "Not enough coins for this selection.", icon: "circle.fill", tint: theme.accent)
+    }
+
+    private var header: some View {
+        HStack(spacing: 10) {
+            ZStack {
+                Circle().fill(AppTheme.creamHighlight.gradient)
+                Circle().strokeBorder(AppTheme.goldGradient, lineWidth: 2)
+                Text(theme.zodiac.emoji).font(.system(size: 22))
+            }
+            .frame(width: 40, height: 40)
+            .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 0) {
+                Text(theme.name)
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(theme.accent)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                Text(String(localized: "LEVEL \(levelNumber)"))
+                    .font(.system(.title3, design: .rounded, weight: .black))
+                    .foregroundStyle(AppTheme.ink)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                    .accessibilityAddTraits(.isHeader)
+            }
+            .layoutPriority(1)
+
+            Spacer(minLength: 0)
+
+            GameStatPill(systemImage: "circle.inset.filled", value: "\(coinsRemaining)", tint: AppTheme.festivalGoldDark)
+                .contentTransition(.numericText())
+                .animation(reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 0.7), value: coinsRemaining)
+                .accessibilityLabel(Text("\(coinsRemaining) coins"))
+
+            if !dynamicTypeSize.isAccessibilitySize {
+                RewardedAdButton(title: String(localized: "Watch Ad · +\(GameModel.rewardedCoinsAmount) coins"),
+                                 systemImage: "play.rectangle.fill",
+                                 compactLabel: "+\(GameModel.rewardedCoinsAmount)") {
+                    gameModel.grantRewardedCoins()
+                }
+            }
+
+            Button("Close", systemImage: "xmark", action: onClose)
+                .labelStyle(.iconOnly)
+                .font(.system(size: 14, weight: .black))
+                .foregroundStyle(theme.accent)
+                .frame(width: 34, height: 34)
+                .background(AppTheme.paper, in: Circle())
+                .overlay(Circle().strokeBorder(AppTheme.hairline, lineWidth: 1))
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
+                .buttonStyle(.gameIcon)
+                .keyboardShortcut(.cancelAction)
+                .accessibilityIdentifier("level-briefing-close")
+        }
+        .padding(.leading, AppTheme.Space.lg)
+        .padding(.trailing, AppTheme.Space.md)
+        .padding(.top, AppTheme.Space.lg)
+        .padding(.bottom, AppTheme.Space.xs)
+        .frame(maxWidth: 520)
+        .frame(maxWidth: .infinity)
+        .background(theme.sky)
     }
 
     private func startLevel() {
@@ -234,57 +271,74 @@ struct PreLevelBoosterView: View {
             HapticManager.buttonTap()
             isSelected.wrappedValue.toggle()
         } label: {
-            HStack(spacing: 10) {
-                if let imageName {
-                    Image(imageName)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 42, height: 42)
-                        .accessibilityHidden(true)
-                } else {
-                    Image(systemName: icon)
-                        .font(.system(size: 20, weight: .black))
-                        .foregroundStyle(.white)
-                        .frame(width: 42, height: 42)
-                        .background(Circle().fill(affordable ? theme.gradient : AppTheme.neutralGradient))
-                }
-
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 6) {
-                        Text(LocalizedStringKey(title))
-                            .font(.subheadline.weight(.heavy))
-                        // Its own button inside the row, so asking doesn't select the booster.
-                        HelpTipButton(Text(LocalizedStringKey(detail)), size: 16, tint: theme.accent)
+            VStack(spacing: AppTheme.Space.xs) {
+                Group {
+                    if let imageName {
+                        Image(imageName)
+                            .resizable()
+                            .scaledToFit()
+                            .accessibilityHidden(true)
+                    } else {
+                        Image(systemName: icon)
+                            .font(.system(size: 16, weight: .black))
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .background(Circle().fill(affordable ? theme.gradient : AppTheme.neutralGradient))
                     }
-                    art()
                 }
-                Spacer()
+                .frame(width: 36, height: 36)
 
-                VStack(spacing: 3) {
-                    HStack(spacing: 3) {
-                        Image(systemName: "circle.fill")
-                            .font(.system(size: 8))
-                            .foregroundStyle(AppTheme.festivalGold)
-                        Text("\(cost)")
-                            .font(.system(size: 13, weight: .black, design: .rounded))
-                    }
-                    Image(systemName: isSelected.wrappedValue ? "checkmark.circle.fill" : "circle")
-                        .font(.system(size: 20, weight: .bold))
-                        .foregroundStyle(isSelected.wrappedValue ? theme.accent : Color.gray.opacity(0.4))
-                        .scaleEffect(isSelected.wrappedValue && !reduceMotion ? 1.12 : 1)
+                Text(LocalizedStringKey(title))
+                    .font(.caption.weight(.heavy))
+                    .multilineTextAlignment(.center)
+                    .lineLimit(usesListLayout ? nil : 2)
+                    .minimumScaleFactor(0.85)
+                    .frame(minHeight: usesListLayout ? nil : 30)
+
+                art()
+                    .frame(height: 18)
+
+                HStack(spacing: 3) {
+                    Image(systemName: "circle.inset.filled")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(AppTheme.festivalGoldDark)
+                    Text("\(cost)")
+                        .font(.system(size: 13, weight: .black, design: .rounded))
+                        .monospacedDigit()
                 }
+                .padding(.horizontal, AppTheme.Space.sm)
+                .padding(.vertical, 2)
+                .background(AppTheme.cream, in: Capsule())
             }
             .foregroundStyle(AppTheme.ink)
-            .padding(10)
+            .padding(.top, AppTheme.Space.sm)
+            .padding(.bottom, 6)
+            .padding(.horizontal, AppTheme.Space.xs)
+            .frame(maxWidth: .infinity)
             .background(
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(isSelected.wrappedValue ? theme.sky : AppTheme.creamHighlight)
+                RoundedRectangle(cornerRadius: AppTheme.Radius.md, style: .continuous)
+                    .fill(isSelected.wrappedValue ? theme.sky : AppTheme.paper)
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .stroke(isSelected.wrappedValue ? theme.accent : AppTheme.festivalGold.opacity(0.5), lineWidth: 2)
+                RoundedRectangle(cornerRadius: AppTheme.Radius.md, style: .continuous)
+                    .strokeBorder(isSelected.wrappedValue ? theme.accent : AppTheme.hairline,
+                                  lineWidth: isSelected.wrappedValue ? 2 : 1)
             )
-            .shadow(color: .black.opacity(isSelected.wrappedValue ? 0.2 : 0.08), radius: 5, y: 3)
+            .overlay(alignment: .topTrailing) {
+                if isSelected.wrappedValue {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 17, weight: .bold))
+                        .symbolRenderingMode(.palette)
+                        .foregroundStyle(.white, theme.accent)
+                        .padding(AppTheme.Space.xs)
+                        .transition(.scale.combined(with: .opacity))
+                }
+            }
+            .overlay(alignment: .topLeading) {
+                // Its own button inside the tile, so asking doesn't select the booster.
+                HelpTipButton(Text(LocalizedStringKey(detail)), size: 15, tint: theme.accent)
+                    .padding(AppTheme.Space.xs)
+            }
         }
         .buttonStyle(.plain)
         .opacity(affordable ? 1.0 : 0.48)

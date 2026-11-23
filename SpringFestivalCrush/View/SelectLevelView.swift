@@ -62,25 +62,33 @@ struct SelectLevelView: View {
                     VStack(spacing: 0) {
                         if dynamicTypeSize.isAccessibilitySize {
                             LivesHeaderView(tint: theme.accent)
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 8)
+                                .padding(.horizontal, AppTheme.Space.lg)
+                                .padding(.vertical, AppTheme.Space.sm)
                         }
-                        ZodiacChapterHeader(
-                            theme: theme,
-                            completed: completedCount,
-                            total: gameModel.currentLevelRecords.count,
-                            stars: chapterStars
-                        )
-
-                        if !gameModel.currentLevelRecords.isEmpty {
-                            StarChestTrackView(
+                        VStack(spacing: 10) {
+                            ZodiacChapterHeader(
                                 theme: theme,
-                                track: chestTrack,
-                                stars: chapterStars,
-                                claimed: claimedChests,
-                                open: openChest
+                                completed: completedCount,
+                                total: gameModel.currentLevelRecords.count,
+                                stars: chapterStars
                             )
+
+                            if !gameModel.currentLevelRecords.isEmpty {
+                                Rectangle().fill(AppTheme.hairline).frame(height: 0.75)
+                                StarChestTrackView(
+                                    theme: theme,
+                                    track: chestTrack,
+                                    stars: chapterStars,
+                                    claimed: claimedChests,
+                                    open: openChest
+                                )
+                            }
                         }
+                        .gameInset(padding: AppTheme.Space.md, radius: AppTheme.Radius.lg)
+                        .shadow(color: theme.accent.opacity(0.12), radius: 8, y: 4)
+                        .padding(.horizontal, AppTheme.Space.lg)
+                        .padding(.top, AppTheme.Space.xs)
+                        .padding(.bottom, AppTheme.Space.sm)
 
                         if gameModel.currentLevelRecords.isEmpty {
                             ContentUnavailableView("The trail is being built", systemImage: "sparkles", description: Text("New levels are on their way to \(theme.name)."))
@@ -98,22 +106,23 @@ struct SelectLevelView: View {
                                 select: selectLevel
                             )
 
-                            VStack(spacing: 8) {
+                            VStack(spacing: AppTheme.Space.xs) {
                                 Image(systemName: completedCount == gameModel.currentLevelRecords.count ? "checkmark.seal.fill" : "flag.checkered")
-                                    .font(.largeTitle)
+                                    .font(.title3)
                                 Text(completedCount == gameModel.currentLevelRecords.count ? "Chapter complete!" : "A little closer to good fortune" as LocalizedStringKey)
-                                    .font(.headline)
+                                    .font(.subheadline.weight(.bold))
                                 Text(completedCount == gameModel.currentLevelRecords.count ? "Replay your favorite levels and collect every star." : "Clear the trail, one level at a time." as LocalizedStringKey)
-                                    .font(.subheadline)
+                                    .font(.caption)
                                 if completedCount == gameModel.currentLevelRecords.count {
                                     Button("Back to Zodiac Map", systemImage: "map", action: { dismiss() })
-                                        .buttonStyle(.gamePrimary(gradient: theme.gradient))
-                                        .padding(.top, 8)
+                                        .buttonStyle(.gameSecondary(tint: theme.accent))
+                                        .padding(.top, AppTheme.Space.sm)
                                 }
                             }
                             .foregroundStyle(theme.accent)
                             .multilineTextAlignment(.center)
-                            .padding(28)
+                            .padding(.horizontal, AppTheme.Space.xl)
+                            .padding(.vertical, AppTheme.Space.lg)
                         }
                     }
                     .frame(maxWidth: 560)
@@ -136,8 +145,8 @@ struct SelectLevelView: View {
                 .safeAreaInset(edge: .top, spacing: 0) {
                     if !dynamicTypeSize.isAccessibilitySize {
                         LivesHeaderView(tint: theme.accent)
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 8)
+                            .padding(.horizontal, AppTheme.Space.lg)
+                            .padding(.vertical, AppTheme.Space.xs)
                             .frame(maxWidth: 600)
                             .frame(maxWidth: .infinity)
                             .background(theme.sky.opacity(0.96))

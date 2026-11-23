@@ -13,16 +13,16 @@ struct ToolRefillView: View {
     var body: some View {
         ScrollView {
             GamePopupPanel(title: tool.title.localizedUppercase) {
-                VStack(spacing: 18) {
+                VStack(spacing: AppTheme.Space.md) {
                     Image(tool.imageName)
-                        .resizable().scaledToFit().frame(width: 80, height: 80)
+                        .resizable().scaledToFit().frame(width: 60, height: 60)
                         .accessibilityHidden(true)
                     Text(tool.detail)
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(AppTheme.ink.opacity(0.75))
                         .multilineTextAlignment(.center)
                     Text(earnedReward ? "+1 added to your tools!" : "Watch an ad to add 1 charge. No moves spent." as LocalizedStringKey)
-                        .font(.headline)
+                        .font(.subheadline.weight(.bold))
                         .foregroundStyle(AppTheme.ink)
                         .multilineTextAlignment(.center)
                     #if !targetEnvironment(macCatalyst)
@@ -36,8 +36,9 @@ struct ToolRefillView: View {
                             }
                         } label: {
                             Label("Watch Ad · +1", systemImage: "play.rectangle.fill")
+                                .frame(maxWidth: .infinity)
                         }
-                        .buttonStyle(.gamePrimary(gradient: AppTheme.successGradient))
+                        .buttonStyle(.gameGold)
                         .disabled(!ads.isReady || ads.isPresenting)
                         .opacity(ads.isReady ? 1 : 0.5)
                         if ads.isLoading { ProgressView("Loading ad…") }
@@ -54,13 +55,19 @@ struct ToolRefillView: View {
                     #endif
                 }
             }
-            .padding(24)
+            .padding(.horizontal, AppTheme.Space.lg)
+            .padding(.top, AppTheme.Space.xl)
+            .padding(.bottom, AppTheme.Space.md)
         }
-        .background(AppTheme.festivalRedDark.gradient)
+        .background(LinearGradient(colors: [AppTheme.lacquer, AppTheme.lacquerDeep], startPoint: .top, endPoint: .bottom))
         .safeAreaInset(edge: .bottom) {
-            Button(earnedReward ? String(localized: "Back to Game") : String(localized: "Not Now")) { dismiss() }
-                .buttonStyle(.gamePrimary(gradient: AppTheme.neutralGradient))
-                .padding(12)
+            Button { dismiss() } label: {
+                Text(earnedReward ? String(localized: "Back to Game") : String(localized: "Not Now"))
+                    .frame(maxWidth: .infinity)
+            }
+                .buttonStyle(.gameSecondary)
+                .padding(.horizontal, AppTheme.Space.lg)
+                .padding(.vertical, AppTheme.Space.sm)
                 .frame(maxWidth: .infinity)
                 .background(AppTheme.creamHighlight)
                 #if !targetEnvironment(macCatalyst)

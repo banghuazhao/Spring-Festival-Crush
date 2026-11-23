@@ -4,20 +4,35 @@ import SwiftUI
 struct AttemptRecapView: View {
     var showsResources = false
     @EnvironmentObject private var gameModel: GameModel
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    private var usesExpandedLayout: Bool { dynamicTypeSize >= .xxLarge }
 
     var body: some View {
         if let level = gameModel.level, let zodiac = gameModel.zodiac {
             let targets = level.levelGoal.levelTarget.getLevelTargetDatas(gameZodiac: zodiac)
                 .filter { $0.targetNum > 0 }
-            VStack(alignment: .leading, spacing: 8) {
-                Text(showsResources ? "ATTEMPT RECAP" : "GOALS REMAINING" as LocalizedStringKey)
-                    .font(.caption.bold())
-                    .foregroundStyle(AppTheme.ink.opacity(0.7))
-
-                if showsResources {
-                    Label("Moves remaining: \(max(0, gameModel.movesLeft))", systemImage: "arrow.left.arrow.right")
-                    if let seconds = gameModel.secondsLeft {
-                        Label("Time remaining: \(max(0, seconds)) seconds", systemImage: "timer")
+            VStack(alignment: .leading, spacing: AppTheme.Space.sm) {
+                if usesExpandedLayout {
+                    GameSectionLabel(showsResources ? "ATTEMPT RECAP" : "GOALS REMAINING")
+                    if showsResources {
+                        Label("Moves remaining: \(max(0, gameModel.movesLeft))", systemImage: "arrow.left.arrow.right")
+                        if let seconds = gameModel.secondsLeft {
+                            Label("Time remaining: \(max(0, seconds)) seconds", systemImage: "timer")
+                        }
+                    }
+                } else {
+                    HStack(spacing: 6) {
+                        GameSectionLabel("GOALS REMAINING")
+                        Spacer(minLength: AppTheme.Space.xs)
+                        if showsResources {
+                            GameStatPill(systemImage: "arrow.left.arrow.right", value: "\(max(0, gameModel.movesLeft))")
+                                .accessibilityLabel(Text("Moves remaining: \(max(0, gameModel.movesLeft))"))
+                            if let seconds = gameModel.secondsLeft {
+                                GameStatPill(systemImage: "timer", value: "\(max(0, seconds))s")
+                                    .accessibilityLabel(Text("Time remaining: \(max(0, seconds)) seconds"))
+                            }
+                        }
                     }
                 }
 
@@ -38,15 +53,15 @@ struct AttemptRecapView: View {
 
                 if targets.isEmpty {
                     Label("All collection goals complete!", systemImage: "checkmark.circle.fill")
-                } else {
-                    if showsResources {
-                        Text("GOALS REMAINING")
-                            .font(.caption.bold())
-                            .foregroundStyle(AppTheme.ink.opacity(0.7))
-                            .padding(.top, 4)
-                    }
+                } else if usesExpandedLayout {
                     ForEach(targets) { target in
                         AttemptGoalRow(target: target, title: goalName(target.imageName, zodiac: zodiac))
+                    }
+                } else {
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 78), spacing: 6)], spacing: 6) {
+                        ForEach(targets) { target in
+                            AttemptGoalRow(target: target, title: goalName(target.imageName, zodiac: zodiac))
+                        }
                     }
                 }
             }
@@ -54,8 +69,7 @@ struct AttemptRecapView: View {
             .foregroundStyle(AppTheme.ink)
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(12)
-            .background(AppTheme.creamHighlight, in: .rect(cornerRadius: 16))
+            .gameInset()
             .accessibilityIdentifier(showsResources ? "pause-attempt-recap" : "continue-attempt-recap")
         }
     }

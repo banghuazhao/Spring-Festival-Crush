@@ -185,7 +185,9 @@ struct RuleLessonsView: View {
     var isNew: (GameRule) -> Bool = { _ in false }
 
     var body: some View {
-        LazyVGrid(columns: [GridItem(.adaptive(minimum: 132), spacing: 8)], spacing: 8) {
+        // A single lesson takes the full row instead of leaving an empty column beside it.
+        LazyVGrid(columns: rules.count == 1 ? [GridItem(.flexible())]
+                                            : [GridItem(.adaptive(minimum: 132), spacing: 8)], spacing: 8) {
             ForEach(rules) { rule in
                 PictoCard { RuleArt(rule: rule) }
                     .overlay(alignment: .topLeading) {

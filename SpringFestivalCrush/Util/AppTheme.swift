@@ -13,6 +13,28 @@ enum AppTheme {
     static let festivalRedDark = Color(UIColor(hex: 0x8F201C))
     static let festivalGold = Color(UIColor(hex: 0xFFC947))
     static let festivalGoldDark = Color(UIColor(hex: 0xC67816))
+    /// The raised card colour: brighter than `cream`, so nested surfaces read without shadows.
+    static let paper = Color(UIColor(hex: 0xFFF9EA))
+    static let lacquer = Color(UIColor(hex: 0x8C1D20))
+    static let lacquerDeep = Color(UIColor(hex: 0x4A0E12))
+    /// The one border weight for cards and chips, so edges stay quiet and consistent.
+    static let hairline = Color(UIColor(hex: 0xD9A441)).opacity(0.5)
+
+    enum Space {
+        static let xxs: CGFloat = 2
+        static let xs: CGFloat = 4
+        static let sm: CGFloat = 8
+        static let md: CGFloat = 12
+        static let lg: CGFloat = 16
+        static let xl: CGFloat = 20
+    }
+
+    enum Radius {
+        static let sm: CGFloat = 10
+        static let md: CGFloat = 14
+        static let lg: CGFloat = 18
+        static let xl: CGFloat = 24
+    }
 
     /// Moon blossoms (the board's jelly layer): pale for one clear left, deep for two or more.
     static func blossom(layers: Int) -> UIColor { UIColor(hex: layers > 1 ? 0xE0609A : 0xF4A6C6) }
@@ -26,27 +48,40 @@ enum AppTheme {
     )
 
     static let accentGradient = LinearGradient(
-        colors: [Color(UIColor(hex: 0xFFB238)), Color(UIColor(hex: 0xFF7A18))],
-        startPoint: .topLeading,
-        endPoint: .bottomTrailing
+        colors: [Color(UIColor(hex: 0xFFC95A)), Color(UIColor(hex: 0xE88A1E))],
+        startPoint: .top,
+        endPoint: .bottom
+    )
+
+    /// Burnished gold for the single most important action on a screen. Pair with ink text.
+    static let goldGradient = LinearGradient(
+        colors: [Color(UIColor(hex: 0xFFE19A)), Color(UIColor(hex: 0xF5B942)), Color(UIColor(hex: 0xDE9024))],
+        startPoint: .top,
+        endPoint: .bottom
+    )
+
+    static let lacquerGradient = LinearGradient(
+        colors: [Color(UIColor(hex: 0xA92C2C)), Color(UIColor(hex: 0x6B1518))],
+        startPoint: .top,
+        endPoint: .bottom
     )
 
     static let successGradient = LinearGradient(
-        colors: [Color(UIColor(hex: 0x6BE07A)), Color(UIColor(hex: 0x2FAE4E))],
-        startPoint: .topLeading,
-        endPoint: .bottomTrailing
+        colors: [Color(UIColor(hex: 0x36A878)), Color(UIColor(hex: 0x1A7350))],
+        startPoint: .top,
+        endPoint: .bottom
     )
 
     static let dangerGradient = LinearGradient(
-        colors: [Color(UIColor(hex: 0xFF7A7A)), Color(UIColor(hex: 0xE8394B))],
-        startPoint: .topLeading,
-        endPoint: .bottomTrailing
+        colors: [Color(UIColor(hex: 0xE2524A)), Color(UIColor(hex: 0xA8242A))],
+        startPoint: .top,
+        endPoint: .bottom
     )
 
     static let neutralGradient = LinearGradient(
-        colors: [Color(UIColor(hex: 0x7C8CA8)), Color(UIColor(hex: 0x4A5670))],
-        startPoint: .topLeading,
-        endPoint: .bottomTrailing
+        colors: [Color(UIColor(hex: 0x8B6F5C)), Color(UIColor(hex: 0x5F4537))],
+        startPoint: .top,
+        endPoint: .bottom
     )
 
     /// The shared festival backdrop used by every out-of-level screen (zodiac map, level
@@ -59,7 +94,7 @@ enum AppTheme {
 
     static func shineOverlay(cornerShape: some Shape) -> some View {
         LinearGradient(
-            colors: [Color.white.opacity(0.45), Color.white.opacity(0)],
+            colors: [Color.white.opacity(0.2), Color.white.opacity(0)],
             startPoint: .top,
             endPoint: .center
         )
@@ -74,8 +109,8 @@ enum AppTheme {
 
     // MARK: - Corner Radius
 
-    static let panelCornerRadius: CGFloat = 22
-    static let buttonCornerRadius: CGFloat = 16
+    static let panelCornerRadius: CGFloat = 20
+    static let buttonCornerRadius: CGFloat = 14
 }
 
 // A raised, glossy pill/rounded-rect button that scales down and dims on press —
@@ -84,39 +119,66 @@ struct GamePrimaryButtonStyle: ButtonStyle {
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
     @Environment(\.gameReducedEffects) private var reducedEffects
     private var reduceMotion: Bool { systemReduceMotion || reducedEffects }
-    @ScaledMetric(relativeTo: .headline) private var fontSize = 18
+    @ScaledMetric(relativeTo: .headline) private var fontSize = 17
     var gradient: LinearGradient = AppTheme.primaryGradient
     var shape: AnyShape = AnyShape(RoundedRectangle(cornerRadius: AppTheme.buttonCornerRadius, style: .continuous))
+    var foreground: Color = .white
 
     func makeBody(configuration: Configuration) -> some View {
+        let pressed = configuration.isPressed
         configuration.label
             .font(.system(size: fontSize, weight: .bold, design: .rounded))
-            .foregroundColor(.white)
-            .shadow(color: .black.opacity(0.25), radius: 1, x: 0, y: 1)
-            .padding(.horizontal, 22)
-            .padding(.vertical, 14)
-            .background(shape.fill(Color.black.opacity(0.28)).offset(y: 6))
-            .background(
+            .foregroundStyle(foreground)
+            .shadow(color: foreground == .white ? .black.opacity(0.24) : .clear, radius: 0.5, x: 0, y: 1)
+            .padding(.horizontal, 18)
+            .padding(.vertical, 11)
+            .frame(minHeight: 46)
+            .background {
                 ZStack {
                     shape.fill(gradient)
                     AppTheme.shineOverlay(cornerShape: shape)
-                        .padding(2)
                 }
-                .offset(y: configuration.isPressed ? 5 : 0)
-            )
-            .overlay(shape.stroke(Color.white.opacity(0.35), lineWidth: 1))
-            .clipShape(shape)
-            .shadow(
-                color: AppTheme.cardShadowColor,
-                radius: configuration.isPressed ? 2 : AppTheme.cardShadowRadius,
-                x: 0,
-                y: configuration.isPressed ? 1 : AppTheme.cardShadowY
-            )
-            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.97 : 1.0)
-            .brightness(configuration.isPressed ? -0.05 : 0)
-            .padding(.bottom, 6)
-            .animation(reduceMotion ? nil : .spring(response: 0.22, dampingFraction: 0.68), value: configuration.isPressed)
+            }
+            .overlay(shape.stroke(Color.white.opacity(0.32), lineWidth: 1))
+            // A short lip under the face: the press travels into it instead of just dimming.
+            .background(shape.fill(Color.black.opacity(0.28)).offset(y: pressed ? 1 : 3))
+            .offset(y: pressed && !reduceMotion ? 2 : 0)
+            .shadow(color: .black.opacity(pressed ? 0.1 : 0.18), radius: pressed ? 2 : 5, x: 0, y: pressed ? 1 : 3)
+            .scaleEffect(pressed && !reduceMotion ? 0.985 : 1.0)
+            .brightness(pressed ? -0.04 : 0)
+            .padding(.bottom, 3)
+            .animation(reduceMotion ? nil : .spring(response: 0.2, dampingFraction: 0.72), value: pressed)
     }
+}
+
+/// The quiet partner to a primary action, so each screen has one obvious next step.
+struct GameSecondaryButtonStyle: ButtonStyle {
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    @Environment(\.gameReducedEffects) private var reducedEffects
+    private var reduceMotion: Bool { systemReduceMotion || reducedEffects }
+    @ScaledMetric(relativeTo: .subheadline) private var fontSize = 15
+    var tint: Color = AppTheme.ink
+
+    func makeBody(configuration: Configuration) -> some View {
+        let shape = RoundedRectangle(cornerRadius: AppTheme.Radius.md - 1, style: .continuous)
+        configuration.label
+            .font(.system(size: fontSize, weight: .bold, design: .rounded))
+            .foregroundStyle(tint)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .frame(minHeight: 44)
+            .background(shape.fill(AppTheme.paper))
+            .overlay(shape.strokeBorder(AppTheme.hairline, lineWidth: 1))
+            .shadow(color: .black.opacity(0.07), radius: 2, x: 0, y: 1)
+            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.97 : 1)
+            .brightness(configuration.isPressed ? -0.05 : 0)
+            .animation(reduceMotion ? nil : .spring(response: 0.2, dampingFraction: 0.72), value: configuration.isPressed)
+    }
+}
+
+extension ButtonStyle where Self == GameSecondaryButtonStyle {
+    static var gameSecondary: GameSecondaryButtonStyle { GameSecondaryButtonStyle() }
+    static func gameSecondary(tint: Color) -> GameSecondaryButtonStyle { GameSecondaryButtonStyle(tint: tint) }
 }
 
 // Type-erased shape wrapper so GamePrimaryButtonStyle can accept capsules, circles, or rounded rects.
@@ -138,6 +200,11 @@ extension ButtonStyle where Self == GamePrimaryButtonStyle {
     static func gamePrimary(gradient: LinearGradient, shape: some Shape = RoundedRectangle(cornerRadius: AppTheme.buttonCornerRadius, style: .continuous)) -> GamePrimaryButtonStyle {
         GamePrimaryButtonStyle(gradient: gradient, shape: AnyShape(shape))
     }
+
+    /// The gold call to action. Use it at most once per screen.
+    static var gameGold: GamePrimaryButtonStyle {
+        GamePrimaryButtonStyle(gradient: AppTheme.goldGradient, foreground: AppTheme.ink)
+    }
 }
 
 // A tap-to-shrink style for icon-only chrome (settings gear, back arrow) — lighter than the full CTA style.
@@ -145,10 +212,11 @@ struct GameIconButtonStyle: ButtonStyle {
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
     @Environment(\.gameReducedEffects) private var reducedEffects
     private var reduceMotion: Bool { systemReduceMotion || reducedEffects }
+    var pressedScale: CGFloat = 0.85
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.85 : 1.0)
+            .scaleEffect(configuration.isPressed && !reduceMotion ? pressedScale : 1.0)
             .opacity(configuration.isPressed ? 0.7 : 1.0)
             .animation(reduceMotion ? nil : .spring(response: 0.2, dampingFraction: 0.6), value: configuration.isPressed)
     }
@@ -156,6 +224,8 @@ struct GameIconButtonStyle: ButtonStyle {
 
 extension ButtonStyle where Self == GameIconButtonStyle {
     static var gameIcon: GameIconButtonStyle { GameIconButtonStyle() }
+    /// The same press, scaled for a wide tappable card.
+    static var gameCard: GameIconButtonStyle { GameIconButtonStyle(pressedScale: 0.975) }
 }
 
 // The press feel for map/grid nodes (zodiac landmarks, level medallions) — a deeper squash
@@ -186,7 +256,7 @@ enum GameRibbonTone {
     var gradient: LinearGradient {
         switch self {
         case .gold:
-            LinearGradient(colors: [AppTheme.festivalGold, AppTheme.festivalGoldDark], startPoint: .top, endPoint: .bottom)
+            AppTheme.goldGradient
         case .red:
             AppTheme.dangerGradient
         case .blue:
@@ -219,43 +289,42 @@ struct GamePopupPanel<Content: View>: View {
     var body: some View {
         VStack(spacing: 0) {
             focusableTitle
-                .font(.title3.weight(.black))
+                .font(.headline.weight(.black))
                 .fontDesign(.rounded)
+                .tracking(0.4)
                 .foregroundStyle(tone.foreground)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
-                .padding(.horizontal, 26)
-                .padding(.vertical, 10)
-                .frame(minWidth: 180)
-                .background(tone.gradient)
-                .clipShape(.rect(cornerRadius: 13))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 13, style: .continuous)
-                        .stroke(.white.opacity(0.65), lineWidth: 2)
-                )
-                .shadow(color: .black.opacity(0.3), radius: 7, y: 4)
+                .padding(.horizontal, 22)
+                .padding(.vertical, 7)
+                .frame(minWidth: 150)
+                .background(tone.gradient, in: Capsule())
+                .overlay(Capsule().strokeBorder(.white.opacity(0.6), lineWidth: 1))
+                .shadow(color: .black.opacity(0.26), radius: 5, y: 3)
                 .zIndex(1)
 
             content
-                .padding(.horizontal, 22)
-                .padding(.top, 30)
-                .padding(.bottom, 22)
+                .padding(.horizontal, AppTheme.Space.lg)
+                .padding(.top, 28)
+                .padding(.bottom, AppTheme.Space.lg)
                 .frame(maxWidth: .infinity)
                 .background(
-                    RoundedRectangle(cornerRadius: 28, style: .continuous)
-                        .fill(AppTheme.cream)
+                    RoundedRectangle(cornerRadius: AppTheme.Radius.xl, style: .continuous)
+                        .fill(LinearGradient(colors: [AppTheme.creamHighlight, AppTheme.cream],
+                                             startPoint: .top, endPoint: .bottom))
                         .overlay(
-                            RoundedRectangle(cornerRadius: 28, style: .continuous)
-                                .stroke(AppTheme.festivalGold, lineWidth: 5)
+                            RoundedRectangle(cornerRadius: AppTheme.Radius.xl, style: .continuous)
+                                .strokeBorder(AppTheme.goldGradient, lineWidth: 2)
                         )
                         .overlay(
-                            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                                .stroke(.white.opacity(0.75), lineWidth: 2)
-                                .padding(7)
+                            RoundedRectangle(cornerRadius: AppTheme.Radius.xl - 4, style: .continuous)
+                                .strokeBorder(AppTheme.hairline.opacity(0.7), lineWidth: 0.75)
+                                .padding(4)
                         )
                 )
-                .shadow(color: .black.opacity(0.38), radius: 24, y: 13)
-                .offset(y: -20)
+                .shadow(color: .black.opacity(0.34), radius: 18, y: 10)
+                // Tuck the panel under its title pill without leaving dead space below it.
+                .padding(.top, -17)
         }
         .frame(maxWidth: 380)
     }
@@ -275,6 +344,92 @@ struct GamePopupPanel<Content: View>: View {
     }
 }
 
+// MARK: - Shared compact surfaces
+
+extension View {
+    /// A paper card nested inside a panel: one fill, one hairline, no stacked shadows.
+    func gameInset(padding: CGFloat = 10, radius: CGFloat = AppTheme.Radius.md) -> some View {
+        self
+            .padding(padding)
+            .background(AppTheme.paper, in: .rect(cornerRadius: radius, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: radius, style: .continuous)
+                    .strokeBorder(AppTheme.hairline, lineWidth: 1)
+            )
+    }
+}
+
+/// The small caps label above a group of content.
+struct GameSectionLabel: View {
+    let title: LocalizedStringKey
+
+    init(_ title: LocalizedStringKey) {
+        self.title = title
+    }
+
+    var body: some View {
+        Text(title)
+            .font(.caption2.weight(.heavy))
+            .fontDesign(.rounded)
+            .tracking(0.6)
+            .foregroundStyle(AppTheme.ink.opacity(0.62))
+            .accessibilityAddTraits(.isHeader)
+    }
+}
+
+/// An icon and a number in a capsule, for moves, time, coins and similar one-glance stats.
+struct GameStatPill: View {
+    let systemImage: String
+    let value: String
+    var tint: Color = AppTheme.festivalRed
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Image(systemName: systemImage)
+                .font(.caption.weight(.black))
+                .foregroundStyle(tint)
+            Text(verbatim: value)
+                .font(.system(.subheadline, design: .rounded, weight: .black))
+                .monospacedDigit()
+                .foregroundStyle(AppTheme.ink)
+        }
+        .padding(.horizontal, 9)
+        .padding(.vertical, 4)
+        .background(AppTheme.paper, in: Capsule())
+        .overlay(Capsule().strokeBorder(AppTheme.hairline, lineWidth: 1))
+        .accessibilityElement(children: .ignore)
+    }
+}
+
+/// One remaining goal as tile art plus a count. The spoken label carries the goal's name.
+struct GoalChip<Art: View>: View {
+    let count: Int
+    let label: Text
+    @ViewBuilder let art: Art
+
+    var body: some View {
+        HStack(spacing: 5) {
+            art
+                .frame(width: 24, height: 24)
+                .accessibilityHidden(true)
+            Text(count, format: .number)
+                .font(.system(.subheadline, design: .rounded, weight: .black))
+                .monospacedDigit()
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+        }
+        .foregroundStyle(AppTheme.ink)
+        .padding(.horizontal, 9)
+        .padding(.vertical, 4)
+        .frame(maxWidth: .infinity)
+        .background(AppTheme.paper, in: Capsule())
+        .overlay(Capsule().strokeBorder(AppTheme.hairline, lineWidth: 1))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(label)
+        .accessibilityValue(Text(count, format: .number))
+    }
+}
+
 struct GameNoticeBanner: View {
     let message: String
     let icon: String
@@ -285,18 +440,18 @@ struct GameNoticeBanner: View {
             Image(systemName: icon)
                 .font(.system(size: 18, weight: .black))
             Text(LocalizedStringKey(message))
-                .font(.system(size: 15, weight: .bold, design: .rounded))
+                .font(.system(size: 14, weight: .bold, design: .rounded))
                 .lineLimit(2)
         }
         .foregroundStyle(.white)
-        .padding(.horizontal, 18)
-        .padding(.vertical, 13)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
         .background(
             Capsule()
                 .fill(tint.gradient)
-                .overlay(Capsule().stroke(.white.opacity(0.4), lineWidth: 1.5))
+                .overlay(Capsule().strokeBorder(.white.opacity(0.35), lineWidth: 1))
         )
-        .shadow(color: .black.opacity(0.3), radius: 12, y: 6)
+        .shadow(color: .black.opacity(0.28), radius: 9, y: 4)
         .padding(.horizontal, 18)
         .accessibilityAddTraits(.isStaticText)
     }

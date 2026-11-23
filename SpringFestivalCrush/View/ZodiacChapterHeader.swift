@@ -1,5 +1,6 @@
 import SwiftUI
 
+/// Chapter identity and progress in a single compact block, so levels start high on screen.
 struct ZodiacChapterHeader: View {
     let theme: ZodiacChapterTheme
     let completed: Int
@@ -7,67 +8,96 @@ struct ZodiacChapterHeader: View {
     let stars: Int
 
     var body: some View {
-        VStack(spacing: 12) {
-            HStack(spacing: 8) {
-                Rectangle().fill(theme.accent.opacity(0.25)).frame(width: 24, height: 1)
-                Text("CHAPTER \(String(format: "%02d", theme.zodiac.rawValue + 1)) · \(theme.chineseName)")
-                    .font(.caption.weight(.black))
-                    .tracking(2)
-                Rectangle().fill(theme.accent.opacity(0.25)).frame(width: 24, height: 1)
-            }
-            .foregroundStyle(theme.accent)
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: AppTheme.Space.md) {
+                ZStack {
+                    Circle().fill(AppTheme.creamHighlight.gradient)
+                    Circle().strokeBorder(AppTheme.goldGradient, lineWidth: 2.5)
+                    Text(theme.zodiac.emoji).font(.system(size: 32))
+                }
+                .frame(width: 56, height: 56)
+                .overlay(alignment: .bottomTrailing) {
+                    Text(theme.motif).font(.system(size: 15)).offset(x: 3, y: 2)
+                }
+                .accessibilityHidden(true)
 
-            ZStack {
-                Circle().stroke(theme.accent.opacity(0.18), lineWidth: 1).frame(width: 112, height: 112)
-                Circle().fill(theme.accent.opacity(0.12)).frame(width: 96, height: 96).offset(y: 5)
-                Circle().fill(AppTheme.creamHighlight.gradient).frame(width: 92, height: 92)
-                    .overlay(Circle().stroke(AppTheme.festivalGold, lineWidth: 3))
-                    .shadow(color: theme.accent.opacity(0.18), radius: 8, y: 6)
-                Text(theme.zodiac.emoji).font(.system(size: 54))
-                Text(theme.motif).font(.system(size: 25)).offset(x: 48, y: 24)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("CHAPTER \(String(format: "%02d", theme.zodiac.rawValue + 1)) · \(theme.chineseName)")
+                        .font(.caption2.weight(.black))
+                        .tracking(1)
+                        .foregroundStyle(theme.accent)
+                    Text(theme.name)
+                        .font(.system(.title3, design: .rounded, weight: .black))
+                        .foregroundStyle(AppTheme.ink)
+                        .accessibilityAddTraits(.isHeader)
+                    Text(theme.detail)
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(AppTheme.ink.opacity(0.7))
+                }
+                .fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: 0)
             }
-            .accessibilityHidden(true)
-
-            VStack(spacing: 5) {
-                Text(theme.name)
-                    .font(.system(.largeTitle, design: .rounded, weight: .black))
-                    .foregroundStyle(AppTheme.ink)
-                    .accessibilityAddTraits(.isHeader)
-                Text(theme.detail)
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(AppTheme.ink.opacity(0.75))
-            }
-            .multilineTextAlignment(.center)
-            .fixedSize(horizontal: false, vertical: true)
 
             if total > 0 {
-                VStack(spacing: 9) {
-                    ViewThatFits(in: .horizontal) {
-                        HStack {
-                            Label("\(completed)/\(total) cleared", systemImage: completed == total ? "checkmark.seal.fill" : "flag.fill")
-                            Spacer(minLength: 12)
-                            Label("\(stars)/\(total * 3)", systemImage: "star.fill")
-                        }
-                        VStack(alignment: .leading, spacing: 8) {
-                            Label("\(completed)/\(total) cleared", systemImage: "flag.fill")
-                            Label("\(stars)/\(total * 3) stars", systemImage: "star.fill")
-                        }
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 10) {
+                        clearedStat
+                        progressBar
+                        starStat
                     }
-                    .font(.subheadline.weight(.bold))
-                    .foregroundStyle(theme.accent)
-
-                    ProgressView(value: Double(completed), total: Double(total))
-                        .tint(theme.accent)
-                        .accessibilityLabel("Chapter progress")
-                        .accessibilityValue("\(completed) of \(total) levels complete")
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack {
+                            clearedStat
+                            Spacer(minLength: 8)
+                            starStat
+                        }
+                        progressBar
+                    }
                 }
-                .padding(14)
-                .background(AppTheme.creamHighlight.opacity(0.78), in: .rect(cornerRadius: 18))
-                .overlay(RoundedRectangle(cornerRadius: 18).stroke(.white.opacity(0.7), lineWidth: 1))
+                .font(.system(.caption, design: .rounded, weight: .heavy))
+                .foregroundStyle(theme.accent)
             }
         }
-        .padding(.horizontal, 24)
-        .padding(.top, 10)
-        .padding(.bottom, 18)
+    }
+
+    private var clearedStat: some View {
+        Label {
+            Text(verbatim: "\(completed)/\(total)").monospacedDigit()
+        } icon: {
+            Image(systemName: completed == total ? "checkmark.seal.fill" : "flag.fill")
+        }
+        .labelStyle(TightLabelStyle())
+        .fixedSize()
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("\(completed)/\(total) cleared"))
+    }
+
+    private var starStat: some View {
+        Label {
+            Text(verbatim: "\(stars)/\(total * 3)").monospacedDigit()
+        } icon: {
+            Image(systemName: "star.fill").foregroundStyle(AppTheme.festivalGoldDark)
+        }
+        .labelStyle(TightLabelStyle())
+        .fixedSize()
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("\(stars)/\(total * 3) stars"))
+    }
+
+    private var progressBar: some View {
+        ProgressView(value: Double(completed), total: Double(max(1, total)))
+            .tint(theme.accent)
+            .frame(minWidth: 72)
+            .accessibilityLabel("Chapter progress")
+            .accessibilityValue("\(completed) of \(total) levels complete")
+    }
+}
+
+private struct TightLabelStyle: LabelStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        HStack(spacing: 3) {
+            configuration.icon
+            configuration.title
+        }
     }
 }

@@ -13,6 +13,7 @@ struct PauseMenuView: View {
 
     @EnvironmentObject private var gameModel: GameModel
     @EnvironmentObject private var settingModel: SettingModel
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var presentedSheet: PauseSheet?
     @AccessibilityFocusState private var resumeFocused: Bool
 
@@ -31,7 +32,7 @@ struct PauseMenuView: View {
                         .opacity(presentedSheet == nil ? 1 : 0)
                         .allowsHitTesting(presentedSheet == nil)
                         #endif
-                        .padding(24)
+                        .padding(AppTheme.Space.xl)
                         .frame(maxWidth: .infinity)
                         .frame(minHeight: geometry.size.height)
                 }
@@ -108,13 +109,7 @@ struct PauseMenuView: View {
 
     private var panel: some View {
         GamePopupPanel(title: "PAUSED", tone: .gold) {
-            VStack(spacing: 12) {
-                Text("Take a breather. Your board is waiting.")
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(AppTheme.ink.opacity(0.7))
-                    .multilineTextAlignment(.center)
-                    .padding(.bottom, 4)
-
+            VStack(spacing: 10) {
                 AttemptRecapView(showsResources: true)
 
                 Button {
@@ -124,58 +119,99 @@ struct PauseMenuView: View {
                     Label("Resume", systemImage: "play.fill")
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.gamePrimary(gradient: AppTheme.accentGradient))
+                .buttonStyle(.gameGold)
                 #if targetEnvironment(macCatalyst)
                 .keyboardShortcut(presentedSheet == nil ? KeyboardShortcut.cancelAction : nil)
                 #else
                 .keyboardShortcut(.cancelAction)
                 #endif
                 .accessibilityFocused($resumeFocused)
+                .accessibilityHint(Text("Take a breather. Your board is waiting."))
                 .accessibilityIdentifier("pause-resume")
 
-                Button {
-                    HapticManager.buttonTap()
-                    onRestart()
-                } label: {
-                    Label("Restart", systemImage: "arrow.clockwise")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.gamePrimary(gradient: AppTheme.accentGradient))
-                .accessibilityHint("Start this level again with its original moves and goals")
-                .accessibilityIdentifier("pause-restart")
-
-                Button {
-                    HapticManager.buttonTap()
-                    open(.rules)
-                } label: {
-                    Label("Rule handbook", systemImage: "book.closed.fill")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.gamePrimary(gradient: AppTheme.neutralGradient))
-                .accessibilityIdentifier("pause-rules")
-
-                Button {
-                    HapticManager.buttonTap()
-                    open(.settings)
-                } label: {
-                    Label("Settings", systemImage: "gearshape.fill")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.gamePrimary(gradient: AppTheme.neutralGradient))
-                .accessibilityIdentifier("pause-settings")
-
-                Button {
-                    HapticManager.buttonTap()
-                    onExit()
-                } label: {
-                    Label("Exit", systemImage: "rectangle.portrait.and.arrow.right")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.gamePrimary(gradient: AppTheme.dangerGradient))
-                .accessibilityHint("Leave this game and return to the level map")
-                .accessibilityIdentifier("pause-exit")
+                actionGrid
             }
         }
+    }
+
+    /// Eager on purpose: a lazy grid re-measures its rows while the panel scrolls at large text.
+    @ViewBuilder
+    private var actionGrid: some View {
+        if dynamicTypeSize >= .xxLarge {
+            VStack(spacing: AppTheme.Space.sm) {
+                restartButton
+                exitButton
+                rulesButton
+                settingsButton
+            }
+        } else {
+            Grid(horizontalSpacing: AppTheme.Space.sm, verticalSpacing: AppTheme.Space.sm) {
+                GridRow {
+                    restartButton
+                    exitButton
+                }
+                GridRow {
+                    rulesButton
+                    settingsButton
+                }
+            }
+            .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private var restartButton: some View {
+        Button {
+            HapticManager.buttonTap()
+            onRestart()
+        } label: {
+            actionLabel("Restart", systemImage: "arrow.clockwise")
+        }
+        .buttonStyle(.gameSecondary)
+        .accessibilityHint("Start this level again with its original moves and goals")
+        .accessibilityIdentifier("pause-restart")
+    }
+
+    private var exitButton: some View {
+        Button {
+            HapticManager.buttonTap()
+            onExit()
+        } label: {
+            actionLabel("Exit", systemImage: "rectangle.portrait.and.arrow.right")
+        }
+        .buttonStyle(.gameSecondary(tint: AppTheme.festivalRedDark))
+        .accessibilityHint("Leave this game and return to the level map")
+        .accessibilityIdentifier("pause-exit")
+    }
+
+    private var rulesButton: some View {
+        Button {
+            HapticManager.buttonTap()
+            open(.rules)
+        } label: {
+            actionLabel("Rule handbook", systemImage: "book.closed.fill")
+        }
+        .buttonStyle(.gameSecondary)
+        .accessibilityIdentifier("pause-rules")
+    }
+
+    private var settingsButton: some View {
+        Button {
+            HapticManager.buttonTap()
+            open(.settings)
+        } label: {
+            actionLabel("Settings", systemImage: "gearshape.fill")
+        }
+        .buttonStyle(.gameSecondary)
+        .accessibilityIdentifier("pause-settings")
+    }
+
+    private func actionLabel(_ title: LocalizedStringKey, systemImage: String) -> some View {
+        // Two lines on narrow phones keeps every label whole; both buttons in a row match height.
+        Label(title, systemImage: systemImage)
+            .lineLimit(dynamicTypeSize >= .xxLarge ? nil : 2)
+            .multilineTextAlignment(.center)
+            .minimumScaleFactor(0.82)
+            .frame(maxWidth: .infinity, maxHeight: dynamicTypeSize >= .xxLarge ? nil : .infinity)
     }
 
     private func open(_ sheet: PauseSheet) {

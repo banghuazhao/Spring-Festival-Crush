@@ -30,25 +30,15 @@ struct LevelFailedView: View {
         GeometryReader { geometry in
             ScrollView {
                 GamePopupPanel(title: gameModel.loseReason.title, tone: .red, titleFocus: $headingFocused) {
-                    VStack(spacing: 16) {
-                        Image(systemName: gameModel.loseReason.icon)
-                            .font(.largeTitle.bold())
-                            .foregroundStyle(AppTheme.festivalRed)
-                            .frame(width: 76, height: 76)
-                            .background(AppTheme.creamHighlight.gradient, in: Circle())
-                            .overlay(Circle().stroke(AppTheme.festivalGold.opacity(0.6), lineWidth: 3))
-                            .rotationEffect(.degrees(reduceMotion || settled ? 0 : -6))
-                            .scaleEffect(reduceMotion || settled ? 1 : 0.9)
-                            .accessibilityHidden(true)
+                    VStack(spacing: 10) {
+                        resultStats
 
                         if gameModel.goalProgress >= 0.85 {
                             Text("So close! Every attempt reveals a better path.")
-                                .font(.subheadline.weight(.semibold))
+                                .font(.footnote.weight(.semibold))
                                 .foregroundStyle(AppTheme.ink.opacity(0.75))
                                 .multilineTextAlignment(.center)
                         }
-
-                        resultStats
 
                         remainingGoals
 
@@ -73,11 +63,10 @@ struct LevelFailedView: View {
                                     }
                                 }
                             }
-                            .font(.subheadline.weight(.medium))
+                            .font(.footnote.weight(.medium))
                             .foregroundStyle(AppTheme.ink)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(12)
-                            .background(AppTheme.creamHighlight, in: .rect(cornerRadius: 14))
+                            .gameInset(padding: AppTheme.Space.sm, radius: AppTheme.Radius.sm)
                             .accessibilityElement(children: .combine)
                             .accessibilityIdentifier("defeat-retry-tip")
                         }
@@ -86,7 +75,7 @@ struct LevelFailedView: View {
                             Button(action: retry) {
                                 actionLabel("Try Again", systemImage: "arrow.counterclockwise")
                             }
-                            .buttonStyle(.gamePrimary(gradient: AppTheme.successGradient))
+                            .buttonStyle(.gameGold)
                             .accessibilityIdentifier("defeat-retry")
                         } else {
                             Label("Out of lives", systemImage: "heart.slash.fill")
@@ -101,11 +90,11 @@ struct LevelFailedView: View {
                         Button(action: backToMap) {
                             actionLabel("Back to Levels", systemImage: "map.fill")
                         }
-                        .buttonStyle(.gamePrimary(gradient: AppTheme.neutralGradient))
+                        .buttonStyle(.gameSecondary)
                         .accessibilityIdentifier("defeat-map")
                     }
                 }
-                .padding(20)
+                .padding(AppTheme.Space.lg)
                 .frame(maxWidth: .infinity)
                 .frame(minHeight: geometry.size.height)
             }
@@ -142,25 +131,38 @@ struct LevelFailedView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             } else {
-                Grid(horizontalSpacing: 28, verticalSpacing: 5) {
-                    GridRow {
-                        Text("LEVEL")
-                        Text("SCORE")
-                    }
-                    .font(.caption.bold())
-                    .foregroundStyle(AppTheme.ink.opacity(0.7))
-                    GridRow {
+                HStack(spacing: AppTheme.Space.md) {
+                    Image(systemName: gameModel.loseReason.icon)
+                        .font(.title3.bold())
+                        .foregroundStyle(AppTheme.festivalRed)
+                        .frame(width: 44, height: 44)
+                        .background(AppTheme.cream, in: Circle())
+                        .overlay(Circle().strokeBorder(AppTheme.goldGradient, lineWidth: 1.5))
+                        .rotationEffect(.degrees(reduceMotion || settled ? 0 : -6))
+                        .scaleEffect(reduceMotion || settled ? 1 : 0.9)
+                        .accessibilityHidden(true)
+                    statColumn("LEVEL") {
                         Text(gameModel.currentLevel >= 1 ? "\(gameModel.currentLevel)" : "DEMO" as LocalizedStringKey)
+                    }
+                    statColumn("SCORE") {
                         Text("\(gameModel.score)")
                     }
-                    .font(.title2.bold().monospacedDigit())
-                    .foregroundStyle(AppTheme.festivalRed)
                 }
                 .frame(maxWidth: .infinity)
             }
         }
-        .padding(12)
-        .background(AppTheme.creamHighlight, in: .rect(cornerRadius: 16))
+        .gameInset(padding: AppTheme.Space.sm)
+    }
+
+    private func statColumn<Value: View>(_ title: LocalizedStringKey, @ViewBuilder value: () -> Value) -> some View {
+        VStack(spacing: 0) {
+            GameSectionLabel(title)
+            value()
+                .font(.system(.title3, design: .rounded, weight: .black).monospacedDigit())
+                .foregroundStyle(AppTheme.festivalRed)
+        }
+        .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .combine)
     }
 
     @ViewBuilder
@@ -168,28 +170,42 @@ struct LevelFailedView: View {
         let targets = unfinishedTargets
         let health = guardianHealthLeft
         if !targets.isEmpty || health > 0 {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("GOALS REMAINING")
-                    .font(.caption.bold())
-                    .foregroundStyle(AppTheme.ink.opacity(0.7))
+            VStack(alignment: .leading, spacing: 6) {
+                GameSectionLabel("GOALS REMAINING")
 
-                if health > 0 {
-                    remainingGoalRow(count: health) {
-                        Image(systemName: "heart.fill")
-                            .foregroundStyle(AppTheme.festivalRed)
-                            .font(.title3)
-                    } name: {
-                        Text("Guardian health left")
+                if dynamicTypeSize >= .xxLarge {
+                    if health > 0 {
+                        remainingGoalRow(count: health) {
+                            Image(systemName: "heart.fill")
+                                .foregroundStyle(AppTheme.festivalRed)
+                                .font(.title3)
+                        } name: {
+                            Text("Guardian health left")
+                        }
                     }
-                }
 
-                ForEach(targets) { target in
-                    remainingGoalRow(count: target.targetNum) {
-                        target.image
-                            .resizable()
-                            .scaledToFit()
-                    } name: {
-                        Text(LocalizedStringKey(goalName(target.imageName)))
+                    ForEach(targets) { target in
+                        remainingGoalRow(count: target.targetNum) {
+                            target.image
+                                .resizable()
+                                .scaledToFit()
+                        } name: {
+                            Text(LocalizedStringKey(goalName(target.imageName)))
+                        }
+                    }
+                } else {
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 78), spacing: 6)], spacing: 6) {
+                        if health > 0 {
+                            GoalChip(count: health, label: Text("Guardian health left")) {
+                                Image(systemName: "heart.fill")
+                                    .foregroundStyle(AppTheme.festivalRed)
+                            }
+                        }
+                        ForEach(targets) { target in
+                            GoalChip(count: target.targetNum, label: Text(LocalizedStringKey(goalName(target.imageName)))) {
+                                target.image.resizable().scaledToFit()
+                            }
+                        }
                     }
                 }
             }
@@ -232,7 +248,7 @@ struct LevelFailedView: View {
         }
         .frame(maxWidth: .infinity, minHeight: 44)
         .padding(.horizontal, 10)
-        .background(AppTheme.creamHighlight, in: .rect(cornerRadius: 12))
+        .background(AppTheme.paper, in: .rect(cornerRadius: AppTheme.Radius.sm))
         .accessibilityElement(children: .combine)
     }
 

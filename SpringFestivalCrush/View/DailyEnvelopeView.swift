@@ -26,26 +26,16 @@ struct DailyEnvelopeView: View {
 
     var body: some View {
         ZStack {
-            Rectangle().fill(AppTheme.festivalRedDark.gradient).ignoresSafeArea()
+            LinearGradient(colors: [AppTheme.lacquer, AppTheme.lacquerDeep], startPoint: .top, endPoint: .bottom)
+                .ignoresSafeArea()
 
             ScrollView {
                 if showingRewardSchedule {
                     rewardSchedule
                 } else {
                     GamePopupPanel(title: String(localized: "DAILY RED ENVELOPE"), tone: .red) {
-                        VStack(spacing: 16) {
+                        VStack(spacing: AppTheme.Space.md) {
                             streakStrip
-
-                            Button {
-                                HapticManager.buttonTap()
-                                showBurst = false
-                                showingRewardSchedule = true
-                            } label: {
-                                Label("View rewards", systemImage: "list.bullet.rectangle")
-                                    .frame(maxWidth: .infinity, minHeight: 44)
-                            }
-                            .buttonStyle(.gamePrimary(gradient: AppTheme.neutralGradient))
-                            .accessibilityIdentifier("daily-rewards-preview")
 
                             envelopeButton
 
@@ -71,20 +61,30 @@ struct DailyEnvelopeView: View {
                                 }
                             }
 
-                            HStack(spacing: 8) {
-                                streakRule
-                                HelpTipButton(Text("Open one every day. Miss a day and the streak starts again from Day 1."),
-                                              tint: AppTheme.festivalRed)
+                            ViewThatFits(in: .horizontal) {
+                                HStack(spacing: AppTheme.Space.sm) {
+                                    streakRuleWithHelp
+                                    Spacer(minLength: 0)
+                                    viewRewardsButton
+                                }
+                                VStack(spacing: AppTheme.Space.sm) {
+                                    streakRuleWithHelp
+                                    viewRewardsButton
+                                }
                             }
                         }
                         .foregroundStyle(AppTheme.ink)
                     }
-                    .padding(20)
+                    .padding(.horizontal, AppTheme.Space.lg)
+                    .padding(.top, AppTheme.Space.xl)
+                    .padding(.bottom, AppTheme.Space.md)
                     .frame(maxWidth: 500)
                     .frame(maxWidth: .infinity)
                 }
             }
             .scrollIndicators(.hidden)
+            .scrollBounceBehavior(.basedOnSize)
+            .defaultScrollAnchor(.center)
             .id(showingRewardSchedule)
 
             if showBurst && !reduceMotion {
@@ -101,7 +101,7 @@ struct DailyEnvelopeView: View {
                     } label: {
                         Text("Close").frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.gamePrimary(gradient: AppTheme.neutralGradient))
+                    .buttonStyle(.gameSecondary)
                     .accessibilityIdentifier("daily-rewards-preview-close")
                 } else {
                     if openedReward != nil, envelope.canDoubleLastReward {
@@ -119,15 +119,22 @@ struct DailyEnvelopeView: View {
                         Text(primaryTitle)
                             .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.gamePrimary(gradient: envelope.isReady ? AppTheme.dangerGradient : AppTheme.successGradient))
+                    .buttonStyle(.gameGold)
                     .accessibilityIdentifier("daily-envelope-primary")
                 }
             }
-            .padding(.horizontal, 24)
+            .padding(.horizontal, AppTheme.Space.lg)
             .padding(.top, 10)
-            .frame(maxWidth: 440)
+            .padding(.bottom, AppTheme.Space.xs)
+            .frame(maxWidth: 480)
             .frame(maxWidth: .infinity)
-            .background(AppTheme.creamHighlight.ignoresSafeArea(edges: .bottom))
+            .background {
+                Rectangle()
+                    .fill(.regularMaterial)
+                    .overlay(AppTheme.creamHighlight.opacity(0.72))
+                    .ignoresSafeArea(edges: .bottom)
+                    .overlay(alignment: .top) { Rectangle().fill(AppTheme.hairline).frame(height: 0.75) }
+            }
         }
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)
@@ -146,51 +153,94 @@ struct DailyEnvelopeView: View {
     /// Shows the existing reward table without claiming an envelope or changing the streak.
     private var rewardSchedule: some View {
         GamePopupPanel(title: String(localized: "7-day rewards"), tone: .gold) {
-            VStack(spacing: 12) {
+            VStack(spacing: 6) {
                 ForEach(1 ... DailyEnvelopeRules.cycleLength, id: \.self) { day in
                     rewardDay(day)
                 }
             }
             .foregroundStyle(AppTheme.ink)
         }
-        .padding(20)
+        .padding(.horizontal, AppTheme.Space.lg)
+        .padding(.top, AppTheme.Space.xl)
+        .padding(.bottom, AppTheme.Space.md)
         .frame(maxWidth: 500)
         .frame(maxWidth: .infinity)
+    }
+
+    private var streakRuleWithHelp: some View {
+        HStack(spacing: 6) {
+            streakRule
+            HelpTipButton(Text("Open one every day. Miss a day and the streak starts again from Day 1."),
+                          size: 18, tint: AppTheme.festivalRed)
+        }
+        .fixedSize()
+    }
+
+    private var viewRewardsButton: some View {
+        Button {
+            HapticManager.buttonTap()
+            showBurst = false
+            showingRewardSchedule = true
+        } label: {
+            Label("View rewards", systemImage: "list.bullet.rectangle")
+                .font(.caption.weight(.bold))
+                .fixedSize()
+        }
+        .buttonStyle(.gameSecondary)
+        .accessibilityIdentifier("daily-rewards-preview")
     }
 
     private func rewardDay(_ day: Int) -> some View {
         let isCurrentDay = day == todayDay
         let currentDayStatus: LocalizedStringKey = envelope.isReady ? "Today" : "Opened today"
         let reward = DailyEnvelopeRules.reward(forDay: day)
-        return VStack(alignment: .leading, spacing: 8) {
-            Text("Day \(day)")
-                .font(.headline.weight(.heavy))
-                .accessibilityAddTraits(.isHeader)
-            if isCurrentDay {
-                Text(currentDayStatus)
-                    .font(.caption.weight(.heavy))
-                    .foregroundStyle(AppTheme.festivalRed)
+        return VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 6) {
+                Text("Day \(day)")
+                    .font(.system(.subheadline, design: .rounded, weight: .heavy))
+                    .accessibilityAddTraits(.isHeader)
+                if isCurrentDay {
+                    Text(currentDayStatus)
+                        .font(.caption2.weight(.heavy))
+                        .foregroundStyle(AppTheme.festivalRed)
+                }
+                Spacer(minLength: AppTheme.Space.xs)
+                if !dynamicTypeSize.isAccessibilitySize {
+                    ForEach(reward.items) { item in
+                        HStack(spacing: 2) {
+                            RewardIcon(kind: item.kind, size: 22)
+                                .accessibilityHidden(true)
+                            Text(verbatim: "+\(item.amount)")
+                                .font(.system(.caption, design: .rounded, weight: .black).monospacedDigit())
+                        }
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel(Text("\(item.amount) \(item.kind.name)"))
+                    }
+                }
             }
 
-            ForEach(reward.items) { item in
-                HStack(spacing: 10) {
-                    RewardIcon(kind: item.kind, size: 26)
-                        .accessibilityHidden(true)
-                    Text(item.kind.name)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    Text(verbatim: "+\(item.amount)")
-                        .font(.headline.monospacedDigit())
+            if dynamicTypeSize.isAccessibilitySize {
+                ForEach(reward.items) { item in
+                    HStack(spacing: 10) {
+                        RewardIcon(kind: item.kind, size: 26)
+                            .accessibilityHidden(true)
+                        Text(item.kind.name)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        Text(verbatim: "+\(item.amount)")
+                            .font(.headline.monospacedDigit())
+                    }
+                    .font(.subheadline)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityElement(children: .combine)
                 }
-                .font(.subheadline)
-                .fixedSize(horizontal: false, vertical: true)
-                .accessibilityElement(children: .combine)
             }
         }
-        .padding(12)
-        .background(isCurrentDay ? AppTheme.festivalGold.opacity(0.2) : AppTheme.creamHighlight,
-                    in: .rect(cornerRadius: 14))
-        .overlay(RoundedRectangle(cornerRadius: 14)
-            .stroke(isCurrentDay ? AppTheme.festivalRed : AppTheme.festivalGold.opacity(0.45), lineWidth: 2))
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(isCurrentDay ? AppTheme.festivalGold.opacity(0.2) : AppTheme.paper,
+                    in: .rect(cornerRadius: AppTheme.Radius.sm, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: AppTheme.Radius.sm, style: .continuous)
+            .strokeBorder(isCurrentDay ? AppTheme.festivalRed : AppTheme.hairline, lineWidth: isCurrentDay ? 1.5 : 1))
     }
 
     private var envelopeButton: some View {
@@ -215,7 +265,7 @@ struct DailyEnvelopeView: View {
         .accessibilityIdentifier("daily-envelope")
     }
 
-    private var envelopeWidth: CGFloat { dynamicTypeSize.isAccessibilitySize ? 110 : 150 }
+    private var envelopeWidth: CGFloat { dynamicTypeSize.isAccessibilitySize ? 96 : 118 }
 
     /// "Miss a day and it starts over", as a picture: two kept days, a missed one, back to 1.
     private var streakRule: some View {
@@ -238,9 +288,10 @@ struct DailyEnvelopeView: View {
             PictoArrow(systemName: "arrow.uturn.backward", size: 13)
             PictoTag(text: "1", tint: AppTheme.festivalRed, size: 13)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
-        .background(AppTheme.creamHighlight, in: Capsule())
+        .padding(.horizontal, 10)
+        .padding(.vertical, 5)
+        .background(AppTheme.paper, in: Capsule())
+        .overlay(Capsule().strokeBorder(AppTheme.hairline, lineWidth: 1))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text("Open one every day. Miss a day and the streak starts again from Day 1."))
     }
@@ -279,9 +330,10 @@ struct DailyEnvelopeView: View {
         }
         .padding(.vertical, 5)
         .frame(maxWidth: .infinity)
-        .background(isToday ? AppTheme.festivalRed : AppTheme.creamHighlight, in: .rect(cornerRadius: 10))
-        .overlay(RoundedRectangle(cornerRadius: 10).stroke(isToday ? AppTheme.festivalGold : AppTheme.festivalGold.opacity(0.4),
-                                                           lineWidth: isToday ? 2.5 : 1))
+        .background(isToday ? AnyShapeStyle(AppTheme.lacquerGradient) : AnyShapeStyle(AppTheme.paper),
+                    in: .rect(cornerRadius: AppTheme.Radius.sm, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: AppTheme.Radius.sm, style: .continuous)
+            .strokeBorder(isToday ? AppTheme.festivalGold : AppTheme.hairline, lineWidth: isToday ? 1.5 : 1))
     }
 
     private func open() {

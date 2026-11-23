@@ -87,6 +87,7 @@ struct MainView: View {
                 // so the artwork runs behind it up to the status bar.
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbarBackground(.hidden, for: .navigationBar)
+                .toolbarColorScheme(.dark, for: .navigationBar)
                 .toolbar {
                     ToolbarItem(placement: .navigationBarLeading) {
                         Button {
@@ -105,7 +106,7 @@ struct MainView: View {
                             showRuleHandbook = true
                         } label: {
                             Image(systemName: "book.closed.fill")
-                                .foregroundStyle(AppTheme.festivalRed)
+                                .foregroundStyle(AppTheme.festivalGold)
                                 .overlay(alignment: .topTrailing) {
                                     if hasNewRules {
                                         Circle()
@@ -122,8 +123,10 @@ struct MainView: View {
                     }
                     ToolbarItem(placement: .navigationBarTrailing) {
                         NavigationLink(destination: SettingsView()) {
-                            Image(systemName: "gearshape")
+                            Image(systemName: "gearshape.fill")
+                                .foregroundStyle(AppTheme.creamHighlight)
                         }
+                        .accessibilityLabel(Text("Settings"))
                     }
                     #if DEBUG
                     ToolbarItem(placement: .navigationBarLeading) {

@@ -41,18 +41,10 @@ struct LevelCompleteView: View {
         GeometryReader { geometry in
             ScrollView {
                 GamePopupPanel(title: "LEVEL COMPLETE!", tone: .gold, titleFocus: $headingFocused) {
-                    VStack(spacing: 16) {
-                        Image(systemName: "crown.fill")
-                            .font(.system(size: 38, weight: .black))
-                            .foregroundStyle(AppTheme.festivalRed)
-                            .frame(width: 76, height: 76)
-                            .background(AppTheme.festivalGold.gradient, in: Circle())
-                            .overlay(Circle().stroke(.white.opacity(0.75), lineWidth: 3))
-                            .accessibilityHidden(true)
-
-                        HStack(spacing: 7) {
+                    VStack(spacing: 10) {
+                        HStack(alignment: .bottom, spacing: AppTheme.Space.xs) {
                             ForEach(0..<3) { index in
-                                StarView(earned: index < (gameModel.victorySummary?.stars ?? 0))
+                                StarView(earned: index < (gameModel.victorySummary?.stars ?? 0), size: index == 1 ? 62 : 48)
                                     .opacity(index < revealedStars ? 1 : 0.2)
                                     .scaleEffect(reduceMotion || index < revealedStars ? 1 : 0.78)
                                     .rotationEffect(.degrees(reduceMotion || index < revealedStars ? 0 : -12))
@@ -61,19 +53,19 @@ struct LevelCompleteView: View {
                         .accessibilityElement(children: .ignore)
                         .accessibilityLabel("\(gameModel.victorySummary?.stars ?? 0) of 3 stars earned")
 
-                        VStack(spacing: 4) {
-                            Text("FESTIVAL SCORE").font(.caption.bold())
+                        VStack(spacing: 0) {
+                            GameSectionLabel("FESTIVAL SCORE")
                             Text("\(gameModel.victorySummary?.score ?? gameModel.score)")
-                                .font(.largeTitle.bold().monospacedDigit())
+                                .font(.system(.largeTitle, design: .rounded, weight: .black).monospacedDigit())
                                 .foregroundStyle(AppTheme.festivalRed)
                             if let summary = gameModel.victorySummary {
                                 if summary.isNewBest {
                                     Label("NEW BEST!", systemImage: "trophy.fill")
-                                        .font(.subheadline.weight(.heavy))
+                                        .font(.caption.weight(.heavy))
                                         .foregroundStyle(.white)
-                                        .padding(.horizontal, 12)
-                                        .padding(.vertical, 5)
-                                        .background(AppTheme.festivalRed.gradient, in: Capsule())
+                                        .padding(.horizontal, 10)
+                                        .padding(.vertical, 3)
+                                        .background(AppTheme.dangerGradient, in: Capsule())
                                         .accessibilityIdentifier("victory-new-best")
                                 } else if summary.previousBest > 0 {
                                     Label {
@@ -81,7 +73,7 @@ struct LevelCompleteView: View {
                                     } icon: {
                                         Image(systemName: "trophy.fill")
                                     }
-                                    .font(.subheadline.weight(.semibold).monospacedDigit())
+                                    .font(.caption.weight(.semibold).monospacedDigit())
                                     .foregroundStyle(AppTheme.ink.opacity(0.7))
                                     .accessibilityElement(children: .ignore)
                                     .accessibilityLabel(Text("Best score: \(summary.previousBest)"))
@@ -89,12 +81,6 @@ struct LevelCompleteView: View {
                             }
                         }
                         .frame(maxWidth: .infinity)
-                        .padding(12)
-                        .background(AppTheme.creamHighlight, in: .rect(cornerRadius: 16))
-
-                        if let target = nextStarTarget {
-                            StarReplayTargetView(target: target)
-                        }
 
                         VictoryRewardView(
                             coins: gameModel.victorySummary?.coins ?? 0,
@@ -102,66 +88,42 @@ struct LevelCompleteView: View {
                             revealed: rewardVisible
                         )
 
-                        if let next = gameModel.victorySummary?.newlyUnlockedLevel {
-                            Label("Level \(next) unlocked!", systemImage: "lock.open.fill")
-                                .font(.headline)
-                                .foregroundStyle(AppTheme.festivalRed)
+                        if let target = nextStarTarget {
+                            StarReplayTargetView(target: target)
                         }
 
                         if let progress = chestProgress {
-                            VStack(alignment: .leading, spacing: 8) {
-                                Label("STAR CHESTS", systemImage: "star.fill")
-                                    .font(.caption.bold())
-                                if let chest = progress.next {
-                                    ProgressView(value: Double(min(progress.stars, chest.threshold)),
-                                                 total: Double(chest.threshold))
-                                        .tint(AppTheme.festivalRed)
-                                        .accessibilityHidden(true)
-                                    Text("\(min(progress.stars, chest.threshold))/\(chest.threshold) stars")
-                                        .font(.subheadline.weight(.semibold).monospacedDigit())
-                                    if progress.stars >= chest.threshold {
-                                        Text("A star chest is ready on the map!")
-                                            .font(.subheadline)
-                                    } else {
-                                        Text("Stars to next chest: \(chest.threshold - progress.stars)")
-                                            .font(.subheadline)
-                                    }
-                                } else {
-                                    Label("All star chests opened!", systemImage: "checkmark.seal.fill")
-                                        .font(.subheadline)
+                            chestProgressRow(progress)
+                        }
+
+                        if let next = gameModel.victorySummary?.newlyUnlockedLevel {
+                            Label("Level \(next) unlocked!", systemImage: "lock.open.fill")
+                                .font(.footnote.weight(.bold))
+                                .foregroundStyle(AppTheme.festivalRed)
+                        }
+
+                        if hasNextLevel && dynamicTypeSize < .xxLarge {
+                            // Side by side only while both labels fit in full.
+                            ViewThatFits(in: .horizontal) {
+                                HStack(alignment: .top, spacing: AppTheme.Space.sm) {
+                                    playNextButton.fixedSize(horizontal: true, vertical: false)
+                                    continueToMapButton
+                                }
+                                VStack(spacing: AppTheme.Space.sm) {
+                                    playNextButton
+                                    continueToMapButton
                                 }
                             }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(12)
-                            .background(AppTheme.creamHighlight, in: .rect(cornerRadius: 16))
-                            .accessibilityElement(children: .combine)
-                            .accessibilityIdentifier("victory-chest-progress")
-                        }
-
-                        Button {
-                            HapticManager.buttonTap()
-                            gameModel.onTapVictoryMap()
-                        } label: {
-                            actionLabel("Continue to Map", systemImage: "map.fill")
-                        }
-                        .buttonStyle(.gamePrimary(gradient: AppTheme.successGradient))
-                        .accessibilityIdentifier("victory-map")
-                        .accessibilityHint("You can continue immediately; rewards are already saved")
-
-                        if hasNextLevel {
-                            Button {
-                                HapticManager.buttonTap()
-                                gameModel.onTapNextLevel()
-                            } label: {
-                                actionLabel("Play Next", systemImage: "play.fill")
+                        } else {
+                            VStack(spacing: AppTheme.Space.sm) {
+                                if hasNextLevel { playNextButton }
+                                continueToMapButton
                             }
-                            .buttonStyle(.gamePrimary(gradient: AppTheme.neutralGradient))
-                            .accessibilityIdentifier("victory-next")
                         }
                     }
                     .foregroundStyle(AppTheme.ink)
                 }
-                .padding(20)
+                .padding(AppTheme.Space.lg)
                 .frame(maxWidth: .infinity)
                 .frame(minHeight: geometry.size.height)
             }
@@ -187,6 +149,29 @@ struct LevelCompleteView: View {
         }
     }
 
+    private var playNextButton: some View {
+        Button {
+            HapticManager.buttonTap()
+            gameModel.onTapNextLevel()
+        } label: {
+            actionLabel("Play Next", systemImage: "play.fill")
+        }
+        .buttonStyle(.gameSecondary)
+        .accessibilityIdentifier("victory-next")
+    }
+
+    private var continueToMapButton: some View {
+        Button {
+            HapticManager.buttonTap()
+            gameModel.onTapVictoryMap()
+        } label: {
+            actionLabel("Continue to Map", systemImage: "map.fill")
+        }
+        .buttonStyle(.gameGold)
+        .accessibilityIdentifier("victory-map")
+        .accessibilityHint("You can continue immediately; rewards are already saved")
+    }
+
     @ViewBuilder
     private func actionLabel(_ title: LocalizedStringKey, systemImage: String) -> some View {
         if dynamicTypeSize.isAccessibilitySize {
@@ -196,8 +181,56 @@ struct LevelCompleteView: View {
             }
             .frame(maxWidth: .infinity)
         } else {
-            Label(title, systemImage: systemImage).frame(maxWidth: .infinity)
+            Label(title, systemImage: systemImage)
+                .lineLimit(1)
+                .minimumScaleFactor(0.78)
+                .frame(maxWidth: .infinity)
         }
+    }
+
+    private func chestProgressRow(_ progress: (stars: Int, next: StarChestTrack.Chest?)) -> some View {
+        HStack(spacing: AppTheme.Space.sm) {
+            if let chest = progress.next {
+                let isReady = progress.stars >= chest.threshold
+                FestivalChestArt(state: isReady ? .ready : .locked, width: 26)
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 3) {
+                    HStack {
+                        GameSectionLabel("STAR CHESTS")
+                        Spacer(minLength: AppTheme.Space.xs)
+                        Text(verbatim: "\(min(progress.stars, chest.threshold))/\(chest.threshold)")
+                            .font(.system(.caption, design: .rounded, weight: .heavy).monospacedDigit())
+                    }
+                    ProgressView(value: Double(min(progress.stars, chest.threshold)),
+                                 total: Double(chest.threshold))
+                        .tint(AppTheme.festivalRed)
+                        .accessibilityHidden(true)
+                    if isReady {
+                        Text("A star chest is ready on the map!")
+                            .font(.caption2.weight(.semibold))
+                            .foregroundStyle(AppTheme.festivalRed)
+                    }
+                }
+            } else {
+                Label("All star chests opened!", systemImage: "checkmark.seal.fill")
+                    .font(.footnote.weight(.semibold))
+                Spacer(minLength: 0)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .gameInset(padding: AppTheme.Space.sm, radius: AppTheme.Radius.sm)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("STAR CHESTS"))
+        .accessibilityValue(chestAccessibilityValue(progress))
+        .accessibilityIdentifier("victory-chest-progress")
+    }
+
+    private func chestAccessibilityValue(_ progress: (stars: Int, next: StarChestTrack.Chest?)) -> Text {
+        guard let chest = progress.next else { return Text("All star chests opened!") }
+        let count = Text("\(min(progress.stars, chest.threshold))/\(chest.threshold) stars")
+        return count + Text(verbatim: ". ") + (progress.stars >= chest.threshold
+            ? Text("A star chest is ready on the map!")
+            : Text("Stars to next chest: \(chest.threshold - progress.stars)"))
     }
 
     /// Asks for a rating only at a high point, after the stars have landed.

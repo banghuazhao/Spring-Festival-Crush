@@ -8,15 +8,18 @@ struct ZodiacChapterDock: View {
     let play: () -> Void
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 10) {
             Button(action: locate) {
                 Label("Find level", systemImage: "location.fill")
                     .labelStyle(.iconOnly)
-                    .font(.title3.weight(.bold))
+                    .font(.body.weight(.bold))
                     .foregroundStyle(theme.accent)
-                    .frame(width: 52, height: 52)
-                    .background(theme.sky, in: .rect(cornerRadius: 17))
-                    .overlay(RoundedRectangle(cornerRadius: 17).stroke(theme.accent.opacity(0.2), lineWidth: 1))
+                    .frame(width: 46, height: 46)
+                    .background(AppTheme.paper, in: .rect(cornerRadius: AppTheme.Radius.md, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: AppTheme.Radius.md, style: .continuous)
+                            .strokeBorder(AppTheme.hairline, lineWidth: 1)
+                    )
             }
             .buttonStyle(.gameIcon)
             .accessibilityHint("Scrolls to the recommended level")
@@ -25,18 +28,21 @@ struct ZodiacChapterDock: View {
                 Label(isComplete ? String(localized: "Replay Level \(levelNumber)") : String(localized: "Play Level \(levelNumber)"), systemImage: "play.fill")
                     .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.gamePrimary(gradient: theme.gradient))
+            .buttonStyle(.gameGold)
             .keyboardShortcut(.defaultAction)
             .accessibilityIdentifier("chapter-play")
         }
-        .padding(.horizontal, 20)
-        .padding(.top, 12)
-        .padding(.bottom, 6)
+        .padding(.horizontal, AppTheme.Space.lg)
+        .padding(.top, 10)
+        .padding(.bottom, AppTheme.Space.xs)
         .frame(maxWidth: 600)
         .frame(maxWidth: .infinity)
         .background {
-            AppTheme.creamHighlight.opacity(0.97).ignoresSafeArea(edges: .bottom)
-                .overlay(alignment: .top) { Rectangle().fill(theme.accent.opacity(0.15)).frame(height: 1) }
+            Rectangle()
+                .fill(.regularMaterial)
+                .overlay(AppTheme.creamHighlight.opacity(0.72))
+                .ignoresSafeArea(edges: .bottom)
+                .overlay(alignment: .top) { Rectangle().fill(AppTheme.hairline).frame(height: 0.75) }
         }
     }
 }

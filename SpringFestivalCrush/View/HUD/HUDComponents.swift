@@ -24,7 +24,7 @@ struct HUDBanner: Identifiable, Equatable {
 /// reduced against a non-contributing sibling, dropping the banner on top of the HUD.
 struct HUDBannerView: View {
     let banner: HUDBanner
-    @ScaledMetric(relativeTo: .subheadline) private var textSize = 15
+    @ScaledMetric(relativeTo: .subheadline) private var textSize = 13
 
     var body: some View {
         HStack(spacing: 6) {
@@ -36,10 +36,11 @@ struct HUDBannerView: View {
         }
         .font(.system(size: textSize, weight: .bold, design: .rounded))
         .foregroundColor(.white)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
-        .background(Capsule().fill(banner.tint.opacity(0.85)))
-        .shadow(color: .black.opacity(0.2), radius: 6, y: 3)
+        .padding(.horizontal, AppTheme.Space.md)
+        .padding(.vertical, 6)
+        .background(Capsule().fill(banner.tint.opacity(0.88)))
+        .overlay(Capsule().strokeBorder(.white.opacity(0.22), lineWidth: 0.75))
+        .shadow(color: .black.opacity(0.2), radius: 4, y: 2)
         .padding(.horizontal, 16)
         .transition(.opacity.combined(with: .move(edge: .top)))
         .allowsHitTesting(false)
@@ -71,7 +72,7 @@ struct BoosterTrayView: View {
     var body: some View {
         // Large text gets a full-width row per tool, including the tool's visible name.
         let layout = usesExpandedLayout
-            ? AnyLayout(VStackLayout(spacing: 8)) : AnyLayout(HStackLayout(spacing: 8))
+            ? AnyLayout(VStackLayout(spacing: 6)) : AnyLayout(HStackLayout(spacing: 6))
         layout {
             ForEach(boosters) { booster in
                 let cardLayout = usesExpandedLayout
@@ -101,9 +102,8 @@ struct BoosterTrayView: View {
                                     artwork(for: booster)
                                     chargeCount(for: booster)
                                 }
-                                .padding(.leading, 8)
-                                .padding(.trailing, 2)
-                                .frame(minWidth: 52, minHeight: 52)
+                                .padding(.leading, 7)
+                                .frame(minWidth: 48, minHeight: 46)
                             }
                         }
                         .contentShape(Rectangle())
@@ -120,10 +120,11 @@ struct BoosterTrayView: View {
                     } label: {
                         Image(systemName: "plus.circle.fill")
                             .font(.body.weight(.bold))
-                            .frame(width: usesExpandedLayout ? nil : 32)
+                            .foregroundStyle(AppTheme.festivalGold)
+                            .frame(width: usesExpandedLayout ? nil : 34)
                             .frame(maxWidth: usesExpandedLayout ? .infinity : nil)
                             .padding(.vertical, usesExpandedLayout ? 8 : 0)
-                            .frame(minHeight: 52)
+                            .frame(minHeight: 46)
                             .contentShape(Rectangle())
                     }
                     .buttonStyle(.gameIcon)
@@ -132,9 +133,10 @@ struct BoosterTrayView: View {
                 }
                 .foregroundStyle(.white)
                 .background(booster.isActive ? booster.activeGradient : booster.idleGradient,
-                            in: RoundedRectangle(cornerRadius: 18))
-                .overlay(RoundedRectangle(cornerRadius: 18).stroke(
-                    booster.isActive ? AppTheme.festivalGold : .white.opacity(0.4), lineWidth: 2))
+                            in: RoundedRectangle(cornerRadius: AppTheme.Radius.lg, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: AppTheme.Radius.lg, style: .continuous).strokeBorder(
+                    booster.isActive ? AppTheme.festivalGold : AppTheme.hairline,
+                    lineWidth: booster.isActive ? 2 : 1))
             }
         }
         .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -145,7 +147,7 @@ struct BoosterTrayView: View {
             Image(imageName)
                 .resizable()
                 .scaledToFit()
-                .frame(width: 32, height: 32)
+                .frame(width: 30, height: 30)
         } else {
             Image(systemName: booster.icon)
         }
@@ -153,7 +155,7 @@ struct BoosterTrayView: View {
 
     private func chargeCount(for booster: BoosterItem) -> some View {
         Text("\(booster.count)")
-            .font(.headline.weight(.heavy))
+            .font(.system(.subheadline, design: .rounded, weight: .heavy))
             .monospacedDigit()
     }
 

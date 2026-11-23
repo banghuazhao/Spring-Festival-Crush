@@ -30,6 +30,15 @@ struct ZodiacChapterTheme {
     var sky: Color { Color(UIColor(hex: identity.sky)) }
     var ground: Color { Color(UIColor(hex: identity.ground)) }
     var gradient: LinearGradient {
-        LinearGradient(colors: [accent.opacity(0.8), accent], startPoint: .top, endPoint: .bottom)
+        LinearGradient(colors: [Self.lifted(identity.accent, by: 0.16), accent], startPoint: .top, endPoint: .bottom)
+    }
+
+    /// Mixes toward white rather than using opacity, so a button stays solid over any scenery.
+    private static func lifted(_ hex: Int, by amount: CGFloat) -> Color {
+        func channel(_ shift: Int) -> Double {
+            let value = CGFloat((hex >> shift) & 0xFF) / 255
+            return Double(value + (1 - value) * amount)
+        }
+        return Color(red: channel(16), green: channel(8), blue: channel(0))
     }
 }

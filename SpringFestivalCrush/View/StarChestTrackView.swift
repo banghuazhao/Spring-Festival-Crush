@@ -23,24 +23,20 @@ struct StarChestTrackView: View {
     private var hasReadyChest: Bool { !track.readyChests(stars: stars, claimed: claimed).isEmpty }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Label("STAR CHESTS", systemImage: "star.fill")
-                    .font(.caption.weight(.black))
+        VStack(alignment: .leading, spacing: AppTheme.Space.xs) {
+            HStack(spacing: 6) {
+                GameSectionLabel("STAR CHESTS")
                 HelpTipButton(Text("Earn stars on this chapter's levels. A chest opens when your stars reach its number."),
-                              size: 16, tint: theme.accent)
+                              size: 14, tint: theme.accent)
                 Spacer()
-                Text("\(stars)/\(track.maxStars)")
-                    .font(.caption.weight(.black).monospacedDigit())
             }
-            .foregroundStyle(theme.accent)
 
             GeometryReader { geometry in
                 let width = geometry.size.width
                 ZStack(alignment: .leading) {
-                    Capsule().fill(Color.black.opacity(0.12)).frame(height: 10)
+                    Capsule().fill(Color.black.opacity(0.1)).frame(height: 6)
                     Capsule().fill(AppTheme.accentGradient)
-                        .frame(width: max(10, fraction * width), height: 10)
+                        .frame(width: max(6, fraction * width), height: 6)
                         .animation(reduceMotion ? nil : .easeOut(duration: 0.6), value: stars)
                     ForEach(track.chests) { chest in
                         let state = track.state(of: chest, stars: stars, claimed: claimed)
@@ -57,42 +53,36 @@ struct StarChestTrackView: View {
                                 previewChest = chest
                             }
                         } label: {
-                            VStack(spacing: 1) {
-                                FestivalChestArt(state: state, width: 34)
+                            VStack(spacing: 0) {
+                                FestivalChestArt(state: state, width: 28)
                                     .scaleEffect(state == .ready && bounce && !reduceMotion ? 1.12 : 1)
                                     .rotationEffect(.degrees(state == .ready && bounce && !reduceMotion ? -5 : 0))
                                 HStack(spacing: 1) {
-                                    Image(systemName: "star.fill").font(.system(size: 8, weight: .black))
-                                    Text("\(chest.threshold)").font(.system(size: 10, weight: .black, design: .rounded))
+                                    Image(systemName: "star.fill").font(.system(size: 7, weight: .black))
+                                    Text("\(chest.threshold)").font(.system(size: 9, weight: .black, design: .rounded))
                                 }
                                 .foregroundStyle(state == .locked ? AppTheme.ink.opacity(0.5) : theme.accent)
                             }
                             .frame(minWidth: 44, minHeight: 44)
                             .overlay(alignment: .bottomTrailing) {
                                 if state == .ready {
-                                    TapHintHand(size: 24).offset(x: 12, y: 14)
+                                    TapHintHand(size: 20).offset(x: 10, y: 10)
                                 }
                             }
                         }
                         .buttonStyle(.gameNode)
                         .position(x: min(width - 20, max(20, CGFloat(chest.threshold) / CGFloat(max(1, track.maxStars)) * width)),
-                                  y: 30)
+                                  y: 24)
                         .accessibilityLabel(Text("Star chest at \(chest.threshold) stars"))
                         .accessibilityValue(Self.accessibilityValue(state))
                         .accessibilityHint(state == .ready ? Text("Open chest") : Text("Preview rewards"))
                         .accessibilityIdentifier("star-chest-\(chest.index)")
                     }
                 }
-                .frame(height: 60)
+                .frame(height: 48)
             }
-            .frame(height: 60)
-
+            .frame(height: 48)
         }
-        .padding(14)
-        .background(AppTheme.creamHighlight.opacity(0.78), in: .rect(cornerRadius: 18))
-        .overlay(RoundedRectangle(cornerRadius: 18).stroke(.white.opacity(0.7), lineWidth: 1))
-        .padding(.horizontal, 24)
-        .padding(.bottom, 12)
         .onAppear(perform: updateBounce)
         .onChange(of: hasReadyChest) { _, _ in updateBounce() }
         .sheet(item: $previewChest) { chest in
@@ -109,8 +99,8 @@ struct StarChestTrackView: View {
             AppTheme.festivalBackground.ignoresSafeArea()
             ScrollView {
                 GamePopupPanel(title: String(localized: "Chest preview"), tone: .gold) {
-                    VStack(spacing: 16) {
-                        FestivalChestArt(state: isOpened ? .opened : .locked, width: 86)
+                    VStack(spacing: AppTheme.Space.md) {
+                        FestivalChestArt(state: isOpened ? .opened : .locked, width: 68)
 
                         if isOpened {
                             Label("Opened", systemImage: "checkmark.seal.fill")
@@ -136,10 +126,8 @@ struct StarChestTrackView: View {
                                         .font(.caption.weight(.semibold))
                                         .multilineTextAlignment(.center)
                                 }
-                                .frame(maxWidth: .infinity, minHeight: 72)
-                                .padding(6)
-                                .background(AppTheme.creamHighlight, in: .rect(cornerRadius: 12))
-                                .overlay(RoundedRectangle(cornerRadius: 12).stroke(AppTheme.festivalGold, lineWidth: 1.5))
+                                .frame(maxWidth: .infinity, minHeight: 64)
+                                .gameInset(padding: 6, radius: AppTheme.Radius.sm)
                                 .accessibilityElement(children: .ignore)
                                 .accessibilityLabel(Text("\(item.amount) \(item.kind.name)"))
                             }
@@ -202,8 +190,8 @@ struct StarChestRewardView: View {
             }
 
             GamePopupPanel(title: String(localized: "STAR CHEST OPENED!"), tone: .gold) {
-                VStack(spacing: 16) {
-                    FestivalChestArt(state: opened ? .opened : .ready, width: 110)
+                VStack(spacing: AppTheme.Space.md) {
+                    FestivalChestArt(state: opened ? .opened : .ready, width: 88)
                         .scaleEffect(opened || reduceMotion ? 1 : 0.8)
                     RewardItemsView(reward: chest.reward, revealed: opened)
                     Button {
@@ -212,7 +200,7 @@ struct StarChestRewardView: View {
                     } label: {
                         Text("Collect").frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.gamePrimary(gradient: AppTheme.successGradient))
+                    .buttonStyle(.gameGold)
                     .accessibilityIdentifier("star-chest-collect")
                 }
                 .foregroundStyle(AppTheme.ink)
