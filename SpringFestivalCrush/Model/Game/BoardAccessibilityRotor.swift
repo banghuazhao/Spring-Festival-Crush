@@ -61,6 +61,8 @@ enum BoardAccessibilityRotor: CaseIterable {
         case .rabbit:
             return symbol.collectionType.isMatchableTo(.lantern)
                 || [.lock, .heavyLock, .vaultLock].contains(symbol.type)
+        case .dragon:
+            return symbol.collectionType.isMatchableTo(.zodiac) || symbol.type.isEnhanced || symbol.isSpecialPowerUp
         }
     }
 }

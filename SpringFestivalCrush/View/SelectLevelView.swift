@@ -271,7 +271,7 @@ struct SelectLevelView: View {
             return
         }
         gameModel.refreshLives()
-        guard gameModel.lives > 0 else {
+        guard gameModel.canPlay else {
             HapticManager.locked()
             presentOutOfLives = true
             return

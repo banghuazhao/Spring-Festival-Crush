@@ -305,7 +305,7 @@ final class FestivalFeaturesTests: XCTestCase {
         let interval = try XCTUnwrap(level.boss).configuration.attackInterval
         let attacks = (0 ..< interval * 2).filter { _ in level.advanceBossTurn() }.count
         XCTAssertEqual(attacks, 2)
-        for kind in [BossConfiguration.Kind.rat, .ox, .tiger, .rabbit] {
+        for kind in [BossConfiguration.Kind.rat, .ox, .tiger, .rabbit, .dragon] {
             for event in [BossEvent.Kind.hit(3), .windUp, .attack, .defeated] {
                 XCTAssertFalse(kind.taunt(for: event).isEmpty)
             }

@@ -53,6 +53,7 @@ struct ToolRefillView: View {
                     Text("Ad refills are available on iPhone and iPad.")
                         .font(.subheadline).foregroundStyle(AppTheme.ink)
                     #endif
+                    if !earnedReward { PremiumUpsellButton() }
                 }
             }
             .padding(.horizontal, AppTheme.Space.lg)

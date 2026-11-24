@@ -71,7 +71,7 @@ struct LevelFailedView: View {
                             .accessibilityIdentifier("defeat-retry-tip")
                         }
 
-                        if gameModel.lives > 0 {
+                        if gameModel.canPlay {
                             Button(action: retry) {
                                 actionLabel("Try Again", systemImage: "arrow.counterclockwise")
                             }
@@ -85,6 +85,7 @@ struct LevelFailedView: View {
                                 gameModel.grantRewardedLife()
                                 gameModel.onTapTryAgainLevel()
                             }
+                            PremiumUpsellButton()
                         }
 
                         Button(action: backToMap) {

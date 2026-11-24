@@ -249,6 +249,7 @@ fileprivate struct Game {
                 case .tiger where piece.collectionType.isMatchableTo(.firecracker): value += 5
                 case .ox where piece.armorLayers > 0: value += 5
                 case .rabbit where piece.collectionType.isMatchableTo(.lantern): value += 5
+                case .dragon where piece.collectionType.isMatchableTo(.zodiac): value += 5
                 default: break
                 }
             }

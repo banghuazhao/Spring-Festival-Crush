@@ -6,6 +6,7 @@ enum RetryAdvice: String, CaseIterable {
     case ox = "Crack gold frames or activate power-ups to damage the Ox."
     case tiger = "Match firecrackers to hurt the Tiger; later cascades deal extra damage."
     case rabbit = "Collect lanterns or break locks to damage the Rabbit."
+    case dragon = "Match Dragon tiles or activate power-ups to damage the Dragon."
     case locks = "Match beside locks to weaken them; power-ups can clear them directly."
     case blossoms = "Clear tiles on moon blossoms; deep pink blossoms need two clears."
     case colors = "Prioritize matches of the tiles still shown in your goals."
@@ -21,6 +22,7 @@ enum RetryAdvice: String, CaseIterable {
             case .ox: return .ox
             case .tiger: return .tiger
             case .rabbit: return .rabbit
+            case .dragon: return .dragon
             }
         }
         if unfinished(["lock"]) { return .locks }

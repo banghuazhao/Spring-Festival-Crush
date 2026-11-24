@@ -411,7 +411,7 @@ struct RuleArt: View {
                     PictoTag(text: "×3", size: 11)
                 }
             }
-        case .ratGuardian, .oxGuardian, .tigerGuardian, .rabbitGuardian:
+        case .ratGuardian, .oxGuardian, .tigerGuardian, .rabbitGuardian, .dragonGuardian:
             if let kind = rule.guardian { BossRulesView(kind: kind) }
         }
     }
@@ -604,6 +604,20 @@ struct BossRulesView: View {
                         .foregroundStyle(AppTheme.festivalGoldDark)
                     PictoTile(asset: "LockTile", size: tile)
                     PictoTag(text: "×2", size: 11)
+                }
+            case .dragon:
+                rule { PictoTile(asset: "DragonTile", size: tile) } result: { hit("−1") }
+                rule {
+                    PictoTile(asset: "bowl", overlay: .enhanced, size: tile)
+                    PictoTile(asset: "LightningTile", size: tile)
+                    PictoTile(asset: "FiveTile", size: tile)
+                } result: { hit("−3") }
+                raid(every: 3) {
+                    Image(systemName: "arrow.down").font(.system(size: 12, weight: .black))
+                        .foregroundStyle(AppTheme.festivalGoldDark)
+                    PictoTile(asset: "lantern", overlay: .ice, size: tile)
+                    PictoArrow(systemName: "arrow.triangle.2.circlepath", size: 10)
+                    PictoTile(asset: "bowl", overlay: .armor(1), size: tile)
                 }
             }
         }

@@ -15,7 +15,7 @@ struct LevelCompleteView: View {
     @AccessibilityFocusState private var headingFocused: Bool
 
     private var hasNextLevel: Bool {
-        gameModel.currentLevel >= 1 && gameModel.currentLevel < gameModel.zodiac.numLevels && gameModel.lives > 0
+        gameModel.currentLevel >= 1 && gameModel.currentLevel < gameModel.zodiac.numLevels && gameModel.canPlay
     }
 
     private var nextStarTarget: StarReplayTarget? {
@@ -94,6 +94,16 @@ struct LevelCompleteView: View {
 
                         if let progress = chestProgress {
                             chestProgressRow(progress)
+                        }
+
+                        if let card = gameModel.victorySummary?.earnedCard {
+                            Label("New card: \(card.localizedName)", systemImage: "rectangle.stack.fill.badge.plus")
+                                .font(.footnote.weight(.heavy))
+                                .foregroundStyle(AppTheme.ink)
+                                .padding(.horizontal, AppTheme.Space.md)
+                                .padding(.vertical, 6)
+                                .background(AppTheme.goldGradient, in: Capsule())
+                                .accessibilityIdentifier("victory-new-card")
                         }
 
                         if let next = gameModel.victorySummary?.newlyUnlockedLevel {

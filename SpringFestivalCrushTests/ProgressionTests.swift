@@ -305,7 +305,7 @@ final class ProgressionTests: XCTestCase {
     }
 
     func testAllChaptersHaveProgressionSnowAndRetainedGuardianEncounters() throws {
-        for (chapter, count) in [("Rat", 20), ("Ox", 20), ("Tiger", 20), ("Rabbit", 20)] {
+        for (chapter, count) in [("Rat", 20), ("Ox", 20), ("Tiger", 20), ("Rabbit", 20), ("Dragon", 20)] {
             var previousTier = 0
             var snowLevels = 0
             for number in 1...count {
@@ -329,7 +329,7 @@ final class ProgressionTests: XCTestCase {
 
     func testExpansionContainsCompactChallengesAndDifferentGuardianArenas() throws {
         let playable = Zodiac.all.filter(\.isAvailable)
-        XCTAssertEqual(playable.map(\.numLevels), [20, 20, 20, 20])
+        XCTAssertEqual(playable.map(\.numLevels), [20, 20, 20, 20, 20])
         for chapter in ["Rat", "Ox", "Tiger"] {
             let compact = try XCTUnwrap(Level(filename: "\(chapter)_Level_16"))
             XCTAssertEqual(compact.numColumns, 5)

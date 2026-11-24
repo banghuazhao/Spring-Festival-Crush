@@ -13,6 +13,8 @@ struct VictorySummary: Identifiable {
     var usedContinue = false
     /// The level's best score before this win; 0 the first time it is won.
     var previousBest = 0
+    /// The zodiac card this win earned, the first time a chapter's guardian falls.
+    var earnedCard: ChineseZodiac?
     var mapFocusLevel: Int { newlyUnlockedLevel ?? level }
     /// Beat an earlier winning score. A first win is not called a new best.
     var isNewBest: Bool { previousBest > 0 && score > previousBest }

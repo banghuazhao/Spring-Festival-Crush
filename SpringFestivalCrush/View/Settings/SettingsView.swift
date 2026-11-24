@@ -3,6 +3,8 @@ import SwiftUI
 struct SettingsView: View {
     @EnvironmentObject private var settingModel: SettingModel
     @State private var moreAppsExpanded = false
+    @ObservedObject private var premium = PremiumStore.shared
+    @State private var showPremium = false
     #if DEBUG
     @State private var tapCount = 0
     @State private var showUnlockLevelsToggle = false
@@ -14,6 +16,20 @@ struct SettingsView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: AppTheme.Space.lg) {
+                SettingsCard(title: "Premium", icon: "crown.fill") {
+                    Button {
+                        HapticManager.buttonTap()
+                        showPremium = true
+                    } label: {
+                        SettingsRow(title: premium.isPremium ? "Premium is active" : "Go Premium", icon: "crown.fill") {
+                            Image(systemName: premium.isPremium ? "checkmark.seal.fill" : "chevron.right")
+                                .font(.caption.weight(.bold))
+                                .foregroundStyle(premium.isPremium ? AppTheme.festivalGoldDark : AppTheme.ink.opacity(0.45))
+                        }
+                    }
+                    .accessibilityIdentifier("settings-premium")
+                }
+
                 SettingsCard(title: "Sound", icon: "speaker.wave.2.fill") {
                     SettingsSoundControl(title: "Music", icon: "music.note", enabled: $settingModel.isPlayBackgroundMusic, volume: $settingModel.musicVolume)
                     SettingsDivider()
@@ -181,6 +197,7 @@ struct SettingsView: View {
         }
         .background(LinearGradient(colors: [AppTheme.lacquer, AppTheme.lacquerDeep], startPoint: .top, endPoint: .bottom))
         .tint(AppTheme.festivalGold)
+        .sheet(isPresented: $showPremium) { PremiumView() }
         .navigationTitle("Settings")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(AppTheme.lacquer, for: .navigationBar)

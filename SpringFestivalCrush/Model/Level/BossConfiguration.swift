@@ -2,7 +2,7 @@ import Foundation
 
 struct BossConfiguration: Codable {
     enum Kind: String, Codable {
-        case rat, ox, tiger, rabbit
+        case rat, ox, tiger, rabbit, dragon
 
         var title: String {
             switch self {
@@ -10,6 +10,7 @@ struct BossConfiguration: Codable {
             case .ox: String(localized: "🐮 Iron Ox")
             case .tiger: String(localized: "🐯 Snowfang Tiger")
             case .rabbit: String(localized: "🐰 Jade Rabbit")
+            case .dragon: String(localized: "🐲 Cloud Dragon")
             }
         }
 
@@ -19,6 +20,7 @@ struct BossConfiguration: Codable {
             case .ox: String(localized: "Crack armor for 2 damage. Trigger an enhanced tile, lightning or star for 4 damage. The Ox armors three tiles every 4 moves.")
             case .tiger: String(localized: "Clear firecrackers for damage; every tile in a second cascade or later also deals damage. Every 3 moves, the Tiger freezes up to two tiles in the marked row.")
             case .rabbit: String(localized: "Clear lanterns for 1 damage and break locks for 2. Every 3 moves, the Rabbit hops to the marked column and locks two tiles there.")
+            case .dragon: String(localized: "Clear Dragon tiles for 1 damage. Activate a power-up for 3. Every 3 moves, the Dragon breathes down the marked column, alternating frost and gold frames on two tiles.")
             }
         }
     }

@@ -7,6 +7,32 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D51300000000000000010006 /* PremiumAndCollectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D51300000000000000000006 /* PremiumAndCollectionTests.swift */; };
+		D51300000000000000010001 /* PremiumStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D51300000000000000000001 /* PremiumStore.swift */; };
+		D51300000000000000010002 /* PremiumView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D51300000000000000000002 /* PremiumView.swift */; };
+		D51300000000000000010003 /* ZodiacCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = D51300000000000000000003 /* ZodiacCollection.swift */; };
+		D51300000000000000010004 /* ZodiacCollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D51300000000000000000004 /* ZodiacCollectionView.swift */; };
+		D51300000000000000010005 /* Premium.storekit in Resources */ = {isa = PBXBuildFile; fileRef = D51300000000000000000005 /* Premium.storekit */; };
+		D51200000000000000010001 /* Dragon_Level_1.json in Resources */ = {isa = PBXBuildFile; fileRef = D51200000000000000000001 /* Dragon_Level_1.json */; };
+		D51200000000000000010002 /* Dragon_Level_2.json in Resources */ = {isa = PBXBuildFile; fileRef = D51200000000000000000002 /* Dragon_Level_2.json */; };
+		D51200000000000000010003 /* Dragon_Level_3.json in Resources */ = {isa = PBXBuildFile; fileRef = D51200000000000000000003 /* Dragon_Level_3.json */; };
+		D51200000000000000010004 /* Dragon_Level_4.json in Resources */ = {isa = PBXBuildFile; fileRef = D51200000000000000000004 /* Dragon_Level_4.json */; };
+		D51200000000000000010005 /* Dragon_Level_5.json in Resources */ = {isa = PBXBuildFile; fileRef = D51200000000000000000005 /* Dragon_Level_5.json */; };
+		D51200000000000000010006 /* Dragon_Level_6.json in Resources */ = {isa = PBXBuildFile; fileRef = D51200000000000000000006 /* Dragon_Level_6.json */; };
+		D51200000000000000010007 /* Dragon_Level_7.json in Resources */ = {isa = PBXBuildFile; fileRef = D51200000000000000000007 /* Dragon_Level_7.json */; };
+		D51200000000000000010008 /* Dragon_Level_8.json in Resources */ = {isa = PBXBuildFile; fileRef = D51200000000000000000008 /* Dragon_Level_8.json */; };
+		D51200000000000000010009 /* Dragon_Level_9.json in Resources */ = {isa = PBXBuildFile; fileRef = D51200000000000000000009 /* Dragon_Level_9.json */; };
+		D5120000000000000001000A /* Dragon_Level_10.json in Resources */ = {isa = PBXBuildFile; fileRef = D5120000000000000000000A /* Dragon_Level_10.json */; };
+		D5120000000000000001000B /* Dragon_Level_11.json in Resources */ = {isa = PBXBuildFile; fileRef = D5120000000000000000000B /* Dragon_Level_11.json */; };
+		D5120000000000000001000C /* Dragon_Level_12.json in Resources */ = {isa = PBXBuildFile; fileRef = D5120000000000000000000C /* Dragon_Level_12.json */; };
+		D5120000000000000001000D /* Dragon_Level_13.json in Resources */ = {isa = PBXBuildFile; fileRef = D5120000000000000000000D /* Dragon_Level_13.json */; };
+		D5120000000000000001000E /* Dragon_Level_14.json in Resources */ = {isa = PBXBuildFile; fileRef = D5120000000000000000000E /* Dragon_Level_14.json */; };
+		D5120000000000000001000F /* Dragon_Level_15.json in Resources */ = {isa = PBXBuildFile; fileRef = D5120000000000000000000F /* Dragon_Level_15.json */; };
+		D51200000000000000010010 /* Dragon_Level_16.json in Resources */ = {isa = PBXBuildFile; fileRef = D51200000000000000000010 /* Dragon_Level_16.json */; };
+		D51200000000000000010011 /* Dragon_Level_17.json in Resources */ = {isa = PBXBuildFile; fileRef = D51200000000000000000011 /* Dragon_Level_17.json */; };
+		D51200000000000000010012 /* Dragon_Level_18.json in Resources */ = {isa = PBXBuildFile; fileRef = D51200000000000000000012 /* Dragon_Level_18.json */; };
+		D51200000000000000010013 /* Dragon_Level_19.json in Resources */ = {isa = PBXBuildFile; fileRef = D51200000000000000000013 /* Dragon_Level_19.json */; };
+		D51200000000000000010014 /* Dragon_Level_20.json in Resources */ = {isa = PBXBuildFile; fileRef = D51200000000000000000014 /* Dragon_Level_20.json */; };
 		D51106000000000000010001 /* NativePauseActivationButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = D51106000000000000000001 /* NativePauseActivationButton.swift */; };
 		D51105000000000000010012 /* SpeechAccessibilityPreferenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D51105000000000000000012 /* SpeechAccessibilityPreferenceTests.swift */; };
 		D51105000000000000010011 /* BoardAccessibilityRowElement.swift in Sources */ = {isa = PBXBuildFile; fileRef = D51105000000000000000011 /* BoardAccessibilityRowElement.swift */; };
@@ -282,6 +308,32 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		D51300000000000000000006 /* PremiumAndCollectionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringFestivalCrushTests/PremiumAndCollectionTests.swift; sourceTree = SOURCE_ROOT; };
+		D51300000000000000000001 /* PremiumStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringFestivalCrush/Util/PremiumStore.swift; sourceTree = SOURCE_ROOT; };
+		D51300000000000000000002 /* PremiumView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringFestivalCrush/View/PremiumView.swift; sourceTree = SOURCE_ROOT; };
+		D51300000000000000000003 /* ZodiacCollection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringFestivalCrush/Model/Rewards/ZodiacCollection.swift; sourceTree = SOURCE_ROOT; };
+		D51300000000000000000004 /* ZodiacCollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringFestivalCrush/View/ZodiacCollectionView.swift; sourceTree = SOURCE_ROOT; };
+		D51300000000000000000005 /* Premium.storekit */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstorekit; path = SpringFestivalCrushTests/Premium.storekit; sourceTree = SOURCE_ROOT; };
+		D51200000000000000000001 /* Dragon_Level_1.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "SpringFestivalCrush/Levels/Dragon/Dragon_Level_1.json"; sourceTree = SOURCE_ROOT; };
+		D51200000000000000000002 /* Dragon_Level_2.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "SpringFestivalCrush/Levels/Dragon/Dragon_Level_2.json"; sourceTree = SOURCE_ROOT; };
+		D51200000000000000000003 /* Dragon_Level_3.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "SpringFestivalCrush/Levels/Dragon/Dragon_Level_3.json"; sourceTree = SOURCE_ROOT; };
+		D51200000000000000000004 /* Dragon_Level_4.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "SpringFestivalCrush/Levels/Dragon/Dragon_Level_4.json"; sourceTree = SOURCE_ROOT; };
+		D51200000000000000000005 /* Dragon_Level_5.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "SpringFestivalCrush/Levels/Dragon/Dragon_Level_5.json"; sourceTree = SOURCE_ROOT; };
+		D51200000000000000000006 /* Dragon_Level_6.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "SpringFestivalCrush/Levels/Dragon/Dragon_Level_6.json"; sourceTree = SOURCE_ROOT; };
+		D51200000000000000000007 /* Dragon_Level_7.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "SpringFestivalCrush/Levels/Dragon/Dragon_Level_7.json"; sourceTree = SOURCE_ROOT; };
+		D51200000000000000000008 /* Dragon_Level_8.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "SpringFestivalCrush/Levels/Dragon/Dragon_Level_8.json"; sourceTree = SOURCE_ROOT; };
+		D51200000000000000000009 /* Dragon_Level_9.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "SpringFestivalCrush/Levels/Dragon/Dragon_Level_9.json"; sourceTree = SOURCE_ROOT; };
+		D5120000000000000000000A /* Dragon_Level_10.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "SpringFestivalCrush/Levels/Dragon/Dragon_Level_10.json"; sourceTree = SOURCE_ROOT; };
+		D5120000000000000000000B /* Dragon_Level_11.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "SpringFestivalCrush/Levels/Dragon/Dragon_Level_11.json"; sourceTree = SOURCE_ROOT; };
+		D5120000000000000000000C /* Dragon_Level_12.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "SpringFestivalCrush/Levels/Dragon/Dragon_Level_12.json"; sourceTree = SOURCE_ROOT; };
+		D5120000000000000000000D /* Dragon_Level_13.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "SpringFestivalCrush/Levels/Dragon/Dragon_Level_13.json"; sourceTree = SOURCE_ROOT; };
+		D5120000000000000000000E /* Dragon_Level_14.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "SpringFestivalCrush/Levels/Dragon/Dragon_Level_14.json"; sourceTree = SOURCE_ROOT; };
+		D5120000000000000000000F /* Dragon_Level_15.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "SpringFestivalCrush/Levels/Dragon/Dragon_Level_15.json"; sourceTree = SOURCE_ROOT; };
+		D51200000000000000000010 /* Dragon_Level_16.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "SpringFestivalCrush/Levels/Dragon/Dragon_Level_16.json"; sourceTree = SOURCE_ROOT; };
+		D51200000000000000000011 /* Dragon_Level_17.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "SpringFestivalCrush/Levels/Dragon/Dragon_Level_17.json"; sourceTree = SOURCE_ROOT; };
+		D51200000000000000000012 /* Dragon_Level_18.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "SpringFestivalCrush/Levels/Dragon/Dragon_Level_18.json"; sourceTree = SOURCE_ROOT; };
+		D51200000000000000000013 /* Dragon_Level_19.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "SpringFestivalCrush/Levels/Dragon/Dragon_Level_19.json"; sourceTree = SOURCE_ROOT; };
+		D51200000000000000000014 /* Dragon_Level_20.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "SpringFestivalCrush/Levels/Dragon/Dragon_Level_20.json"; sourceTree = SOURCE_ROOT; };
 		D51106000000000000000001 /* NativePauseActivationButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Components/NativePauseActivationButton.swift"; sourceTree = "<group>"; };
 		D51105000000000000000012 /* SpeechAccessibilityPreferenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SpringFestivalCrushTests/SpeechAccessibilityPreferenceTests.swift"; sourceTree = SOURCE_ROOT; };
 		D51105000000000000000011 /* BoardAccessibilityRowElement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Components/BoardAccessibilityRowElement.swift"; sourceTree = "<group>"; };
@@ -699,6 +751,8 @@
 				D51105000000000000000009 /* TimedLevelAccessibilityTests.swift */,
 				D5102300000000000000000B /* BoardScoutingLayoutTests.swift */,
 				D5102300000000000000000C /* CapstoneContentTests.swift */,
+				D51300000000000000000005 /* Premium.storekit */,
+				D51300000000000000000006 /* PremiumAndCollectionTests.swift */,
 				9955DB8923D7E420007786D5 /* SpringFestivalCrush */,
 				C20260914000000000000002 /* ReleaseRegressionTests.swift */,
 				C260913C0000000000000001,
@@ -721,6 +775,10 @@
 		9955DB8923D7E420007786D5 /* SpringFestivalCrush */ = {
 			isa = PBXGroup;
 			children = (
+				D51300000000000000000001 /* PremiumStore.swift */,
+				D51300000000000000000002 /* PremiumView.swift */,
+				D51300000000000000000003 /* ZodiacCollection.swift */,
+				D51300000000000000000004 /* ZodiacCollectionView.swift */,
 				D51023000000000000000001 /* RetryAdvice.swift */,
 				D51023000000000000000002 /* BoardScoutingLayout.swift */,
 				D51023000000000000000003 /* BoardScoutingView.swift */,
@@ -730,6 +788,26 @@
 				D51023000000000000000007 /* Ox_Level_20.json */,
 				D51023000000000000000008 /* Tiger_Level_20.json */,
 				D51023000000000000000009 /* Rabbit_Level_20.json */,
+				D51200000000000000000001 /* Dragon_Level_1.json */,
+				D51200000000000000000002 /* Dragon_Level_2.json */,
+				D51200000000000000000003 /* Dragon_Level_3.json */,
+				D51200000000000000000004 /* Dragon_Level_4.json */,
+				D51200000000000000000005 /* Dragon_Level_5.json */,
+				D51200000000000000000006 /* Dragon_Level_6.json */,
+				D51200000000000000000007 /* Dragon_Level_7.json */,
+				D51200000000000000000008 /* Dragon_Level_8.json */,
+				D51200000000000000000009 /* Dragon_Level_9.json */,
+				D5120000000000000000000A /* Dragon_Level_10.json */,
+				D5120000000000000000000B /* Dragon_Level_11.json */,
+				D5120000000000000000000C /* Dragon_Level_12.json */,
+				D5120000000000000000000D /* Dragon_Level_13.json */,
+				D5120000000000000000000E /* Dragon_Level_14.json */,
+				D5120000000000000000000F /* Dragon_Level_15.json */,
+				D51200000000000000000010 /* Dragon_Level_16.json */,
+				D51200000000000000000011 /* Dragon_Level_17.json */,
+				D51200000000000000000012 /* Dragon_Level_18.json */,
+				D51200000000000000000013 /* Dragon_Level_19.json */,
+				D51200000000000000000014 /* Dragon_Level_20.json */,
 				D51022000000000000000001 /* Level+GoalAwareHints.swift */,
 				D51022000000000000000002 /* GameScene+DeliveryExits.swift */,
 				D51022000000000000000003 /* CampaignLevelMetadata.swift */,
@@ -1035,7 +1113,7 @@
 		C20260914000000000000004 /* SpringFestivalCrushTests */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = C20260914000000000000008;
-			buildPhases = (C20260914000000000000005, C20260914000000000000006);
+			buildPhases = (C20260914000000000000005, C20260914000000000000006, D51300000000000000020001);
 			buildRules = ();
 			dependencies = (C20260914000000000000011);
 			name = SpringFestivalCrushTests;
@@ -1111,6 +1189,14 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		D51300000000000000020001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D51300000000000000010005 /* Premium.storekit in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		9955DB8523D7E420007786D5 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1119,6 +1205,26 @@
 				D51023000000000000010007 /* Ox_Level_20.json in Resources */,
 				D51023000000000000010008 /* Tiger_Level_20.json in Resources */,
 				D51023000000000000010009 /* Rabbit_Level_20.json in Resources */,
+				D51200000000000000010001 /* Dragon_Level_1.json in Resources */,
+				D51200000000000000010002 /* Dragon_Level_2.json in Resources */,
+				D51200000000000000010003 /* Dragon_Level_3.json in Resources */,
+				D51200000000000000010004 /* Dragon_Level_4.json in Resources */,
+				D51200000000000000010005 /* Dragon_Level_5.json in Resources */,
+				D51200000000000000010006 /* Dragon_Level_6.json in Resources */,
+				D51200000000000000010007 /* Dragon_Level_7.json in Resources */,
+				D51200000000000000010008 /* Dragon_Level_8.json in Resources */,
+				D51200000000000000010009 /* Dragon_Level_9.json in Resources */,
+				D5120000000000000001000A /* Dragon_Level_10.json in Resources */,
+				D5120000000000000001000B /* Dragon_Level_11.json in Resources */,
+				D5120000000000000001000C /* Dragon_Level_12.json in Resources */,
+				D5120000000000000001000D /* Dragon_Level_13.json in Resources */,
+				D5120000000000000001000E /* Dragon_Level_14.json in Resources */,
+				D5120000000000000001000F /* Dragon_Level_15.json in Resources */,
+				D51200000000000000010010 /* Dragon_Level_16.json in Resources */,
+				D51200000000000000010011 /* Dragon_Level_17.json in Resources */,
+				D51200000000000000010012 /* Dragon_Level_18.json in Resources */,
+				D51200000000000000010013 /* Dragon_Level_19.json in Resources */,
+				D51200000000000000010014 /* Dragon_Level_20.json in Resources */,
 				D51022000000000000010004 /* Rat_Level_18.json in Resources */,
 				D51022000000000000010005 /* Rat_Level_19.json in Resources */,
 				D51022000000000000010006 /* Ox_Level_18.json in Resources */,
@@ -1231,7 +1337,8 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		C20260914000000000000005 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (D51105000000000000010012 /* SpeechAccessibilityPreferenceTests.swift in Sources */, D5110500000000000001000F /* BoardScoutingAccessibilityTests.swift in Sources */, D5110500000000000001000E /* BoardAccessibilityBlastSummaryTests.swift in Sources */, D5110500000000000001000D /* BoardAccessibilityGoalSummaryTests.swift in Sources */, D51105000000000000010009 /* TimedLevelAccessibilityTests.swift in Sources */, D51105000000000000010006 /* BoardAccessibilityTests.swift in Sources */, D5102300000000000001000A /* RetryAdviceTests.swift in Sources */, D5102300000000000001000B /* BoardScoutingLayoutTests.swift in Sources */, D5102300000000000001000C /* CapstoneContentTests.swift in Sources */, D5102200000000000001000C /* GoalAwareHintTests.swift in Sources */, D5102200000000000001000D /* DeliveryTeachingTests.swift in Sources */, D5102200000000000001000E /* MasteryDeliveryContentTests.swift in Sources */, D5102200000000000001000F /* MasteryDeliveryRulesTests.swift in Sources */, D5102100000000000001000E /* ChocolateTurnCadenceTests.swift in Sources */, D5102100000000000001000C /* ExpansionContentTests.swift in Sources */, D5102100000000000001000D /* BlastPreviewInteractionTests.swift in Sources */, C20260914000000000000001, C260913D0000000000000001, C2609250B3B3000000000000, 7E127E7FCDD0CC4F55870073 /* LevelSimulator.swift */, 1F282741F9922248CEC7C1AE /* LevelBalanceTests.swift */); runOnlyForDeploymentPostprocessing = 0; };
+		C20260914000000000000005 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (
+				D51300000000000000010006 /* PremiumAndCollectionTests.swift in Sources */,D51105000000000000010012 /* SpeechAccessibilityPreferenceTests.swift in Sources */, D5110500000000000001000F /* BoardScoutingAccessibilityTests.swift in Sources */, D5110500000000000001000E /* BoardAccessibilityBlastSummaryTests.swift in Sources */, D5110500000000000001000D /* BoardAccessibilityGoalSummaryTests.swift in Sources */, D51105000000000000010009 /* TimedLevelAccessibilityTests.swift in Sources */, D51105000000000000010006 /* BoardAccessibilityTests.swift in Sources */, D5102300000000000001000A /* RetryAdviceTests.swift in Sources */, D5102300000000000001000B /* BoardScoutingLayoutTests.swift in Sources */, D5102300000000000001000C /* CapstoneContentTests.swift in Sources */, D5102200000000000001000C /* GoalAwareHintTests.swift in Sources */, D5102200000000000001000D /* DeliveryTeachingTests.swift in Sources */, D5102200000000000001000E /* MasteryDeliveryContentTests.swift in Sources */, D5102200000000000001000F /* MasteryDeliveryRulesTests.swift in Sources */, D5102100000000000001000E /* ChocolateTurnCadenceTests.swift in Sources */, D5102100000000000001000C /* ExpansionContentTests.swift in Sources */, D5102100000000000001000D /* BlastPreviewInteractionTests.swift in Sources */, C20260914000000000000001, C260913D0000000000000001, C2609250B3B3000000000000, 7E127E7FCDD0CC4F55870073 /* LevelSimulator.swift */, 1F282741F9922248CEC7C1AE /* LevelBalanceTests.swift */); runOnlyForDeploymentPostprocessing = 0; };
 		9955DB8323D7E420007786D5 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1337,6 +1444,10 @@
 				C2609250B1B1000000000008 /* ContinueOfferView.swift in Sources */,
 				C2609250B1B1000000000009 /* DailyEnvelopeView.swift in Sources */,
 				C2609250B1B100000000000A /* StarChestTrackView.swift in Sources */,
+				D51300000000000000010001 /* PremiumStore.swift in Sources */,
+				D51300000000000000010002 /* PremiumView.swift in Sources */,
+				D51300000000000000010003 /* ZodiacCollection.swift in Sources */,
+				D51300000000000000010004 /* ZodiacCollectionView.swift in Sources */,
 				C2609250B1B1000000000011 /* RuleHandbookView.swift in Sources */,
 				C2609250B1B100000000000B /* FestivalRewardArt.swift in Sources */,
 				C2609250B1B100000000000F /* MechanicPictograms.swift in Sources */,

@@ -660,14 +660,16 @@ class GameScene: SKScene {
             marker.lineWidth = 2
             marker.zPosition = 10
             overlayLayer.addChild(marker)
-        } else if let boss = gameModel.level.boss, boss.health > 0, boss.configuration.kind == .rabbit {
-            // The column the Jade Rabbit hops into next.
+        } else if let boss = gameModel.level.boss, boss.health > 0, [.rabbit, .dragon].contains(boss.configuration.kind) {
+            // The column the Jade Rabbit hops into, or the Dragon breathes down, next.
+            let laneTint: UIColor = boss.configuration.kind == .rabbit ? .systemPink
+                : (boss.nextBreathIsFrost ? .cyan : UIColor(hex: 0xFFC947))
             let marker = SKShapeNode(rectOf: CGSize(width: gameModel.tileSize.width - 2, height: gameModel.tileSize.height * CGFloat(gameModel.numRows)), cornerRadius: 5)
             marker.name = "bossThreat"
             marker.position = CGPoint(x: gameModel.tileSize.width * (CGFloat(boss.nextAttackLane % gameModel.numColumns) + 0.5),
                                       y: gameModel.tileSize.height * CGFloat(gameModel.numRows) / 2)
-            marker.strokeColor = boss.movesUntilAttack == 1 ? .systemOrange : .systemPink
-            marker.fillColor = UIColor.systemPink.withAlphaComponent(0.08)
+            marker.strokeColor = boss.movesUntilAttack == 1 ? .systemOrange : laneTint
+            marker.fillColor = laneTint.withAlphaComponent(0.08)
             marker.lineWidth = 2
             marker.zPosition = 10
             overlayLayer.addChild(marker)

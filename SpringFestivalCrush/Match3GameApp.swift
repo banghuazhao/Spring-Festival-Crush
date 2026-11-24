@@ -38,6 +38,7 @@ struct Match3GameApp: App {
                 .environmentObject(settingModel)
                 .environmentObject(themeModel)
                 .environment(\.gameReducedEffects, settingModel.reducedEffects)
+                .task { await PremiumStore.shared.start() }
                 .onChange(of: scenePhase) { _, newPhase in
                     print("scenePhase: \(newPhase)")
                     if newPhase == .active {
@@ -47,7 +48,8 @@ struct Match3GameApp: App {
                         if newPhase == .active {
                             // A returning rewarded ad or system interruption must not trigger
                             // another full-screen ad, especially over an active game.
-                            if ad.appHasEnterBackgroundBefore,
+                            if !PremiumStore.shared.isPremium,
+                               ad.appHasEnterBackgroundBefore,
                                gameModel.gameState == .notStart,
                                !ToolRewardAdManager.shared.isPresenting {
                                 ad.tryToPresentAd()

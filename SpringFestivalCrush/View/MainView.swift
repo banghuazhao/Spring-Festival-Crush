@@ -50,6 +50,11 @@ struct MainView: View {
     @State private var showRuleHandbook = false
     /// A rule has unlocked that the player hasn't opened in the handbook yet.
     @State private var hasNewRules = false
+    @ObservedObject private var premium = PremiumStore.shared
+    @State private var showPremium = false
+    @State private var showCollection = false
+    @State private var hasNewCards = false
+    @State private var revealedCard: ZodiacCard?
 
     #if DEBUG
     @State private var showDebugMenu = false
@@ -79,6 +84,21 @@ struct MainView: View {
         }
     }
 
+    private func refreshCollectionDot() {
+        hasNewCards = ZodiacCardStore.hasUnseen(ZodiacCollection.cards(from: gameModel.zodiacRecords))
+    }
+
+    /// Waits for the game cover to finish closing, so the card has the screen to itself.
+    private func presentEarnedCard() {
+        guard let zodiac = gameModel.takeCardReveal(),
+              let card = ZodiacCollection.cards(from: gameModel.zodiacRecords).first(where: { $0.zodiac == zodiac })
+        else { return }
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(0.9))
+            revealedCard = card
+        }
+    }
+
     var body: some View {
         NavigationStack {
             SelectChineseZodiacView()
@@ -99,6 +119,40 @@ struct MainView: View {
                         .accessibilityLabel(Text("Daily red envelope"))
                         .accessibilityValue(dailyEnvelope.isReady ? Text("Ready to open") : Text("Opened today"))
                         .accessibilityIdentifier("daily-envelope-toolbar")
+                    }
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        if !premium.isPremium {
+                            Button {
+                                HapticManager.buttonTap()
+                                showPremium = true
+                            } label: {
+                                Image(systemName: "crown.fill")
+                                    .foregroundStyle(AppTheme.festivalGold)
+                            }
+                            .accessibilityLabel(Text("Premium"))
+                            .accessibilityIdentifier("premium-toolbar")
+                        }
+                    }
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button {
+                            HapticManager.buttonTap()
+                            showCollection = true
+                        } label: {
+                            Image(systemName: "rectangle.stack.fill")
+                                .foregroundStyle(AppTheme.festivalGold)
+                                .overlay(alignment: .topTrailing) {
+                                    if hasNewCards {
+                                        Circle()
+                                            .fill(AppTheme.festivalRed)
+                                            .overlay(Circle().stroke(.white, lineWidth: 1.5))
+                                            .frame(width: 10, height: 10)
+                                            .offset(x: 6, y: -5)
+                                    }
+                                }
+                        }
+                        .accessibilityLabel(Text("Zodiac collection"))
+                        .accessibilityValue(hasNewCards ? Text("New card") : Text(verbatim: ""))
+                        .accessibilityIdentifier("collection-toolbar")
                     }
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button {
@@ -152,6 +206,15 @@ struct MainView: View {
                 .onAppear {
                     gameModel.initializeRecords(modelContext: modelContext)
                     refreshRuleHandbookDot()
+                    refreshCollectionDot()
+                }
+                .sheet(isPresented: $showPremium) { PremiumView() }
+                .sheet(isPresented: $showCollection, onDismiss: refreshCollectionDot) {
+                    ZodiacCollectionView()
+                        .environmentObject(gameModel)
+                }
+                .sheet(item: $revealedCard, onDismiss: refreshCollectionDot) { card in
+                    ZodiacCardRevealView(card: card)
                 }
                 .sheet(isPresented: $showRuleHandbook, onDismiss: refreshRuleHandbookDot) {
                     RuleHandbookView()
@@ -179,6 +242,8 @@ struct MainView: View {
                     if !presenting {
                         dailyEnvelope.refresh()
                         refreshRuleHandbookDot()
+                        refreshCollectionDot()
+                        presentEarnedCard()
                     }
                 }
                 .onChange(of: settingModel.unlockAllLevels) { _, _ in refreshRuleHandbookDot() }

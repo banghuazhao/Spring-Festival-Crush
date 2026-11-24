@@ -63,23 +63,35 @@ struct ContinueOfferView: View {
                                     .foregroundStyle(AppTheme.festivalRed)
                                     .fixedSize(horizontal: false, vertical: true)
 
-                                CoinAmountChip(amount: "\(gameModel.coins)", size: 13)
-                                    .accessibilityElement(children: .ignore)
-                                    .accessibilityLabel(Text("Balance: \(gameModel.coins)"))
+                                if !offer.isFree {
+                                    CoinAmountChip(amount: "\(gameModel.coins)", size: 13)
+                                        .accessibilityElement(children: .ignore)
+                                        .accessibilityLabel(Text("Balance: \(gameModel.coins)"))
+                                }
                             }
                             Spacer(minLength: 0)
                         }
 
                         AttemptRecapView()
 
-                        Button(action: payWithCoins) {
-                            ContinuePurchaseLabel(grant: grantText, coinCost: offer.coinCost,
-                                                  grantsMoves: offer.grantsMoves)
+                        if offer.isFree {
+                            Button(action: payWithCoins) {
+                                Label { grantText } icon: { Image(systemName: "crown.fill") }
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.gameGold)
+                            .accessibilityIdentifier("continue-premium")
+                            .accessibilityLabel(Text("\(grantText), free with Premium"))
+                        } else {
+                            Button(action: payWithCoins) {
+                                ContinuePurchaseLabel(grant: grantText, coinCost: offer.coinCost,
+                                                      grantsMoves: offer.grantsMoves)
+                            }
+                            .buttonStyle(.gameGold)
+                            .opacity(canAfford ? 1 : 0.55)
+                            .accessibilityIdentifier("continue-coins")
+                            .accessibilityLabel(Text("\(grantText) for \(offer.coinCost) coins"))
                         }
-                        .buttonStyle(.gameGold)
-                        .opacity(canAfford ? 1 : 0.55)
-                        .accessibilityIdentifier("continue-coins")
-                        .accessibilityLabel(Text("\(grantText) for \(offer.coinCost) coins"))
 
                         if offer.allowsRewardedAd {
                             RewardedAdButton(title: "Watch Ad · Free Continue", systemImage: "play.rectangle.fill",
@@ -99,7 +111,7 @@ struct ContinueOfferView: View {
                         }
                         .buttonStyle(.gameIcon)
                         .accessibilityIdentifier("continue-decline")
-                        .accessibilityHint(Text("Ends this attempt and uses one life"))
+                        .accessibilityHint(gameModel.isPremium ? Text("Ends this attempt") : Text("Ends this attempt and uses one life"))
                     }
                     .foregroundStyle(AppTheme.ink)
                 }

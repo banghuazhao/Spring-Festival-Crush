@@ -6,7 +6,7 @@ struct LivesHeaderView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     var tint: Color = AppTheme.festivalRed
 
-    private var isFull: Bool { gameModel.lives == GameModel.maxLives }
+    private var isFull: Bool { gameModel.isPremium || gameModel.lives == GameModel.maxLives }
 
     var body: some View {
         if dynamicTypeSize.isAccessibilitySize {
@@ -21,10 +21,21 @@ struct LivesHeaderView: View {
             HStack(spacing: 5) {
                 Image(systemName: "heart.fill")
                     .foregroundStyle(AppTheme.festivalRed)
-                Text(verbatim: "\(gameModel.lives)/\(GameModel.maxLives)")
-                    .monospacedDigit()
-                    .accessibilityLabel(Text("\(gameModel.lives) of \(GameModel.maxLives) lives"))
-                if isFull {
+                if gameModel.isPremium {
+                    Image(systemName: "infinity")
+                        .font(.subheadline.weight(.black))
+                        .accessibilityLabel(Text("Unlimited lives"))
+                } else {
+                    Text(verbatim: "\(gameModel.lives)/\(GameModel.maxLives)")
+                        .monospacedDigit()
+                        .accessibilityLabel(Text("\(gameModel.lives) of \(GameModel.maxLives) lives"))
+                }
+                if gameModel.isPremium {
+                    Image(systemName: "crown.fill")
+                        .font(.caption2.weight(.black))
+                        .foregroundStyle(AppTheme.festivalGoldDark)
+                        .accessibilityHidden(true)
+                } else if isFull {
                     Text("FULL")
                         .font(.caption2.weight(.black))
                         .foregroundStyle(tint)
@@ -59,8 +70,14 @@ struct LivesHeaderView: View {
 
     private var expanded: some View {
         VStack(spacing: 10) {
-            Label("\(gameModel.lives)/\(GameModel.maxLives) lives", systemImage: "heart.fill")
-                .foregroundStyle(AppTheme.festivalRed)
+            Group {
+                if gameModel.isPremium {
+                    Label("Unlimited lives", systemImage: "heart.fill")
+                } else {
+                    Label("\(gameModel.lives)/\(GameModel.maxLives) lives", systemImage: "heart.fill")
+                }
+            }
+            .foregroundStyle(AppTheme.festivalRed)
             Label("\(gameModel.coins) coins", systemImage: "circle.fill")
                 .foregroundStyle(AppTheme.ink)
             if !isFull {

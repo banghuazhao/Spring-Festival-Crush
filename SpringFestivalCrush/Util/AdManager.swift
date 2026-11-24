@@ -40,7 +40,9 @@
             )
         }
 
+        @MainActor
         func tryToPresentAd() {
+            guard !PremiumStore.shared.isPremium else { return }
             if let gOpenAd = appOpenAd, wasLoadTimeLessThanNHoursAgo(thresholdN: 4) {
                 let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene
                 let window = windowScene?.windows.first

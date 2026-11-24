@@ -127,6 +127,9 @@ extension Level {
                 case .rabbit:
                     damage = Double(cleared.filter { board[$0]?.collectionType.isMatchableTo(.lantern) == true }.count)
                         + Double(directLocks + nearbyLocks) * 2
+                case .dragon:
+                    damage = Double(cleared.filter { board[$0]?.collectionType.isMatchableTo(.zodiac) == true }.count)
+                        + Double(active.count) * 3
                 }
                 benefit += 80 * min(Double(boss.health), damage)
             }

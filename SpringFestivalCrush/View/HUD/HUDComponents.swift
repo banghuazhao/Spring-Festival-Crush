@@ -62,6 +62,7 @@ struct BoosterItem: Identifiable {
     let idleGradient: LinearGradient
     let action: () -> Void
     let onRefill: () -> Void
+    var isUnlimited = false
 }
 
 struct BoosterTrayView: View {
@@ -103,6 +104,7 @@ struct BoosterTrayView: View {
                                     chargeCount(for: booster)
                                 }
                                 .padding(.leading, 7)
+                                .padding(.trailing, booster.isUnlimited ? 10 : 0)
                                 .frame(minWidth: 48, minHeight: 46)
                             }
                         }
@@ -110,10 +112,12 @@ struct BoosterTrayView: View {
                     }
                     .buttonStyle(.gameIcon)
                     .accessibilityLabel(Text(booster.title))
-                    .accessibilityValue(Text("\(booster.count) remaining"))
+                    .accessibilityValue(booster.isUnlimited ? Text("Unlimited") : Text("\(booster.count) remaining"))
                     .accessibilityAddTraits(booster.isActive ? .isSelected : [])
-                    .accessibilityHint(booster.count == 0 ? Text("Open ad refill") : Text("Use one charge without spending a move"))
+                    .accessibilityHint(booster.isUnlimited ? Text("Use without spending a move")
+                        : (booster.count == 0 ? Text("Open ad refill") : Text("Use one charge without spending a move")))
 
+                    if !booster.isUnlimited {
                     Button {
                         HapticManager.buttonTap()
                         booster.onRefill()
@@ -130,6 +134,7 @@ struct BoosterTrayView: View {
                     .buttonStyle(.gameIcon)
                     .accessibilityLabel(Text("Add \(booster.title)"))
                     .accessibilityHint("Watch an optional ad for one charge")
+                    }
                 }
                 .foregroundStyle(.white)
                 .background(booster.isActive ? booster.activeGradient : booster.idleGradient,
@@ -153,10 +158,17 @@ struct BoosterTrayView: View {
         }
     }
 
+    @ViewBuilder
     private func chargeCount(for booster: BoosterItem) -> some View {
-        Text("\(booster.count)")
-            .font(.system(.subheadline, design: .rounded, weight: .heavy))
-            .monospacedDigit()
+        if booster.isUnlimited {
+            Image(systemName: "infinity")
+                .font(.system(.subheadline, design: .rounded, weight: .black))
+                .foregroundStyle(AppTheme.festivalGold)
+        } else {
+            Text("\(booster.count)")
+                .font(.system(.subheadline, design: .rounded, weight: .heavy))
+                .monospacedDigit()
+        }
     }
 
 }

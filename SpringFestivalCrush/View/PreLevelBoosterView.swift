@@ -15,7 +15,8 @@ struct PreLevelBoosterView: View {
     let onClose: () -> Void
     let onStart: () -> Void
 
-    @State private var buyExtraMoves = false
+    /// Premium includes +5 moves on every level, so it starts selected; players can still turn it off.
+    @State private var buyExtraMoves = PremiumStore.shared.isPremium
     @State private var buyHammer = false
     @State private var buySwap = false
     @State private var previewLevel: Level?
@@ -40,7 +41,8 @@ struct PreLevelBoosterView: View {
     /// individually affordable, so selecting both used to charge for the first and then
     /// silently drop the second at Start — the player paid and got nothing.
     private var selectedCost: Int {
-        (buyExtraMoves ? GameModel.extraMovesBoosterCost : 0)
+        guard !gameModel.isPremium else { return 0 }
+        return (buyExtraMoves ? GameModel.extraMovesBoosterCost : 0)
             + (buyHammer ? GameModel.hammerBoosterCost : 0)
             + (buySwap ? GameModel.swapBoosterCost : 0)
     }
@@ -83,7 +85,7 @@ struct PreLevelBoosterView: View {
                             icon: "plus.circle.fill",
                             title: String(localized: "+\(GameModel.extraMovesBoosterAmount) Moves"),
                             detail: "More room to make a comeback",
-                            cost: GameModel.extraMovesBoosterCost,
+                            cost: gameModel.isPremium ? 0 : GameModel.extraMovesBoosterCost,
                             isSelected: $buyExtraMoves
                         ) {
                             HStack(spacing: 3) {
@@ -99,7 +101,8 @@ struct PreLevelBoosterView: View {
                             title: "Festival Hammer",
                             detail: "Clear any one tile",
                             cost: GameModel.hammerBoosterCost,
-                            isSelected: $buyHammer
+                            isSelected: $buyHammer,
+                            isIncluded: gameModel.isPremium
                         ) {
                             HStack(spacing: 3) {
                                 PictoTile(asset: "dumpling", size: 17)
@@ -113,7 +116,8 @@ struct PreLevelBoosterView: View {
                             title: "Ruyi Swap",
                             detail: "Swap any two tiles, no match needed",
                             cost: GameModel.swapBoosterCost,
-                            isSelected: $buySwap
+                            isSelected: $buySwap,
+                            isIncluded: gameModel.isPremium
                         ) {
                             HStack(spacing: 2) {
                                 PictoTile(asset: "redPocket", size: 17)
@@ -258,11 +262,15 @@ struct PreLevelBoosterView: View {
         detail: String,
         cost: Int,
         isSelected: Binding<Bool>,
+        isIncluded: Bool = false,
         @ViewBuilder art: () -> Art
     ) -> some View {
         // Already-selected rows stay tappable so a selection can always be undone.
-        let affordable = isSelected.wrappedValue || coinsRemaining >= cost
+        let affordable = isIncluded || isSelected.wrappedValue || coinsRemaining >= cost
+        let isChosen = isIncluded || isSelected.wrappedValue
         return Button {
+            // Premium tools are always on, so there is nothing to choose.
+            guard !isIncluded else { return }
             guard affordable else {
                 HapticManager.locked()
                 showInsufficientCoins = true
@@ -299,12 +307,21 @@ struct PreLevelBoosterView: View {
                     .frame(height: 18)
 
                 HStack(spacing: 3) {
-                    Image(systemName: "circle.inset.filled")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundStyle(AppTheme.festivalGoldDark)
-                    Text("\(cost)")
-                        .font(.system(size: 13, weight: .black, design: .rounded))
-                        .monospacedDigit()
+                    if isIncluded {
+                        Image(systemName: "infinity")
+                            .font(.system(size: 13, weight: .black))
+                            .foregroundStyle(AppTheme.festivalGoldDark)
+                    } else if cost == 0 {
+                        Text("FREE")
+                            .font(.system(size: 11, weight: .black, design: .rounded))
+                    } else {
+                        Image(systemName: "circle.inset.filled")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundStyle(AppTheme.festivalGoldDark)
+                        Text("\(cost)")
+                            .font(.system(size: 13, weight: .black, design: .rounded))
+                            .monospacedDigit()
+                    }
                 }
                 .padding(.horizontal, AppTheme.Space.sm)
                 .padding(.vertical, 2)
@@ -317,15 +334,15 @@ struct PreLevelBoosterView: View {
             .frame(maxWidth: .infinity)
             .background(
                 RoundedRectangle(cornerRadius: AppTheme.Radius.md, style: .continuous)
-                    .fill(isSelected.wrappedValue ? theme.sky : AppTheme.paper)
+                    .fill(isChosen ? theme.sky : AppTheme.paper)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: AppTheme.Radius.md, style: .continuous)
-                    .strokeBorder(isSelected.wrappedValue ? theme.accent : AppTheme.hairline,
-                                  lineWidth: isSelected.wrappedValue ? 2 : 1)
+                    .strokeBorder(isChosen ? theme.accent : AppTheme.hairline,
+                                  lineWidth: isChosen ? 2 : 1)
             )
             .overlay(alignment: .topTrailing) {
-                if isSelected.wrappedValue {
+                if isChosen {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 17, weight: .bold))
                         .symbolRenderingMode(.palette)
@@ -345,8 +362,11 @@ struct PreLevelBoosterView: View {
         .animation(reduceMotion ? nil : .spring(response: 0.28, dampingFraction: 0.65), value: isSelected.wrappedValue)
         .accessibilityElement(children: .ignore)
         .accessibilityAddTraits(.isButton)
-        .accessibilityLabel(Text("\(String(localized: String.LocalizationValue(title))), \(cost) coins. \(String(localized: String.LocalizationValue(detail)))"))
-        .accessibilityValue(isSelected.wrappedValue ? Text("Selected") : (affordable ? Text("Not selected") : Text("Not enough coins")))
-        .accessibilityAddTraits(isSelected.wrappedValue ? .isSelected : [])
+        .accessibilityLabel(cost == 0 || isIncluded
+            ? Text("\(String(localized: String.LocalizationValue(title))). \(String(localized: String.LocalizationValue(detail)))")
+            : Text("\(String(localized: String.LocalizationValue(title))), \(cost) coins. \(String(localized: String.LocalizationValue(detail)))"))
+        .accessibilityValue(isIncluded ? Text("Included with Premium")
+            : (isSelected.wrappedValue ? Text("Selected") : (affordable ? Text("Not selected") : Text("Not enough coins"))))
+        .accessibilityAddTraits(isChosen ? .isSelected : [])
     }
 }

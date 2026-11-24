@@ -126,7 +126,7 @@ final class ExpansionContentTests: XCTestCase {
     }
 
     func testPreplacedEnhancedTilesMatchTheNewBoardsColorPalettes() throws {
-        for chapter in ["Rat", "Ox", "Tiger", "Rabbit"] {
+        for chapter in ["Rat", "Ox", "Tiger", "Rabbit", "Dragon"] {
             for number in 16...17 {
                 let name = "\(chapter)_Level_\(number)"
                 let data = try XCTUnwrap(LevelData.loadFrom(file: name))

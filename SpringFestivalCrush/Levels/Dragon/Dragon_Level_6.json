@@ -1,0 +1,124 @@
+{
+  "tiles": [
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      3,
+      1,
+      1,
+      1,
+      3,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      5,
+      1,
+      6,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      3,
+      1,
+      1,
+      1,
+      3,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ]
+  ],
+  "moves": 13,
+  "levelGoal": {
+    "firstStarScore": 1260,
+    "secondStarScore": 8000,
+    "thirdStarScore": 18700,
+    "levelTarget": {
+      "lock": 4,
+      "lantern": 20
+    }
+  },
+  "difficulty": 3,
+  "possibleSymbols": [
+    "firecracker",
+    "redPocket",
+    "dumpling",
+    "bowl",
+    "lantern",
+    "zodiac"
+  ],
+  "snow": false,
+  "mechanicHint": "Double locks hold the lantern bridge."
+}

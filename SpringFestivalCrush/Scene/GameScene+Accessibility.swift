@@ -23,7 +23,7 @@ extension GameScene {
 
     func performAccessibleHammer(at cell: BoardAccessibilityCell) -> Task<Void, Never>? {
         guard canHandleBoardTouch, !boardSwapDispatchPending,
-              gameModel.hammerModeActive, gameModel.hammerCharges > 0,
+              gameModel.hammerModeActive, gameModel.canUseHammer,
               let level = gameModel.level,
               cell.column >= 0, cell.column < level.numColumns,
               cell.row >= 0, cell.row < level.numRows,

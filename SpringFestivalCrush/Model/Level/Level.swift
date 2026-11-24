@@ -840,6 +840,9 @@ class Level {
         case .rabbit:
             // Top of the column first, so the lock lands where the player is looking.
             targets = candidates.filter { $0.column == encounter.attackLane % numColumns }.reversed()
+        case .dragon:
+            // Breath falls from the top of the marked column.
+            targets = candidates.filter { $0.column == encounter.attackLane % numColumns }.reversed()
         }
         for target in targets.prefix(min(budget, encounter.configuration.kind == .ox ? 3 : 2)) {
             switch encounter.configuration.kind {
@@ -848,6 +851,8 @@ class Level {
                 target.type = .lock
                 tiles[target.column, target.row]?.type = .lock
             case .rat, .ox: target.armorLayers = 1
+            case .dragon:
+                if encounter.landedBreathIsFrost { target.iceLayer = 1 } else { target.armorLayers = 1 }
             }
         }
         return true

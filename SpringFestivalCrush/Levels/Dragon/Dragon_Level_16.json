@@ -1,0 +1,95 @@
+{
+  "tiles": [
+    [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      2,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      2,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1
+    ]
+  ],
+  "moves": 8,
+  "levelGoal": {
+    "firstStarScore": 1360,
+    "secondStarScore": 3300,
+    "thirdStarScore": 7300,
+    "levelTarget": {
+      "zodiac": 18,
+      "lock": 2
+    }
+  },
+  "difficulty": 5,
+  "possibleSymbols": [
+    "firecracker",
+    "redPocket",
+    "lantern",
+    "zodiac"
+  ],
+  "snow": false,
+  "mechanicHint": "A small sky bridge with no room to waste.",
+  "ice": [
+    [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      1,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ]
+}

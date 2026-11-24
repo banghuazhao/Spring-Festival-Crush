@@ -3,7 +3,7 @@ import XCTest
 
 @MainActor
 final class CapstoneContentTests: XCTestCase {
-    private let chapters = ["Rat", "Ox", "Tiger", "Rabbit"]
+    private let chapters = ["Rat", "Ox", "Tiger", "Rabbit", "Dragon"]
 
     func testCapstonesMixTwoGiftsWithAvailablePowerActivationGoals() throws {
         for chapter in chapters {

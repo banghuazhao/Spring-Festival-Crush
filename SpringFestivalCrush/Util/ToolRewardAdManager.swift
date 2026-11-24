@@ -14,7 +14,7 @@ final class ToolRewardAdManager: NSObject, ObservableObject, GADFullScreenConten
     private var reward: (() -> Void)?
 
     func load() async {
-        guard !isLoading, !isReady, !isPresenting else { return }
+        guard !PremiumStore.shared.isPremium, !isLoading, !isReady, !isPresenting else { return }
         #if DEBUG
         let unitID = "ca-app-pub-3940256099942544/1712485313"
         #else
@@ -44,7 +44,7 @@ final class ToolRewardAdManager: NSObject, ObservableObject, GADFullScreenConten
     }
 
     func show(onReward: @escaping () -> Void) {
-        guard isReady, !isPresenting, let ad else { return }
+        guard !PremiumStore.shared.isPremium, isReady, !isPresenting, let ad else { return }
         guard let scene = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene })
                 .first(where: { $0.activationState == .foregroundActive }),
               var presenter = scene.windows.first(where: \.isKeyWindow)?.rootViewController else {

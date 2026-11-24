@@ -26,6 +26,9 @@ final class ConsentManager: ObservableObject {
     @MainActor
     @discardableResult
     func gatherConsent() async -> Bool {
+        // Premium shows no ads, so it asks for no ad consent or tracking permission.
+        await PremiumStore.shared.start()
+        guard !PremiumStore.shared.isPremium else { return false }
         if let gathering { return await gathering.value }
         let task = Task { await runConsentFlow() }
         gathering = task

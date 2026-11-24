@@ -3,6 +3,7 @@
 // Copyright Apps Bay Limited. All rights reserved.
 //
 
+import Combine
 import SwiftData
 import SwiftUI
 
@@ -15,6 +16,21 @@ class GameModel: ObservableObject {
     @Published private(set) var bossStatus: BossEncounter?
     private var bossTurnPending = false
     private var modelContext: ModelContext?
+    private var premiumObserver: AnyCancellable?
+
+    init() {
+        // Lives, tools and result screens all read Premium through this model.
+        premiumObserver = PremiumStore.shared.objectWillChange.sink { [weak self] _ in
+            self?.objectWillChange.send()
+        }
+    }
+
+    // MARK: - Premium
+    var isPremium: Bool { PremiumStore.shared.isPremium }
+    var canPlay: Bool { isPremium || lives > 0 }
+    var canUseShuffle: Bool { isPremium || shuffleCharges > 0 }
+    var canUseHammer: Bool { isPremium || hammerCharges > 0 }
+    var canUseSwap: Bool { isPremium || swapCharges > 0 }
 
     // MARK: - Lives / energy
     static let maxLives = 10
@@ -50,7 +66,7 @@ class GameModel: ObservableObject {
     /// Spends one life when a level attempt is lost (out of moves). Starting or replaying a
     /// level does NOT cost a life — only failing one does. Safe to call unconditionally.
     private func loseLifeOnFailure() {
-        guard lives > 0 else { return }
+        guard !isPremium, lives > 0 else { return }
         lives -= 1
         if lastLifeLostTimestamp == 0 {
             lastLifeLostTimestamp = Date().timeIntervalSince1970
@@ -190,6 +206,7 @@ class GameModel: ObservableObject {
     @Published var toolNotice: String?
     @Published private(set) var victorySummary: VictorySummary?
     private var pendingTrailCelebration: VictorySummary?
+    private var pendingCardReveal: ChineseZodiac?
     private var attemptID = UUID()
 
     private func isCurrentAttempt(_ id: UUID) -> Bool {
@@ -341,21 +358,21 @@ class GameModel: ObservableObject {
 
     /// Applies a purchased "+moves" booster to the level about to start. Call before `selectLevel`.
     func applyExtraMovesBooster() {
-        guard coins >= Self.extraMovesBoosterCost else { return }
-        coins -= Self.extraMovesBoosterCost
+        guard isPremium || coins >= Self.extraMovesBoosterCost else { return }
+        if !isPremium { coins -= Self.extraMovesBoosterCost }
         pendingExtraMoves += Self.extraMovesBoosterAmount
     }
 
     /// Applies a purchased hammer charge to the level about to start. Call before `selectLevel`.
     func applyHammerBooster() {
-        guard coins >= Self.hammerBoosterCost else { return }
+        guard !isPremium, coins >= Self.hammerBoosterCost else { return }
         coins -= Self.hammerBoosterCost
         hammerCharges += 1
     }
 
     /// Applies a purchased Ruyi Swap charge to the level about to start. Call before `selectLevel`.
     func applySwapBooster() {
-        guard coins >= Self.swapBoosterCost else { return }
+        guard !isPremium, coins >= Self.swapBoosterCost else { return }
         coins -= Self.swapBoosterCost
         swapCharges += 1
     }
@@ -425,12 +442,12 @@ class GameModel: ObservableObject {
     @MainActor
     func useHammer(atColumn column: Int, row: Int) async {
         guard gameState == .inProgress, !isResolvingBoard,
-              hammerModeActive, hammerCharges > 0 else { return }
+              hammerModeActive, canUseHammer else { return }
         guard let chain = level.useHammer(atColumn: column, row: row) else { return }
         let attempt = attemptID
         isResolvingBoard = true
         defer { if isCurrentAttempt(attempt) { isResolvingBoard = false } }
-        hammerCharges -= 1
+        if !isPremium { hammerCharges -= 1 }
         hammerModeActive = false
         cascadeDepth = 0
         isTutorialHintActive = false
@@ -452,14 +469,14 @@ class GameModel: ObservableObject {
     @MainActor
     func useRuyiSwap(_ swap: Swap) async {
         guard gameState == .inProgress, !isResolvingBoard,
-              swapModeActive, swapCharges > 0,
+              swapModeActive, canUseSwap,
               swap.symbolA.isMovable(), swap.symbolB.isMovable(),
               abs(swap.symbolA.column - swap.symbolB.column) + abs(swap.symbolA.row - swap.symbolB.row) == 1
         else { return }
         let attempt = attemptID
         isResolvingBoard = true
         defer { if isCurrentAttempt(attempt) { isResolvingBoard = false } }
-        swapCharges -= 1
+        if !isPremium { swapCharges -= 1 }
         swapModeActive = false
         cascadeDepth = 0
         toolNotice = nil
@@ -492,7 +509,7 @@ class GameModel: ObservableObject {
     }
 
     func onTapShuffle() {
-        guard gameState == .inProgress, !isResolvingBoard, shuffleCharges > 0 else { return }
+        guard gameState == .inProgress, !isResolvingBoard, canUseShuffle else { return }
         guard let newSymbols = level.reshuffleExistingSymbols() else {
             toolNotice = String(localized: "No safe shuffle available. Your charge was kept.")
             return
@@ -504,7 +521,7 @@ class GameModel: ObservableObject {
         invokeCommand?(.hideTutorialHint)
         // Reserve a charge synchronously so rapid taps cannot launch overlapping shuffles.
         isResolvingBoard = true
-        shuffleCharges -= 1
+        if !isPremium { shuffleCharges -= 1 }
         hammerModeActive = false
         invokeCommand?(.setUserInteraction(false))
         Task { @MainActor in
@@ -542,7 +559,11 @@ class GameModel: ObservableObject {
         guard isCurrentAttempt(attempt) else { return }
         let next = currentZodiacRecord?.levelRecords.first { $0.number == currentLevel + 1 }
         let newlyUnlockedLevel = next?.isUnlocked == false ? next?.number : nil
+        // Only a first win over the chapter's guardian earns its card.
+        let earnedCard: ChineseZodiac? = currentLevelRecord?.isComplete == false
+            && currentLevel == ZodiacCollection.guardianLevel(for: zodiac.zodiacType) ? zodiac.zodiacType : nil
         updateRecord()
+        if let earnedCard { pendingCardReveal = earnedCard }
         coins += Self.levelWinCoinReward
         // The DEBUG demo (level -1) is not a real level, so it keeps no best score.
         let previousBest = currentLevel >= 1
@@ -554,7 +575,8 @@ class GameModel: ObservableObject {
             coins: Self.levelWinCoinReward, newlyUnlockedLevel: newlyUnlockedLevel,
             defeatedBoss: level.boss != nil,
             usedContinue: continuesUsed > 0,
-            previousBest: previousBest
+            previousBest: previousBest,
+            earnedCard: earnedCard
         )
         gameState = .win
         HapticManager.levelWin()
@@ -618,7 +640,8 @@ class GameModel: ObservableObject {
         if let offer = ContinueOffer.make(
             reason: reason, continuesUsed: continuesUsed,
             movesLeft: movesLeft, secondsLeft: secondsLeft,
-            piecesRemaining: remainingGoalPieces, progress: goalProgress
+            piecesRemaining: remainingGoalPieces, progress: goalProgress,
+            isPremium: isPremium
         ) {
             loseReason = reason
             self.deferredBossAdvance = deferredBossAdvance
@@ -913,7 +936,7 @@ class GameModel: ObservableObject {
             exitToMenu()
             return
         }
-        guard lives > 0 else {
+        guard canPlay else {
             // Out of lives — bounce to level select, which shows the lives countdown.
             exitToMenu()
             return
@@ -936,6 +959,12 @@ class GameModel: ObservableObject {
         defer { pendingTrailCelebration = nil }
         guard pendingTrailCelebration?.zodiac == zodiac.zodiacType else { return nil }
         return pendingTrailCelebration
+    }
+
+    /// The card to celebrate once the player is back on the map. Consumed exactly once.
+    func takeCardReveal() -> ChineseZodiac? {
+        defer { pendingCardReveal = nil }
+        return pendingCardReveal
     }
 
     func suggestedIdleSwap() -> Swap? {
@@ -964,7 +993,7 @@ class GameModel: ObservableObject {
     @MainActor
     func onTapTryAgainLevel() {
         guard gameState == .lose else { return }
-        guard currentLevel >= 1, lives > 0 else {
+        guard currentLevel >= 1, canPlay else {
             exitToMenu()
             return
         }

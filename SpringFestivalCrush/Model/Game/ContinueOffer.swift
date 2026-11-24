@@ -17,10 +17,12 @@ struct ContinueOffer: Equatable {
     let piecesRemaining: Int
     /// 0...1 progress toward the goals, so the offer can say how close the player came.
     let progress: Double
+    /// Premium continues cost nothing and have no per-attempt limit.
+    var isFree = false
 
-    var coinCost: Int { Self.coinCosts[min(index, Self.coinCosts.count - 1)] }
+    var coinCost: Int { isFree ? 0 : Self.coinCosts[min(index, Self.coinCosts.count - 1)] }
     /// A rewarded video can only pay for the first continue of each attempt.
-    var allowsRewardedAd: Bool { index == 0 }
+    var allowsRewardedAd: Bool { !isFree && index == 0 }
 
     /// Nil once the player has used every continue for this attempt.
     static func make(
@@ -29,9 +31,10 @@ struct ContinueOffer: Equatable {
         movesLeft: Int,
         secondsLeft: Int?,
         piecesRemaining: Int,
-        progress: Double
+        progress: Double,
+        isPremium: Bool = false
     ) -> ContinueOffer? {
-        guard continuesUsed < maxPerAttempt else { return nil }
+        guard isPremium || continuesUsed < maxPerAttempt else { return nil }
         // A timed level can run out of both at once; the offer refills whatever ran out.
         let grantsSeconds = reason == .outOfTime || secondsLeft == 0
         let grantsMoves = reason == .outOfMoves || movesLeft <= 0
@@ -41,7 +44,8 @@ struct ContinueOffer: Equatable {
             grantsMoves: grantsMoves,
             grantsSeconds: grantsSeconds,
             piecesRemaining: max(0, piecesRemaining),
-            progress: min(1, max(0, progress))
+            progress: min(1, max(0, progress)),
+            isFree: isPremium
         )
     }
 }

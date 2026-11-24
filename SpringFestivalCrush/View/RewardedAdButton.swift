@@ -21,6 +21,7 @@ struct RewardedAdButton: View {
 
     #if !targetEnvironment(macCatalyst)
     @ObservedObject private var adManager = ToolRewardAdManager.shared
+    @ObservedObject private var premium = PremiumStore.shared
 
     private var canRetry: Bool {
         !adManager.isLoading && !adManager.isReady && !adManager.isPresenting
@@ -38,16 +39,18 @@ struct RewardedAdButton: View {
 
     var body: some View {
         #if !targetEnvironment(macCatalyst)
-        Group {
-            if let compactLabel, !dynamicTypeSize.isAccessibilitySize {
-                compactButton(compactLabel)
-            } else {
-                fullButton
+        if !premium.isPremium {
+            Group {
+                if let compactLabel, !dynamicTypeSize.isAccessibilitySize {
+                    compactButton(compactLabel)
+                } else {
+                    fullButton
+                }
             }
-        }
-        .task { await adManager.load() }
-        .onChange(of: adManager.isPresenting) { _, presenting in
-            if !presenting { Task { await adManager.load() } }
+            .task { await adManager.load() }
+            .onChange(of: adManager.isPresenting) { _, presenting in
+                if !presenting { Task { await adManager.load() } }
+            }
         }
         #else
         EmptyView()

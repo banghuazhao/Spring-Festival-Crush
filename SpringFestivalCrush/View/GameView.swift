@@ -84,10 +84,11 @@ struct GameView: View {
                 title: String(localized: "Shuffle"), count: gameModel.shuffleCharges, isActive: false,
                 activeGradient: AppTheme.dangerGradient, idleGradient: AppTheme.lacquerGradient,
                 action: {
-                    if gameModel.shuffleCharges > 0 { gameModel.onTapShuffle() }
+                    if gameModel.canUseShuffle { gameModel.onTapShuffle() }
                     else { refillTool = .shuffle }
                 },
-                onRefill: { refillTool = .shuffle }
+                onRefill: { refillTool = .shuffle },
+                isUnlimited: gameModel.isPremium
             ),
             BoosterItem(
                 id: "hammer",
@@ -99,10 +100,11 @@ struct GameView: View {
                 activeGradient: AppTheme.dangerGradient,
                 idleGradient: AppTheme.lacquerGradient,
                 action: {
-                    if gameModel.hammerCharges > 0 { gameModel.hammerModeActive.toggle() }
+                    if gameModel.canUseHammer { gameModel.hammerModeActive.toggle() }
                     else { refillTool = .hammer }
                 },
-                onRefill: { refillTool = .hammer }
+                onRefill: { refillTool = .hammer },
+                isUnlimited: gameModel.isPremium
             ),
             BoosterItem(
                 id: "swap",
@@ -114,10 +116,11 @@ struct GameView: View {
                 activeGradient: AppTheme.dangerGradient,
                 idleGradient: AppTheme.lacquerGradient,
                 action: {
-                    if gameModel.swapCharges > 0 { gameModel.swapModeActive.toggle() }
+                    if gameModel.canUseSwap { gameModel.swapModeActive.toggle() }
                     else { refillTool = .swap }
                 },
-                onRefill: { refillTool = .swap }
+                onRefill: { refillTool = .swap },
+                isUnlimited: gameModel.isPremium
             )
         ]
     }

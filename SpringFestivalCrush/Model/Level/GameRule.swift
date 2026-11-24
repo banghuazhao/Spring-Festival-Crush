@@ -29,6 +29,7 @@ enum GameRule: String, CaseIterable, Identifiable {
     case oxGuardian
     case tigerGuardian
     case rabbitGuardian
+    case dragonGuardian
 
     var id: String { rawValue }
 
@@ -50,7 +51,7 @@ enum GameRule: String, CaseIterable, Identifiable {
         case .vaultLock: String(localized: "Vault Lock")
         case .chocolate: String(localized: "Chocolate")
         case .giftDelivery: String(localized: "Gift Delivery")
-        case .ratGuardian, .oxGuardian, .tigerGuardian, .rabbitGuardian: guardian!.title
+        case .ratGuardian, .oxGuardian, .tigerGuardian, .rabbitGuardian, .dragonGuardian: guardian!.title
         }
     }
 
@@ -73,7 +74,7 @@ enum GameRule: String, CaseIterable, Identifiable {
         case .vaultLock: String(localized: "A vault lock needs three matches beside it: vault, double lock, lock, then open.")
         case .chocolate: String(localized: "Match beside chocolate to clear it. Any chocolate left can spread to one neighboring unprotected tile after each move.")
         case .giftDelivery: String(localized: "Clear tiles beneath gifts to help them reach a marked exit on the board's bottom row. A higher ledge is not an exit. Blasts and the Hammer can also collect gifts directly.")
-        case .ratGuardian, .oxGuardian, .tigerGuardian, .rabbitGuardian: guardian!.instructions
+        case .ratGuardian, .oxGuardian, .tigerGuardian, .rabbitGuardian, .dragonGuardian: guardian!.instructions
         }
     }
 
@@ -83,6 +84,7 @@ enum GameRule: String, CaseIterable, Identifiable {
         case .oxGuardian: .ox
         case .tigerGuardian: .tiger
         case .rabbitGuardian: .rabbit
+        case .dragonGuardian: .dragon
         default: nil
         }
     }
@@ -108,7 +110,7 @@ enum GameRule: String, CaseIterable, Identifiable {
             let target = data.levelGoal.levelTarget
             return [target.lightningCombos, target.fiveCombos, target.enhancedCombos].contains { ($0 ?? 0) > 0 }
         case .giftDelivery: return has(.ingredient) || (data.levelGoal.levelTarget.ingredient ?? 0) > 0
-        case .ratGuardian, .oxGuardian, .tigerGuardian, .rabbitGuardian: return data.boss?.kind == guardian
+        case .ratGuardian, .oxGuardian, .tigerGuardian, .rabbitGuardian, .dragonGuardian: return data.boss?.kind == guardian
         case .goals, .swapMatch, .combos, .cascade: return false
         }
     }

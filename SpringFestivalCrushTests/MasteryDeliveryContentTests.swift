@@ -3,7 +3,7 @@ import XCTest
 
 @MainActor
 final class MasteryDeliveryContentTests: XCTestCase {
-    private let chapters = ["Rat", "Ox", "Tiger", "Rabbit"]
+    private let chapters = ["Rat", "Ox", "Tiger", "Rabbit", "Dragon"]
 
     func testMasteryGoalsStartWithEveryRequestedKindOfPower() throws {
         for chapter in chapters {

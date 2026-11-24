@@ -22,6 +22,7 @@ extension BossConfiguration.Kind {
         case .ox: "🐮"
         case .tiger: "🐯"
         case .rabbit: "🐰"
+        case .dragon: "🐲"
         }
     }
 
@@ -44,6 +45,10 @@ extension BossConfiguration.Kind {
         case (.rabbit, .attack): String(localized: "Locked by moonlight!")
         case (.rabbit, .hit): String(localized: "Eek! My lanterns!")
         case (.rabbit, .defeated): String(localized: "Back to the moon I go…")
+        case (.dragon, .windUp): String(localized: "The clouds are gathering…")
+        case (.dragon, .attack): String(localized: "Feel the sky's breath!")
+        case (.dragon, .hit): String(localized: "Roar! My pearl!")
+        case (.dragon, .defeated): String(localized: "Ride the clouds, traveler.")
         }
     }
 }
