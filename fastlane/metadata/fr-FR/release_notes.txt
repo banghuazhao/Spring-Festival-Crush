@@ -1,5 +1,4 @@
-• Jouez sur le plateau avec VoiceOver, qui lit les détails des tuiles, les objectifs et les aperçus des bonus.
-• Parcourez le plateau au clavier ou avec les groupes de lignes du contrôle de sélection.
-• Choisissez des annonces brèves ou détaillées et réécoutez le résultat du dernier coup.
-• Pour les niveaux chronométrés, choisissez du temps supplémentaire ou un mode sans limite de temps.
-• Les textes suivent la taille définie dans vos réglages, et le focus est plus prévisible après une pause et sur les écrans de résultats.
+• Découvrez le nouveau chapitre du Dragon avec 20 niveaux du Palais des Nuages et des graphismes assortis.
+• Consultez votre collection du zodiaque et suivez la progression des chapitres depuis la carte d’accueil.
+• Débloquez Premium en option pour supprimer les publicités.
+• Profitez de menus plus clairs, d’une carte peaufinée et d’écrans de résultats plus fluides.

@@ -1,5 +1,4 @@
-- Play puzzle boards with VoiceOver, including spoken tile details, goals and power-up previews.
-- Explore with keyboard controls and Switch Control row groups.
-- Choose brief or detailed announcements and replay the last move result.
-- Use extra-time or untimed modes for timed levels.
-- Enjoy scalable text and more predictable focus after pausing and on result screens.
+- Explore the new Dragon chapter with 20 Cloud Palace levels and matching board art.
+- Browse your zodiac collection and track chapter progress from the home map.
+- Optionally unlock Premium to remove ads.
+- Enjoy clearer menus, map polish, and smoother results screens.
